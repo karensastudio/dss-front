@@ -9,6 +9,8 @@ import { CgSpinner } from "react-icons/cg";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useSignIn } from "react-auth-kit";
+import { usePermify } from '@permify/react-role';
+
 
 export default function LoginPage() {
     const { getValues, register, handleSubmit, formState: { errors } } = useForm()
@@ -16,39 +18,46 @@ export default function LoginPage() {
     const [submitButtonStatus, setSubmitButtonStatus] = useState(null)
     
     const navigate = useNavigate();
-    const signIn = useSignIn()
+    const signIn = useSignIn();
+    const { setUser } = usePermify();
 
+    
     async function onSubmit(data) {
+        setSubmitButtonStatus('loading');
 
-        setSubmitButtonStatus('loading')
-
-        // call login api function 
-        const repsponse = await loginAPI({
+        const response = await loginAPI({
             email: data['email'],
             password: data['password']
-        }).then((response) => {
-            if (response.status == 'success') {
-
-                if (signIn(
-                    {
-                        token: response.response.token,
-                        expiresIn: 131400,
-                        tokenType: "Bearer",
-                        authState: response.response.user
-                    }
-                )) {
-                    setSubmitButtonStatus(null)
-                    navigate('/dashboard')
-                }
-                
-            } else {
-                setSubmitButtonStatus(null)
-                toast.error(response.message)
-            }
         });
 
-        setSubmitButtonStatus(null)
+        if (response.status === 'success') {
+            setUser({
+                id: response.response.user.roles.id,
+                roles: response.response.user.roles.name,
+                permissions: response.response.user.roles.name
+            });
 
+            signIn({
+                token: response.response.token,
+                expiresIn: 131400,
+                tokenType: "Bearer",
+                authState: response.response.user
+            });
+
+            setSubmitButtonStatus(null);
+            if (
+                !response.response.user.experience ||
+                !response.response.user.association ||
+                !response.response.user.initiation
+            ) {
+                navigate('/onboarding');
+            } else {
+                navigate('/');
+            }
+        } else {
+            setSubmitButtonStatus(null);
+            toast.error(response.message);
+        }
     }
 
     return (

@@ -71,3 +71,89 @@ export const loginAPI = async (request) => {
         }
     })
 };
+
+export const getMeAPI = async () => {
+    try {
+        const response = await youzAxios.get('/api/v1/auth/me');
+        
+        if (response.data.status === 'success') {
+            return {
+                status: 'success',
+                variant: 'default',
+                message: response.data.message,
+                response: response.data
+            };
+        } else {
+            return {
+                status: 'error',
+                variant: 'error',
+                message: response.data.message,
+                response: response.data
+            };
+        }
+    } catch (error) {
+        return {
+            status: 'error',
+            variant: 'error',
+            message: error.response?.data?.message || 'An error occurred',
+            response: error.response?.data || null
+        };
+    }
+};
+
+export const logoutAPI = async () => {
+    try {
+        const response = await youzAxios.post('/api/v1/auth/logout');
+        
+        if (response.data.status === 'success') {
+            return {
+                status: 'success',
+                variant: 'default',
+                message: response.data.message,
+                response: response.data
+            };
+        } else {
+            return {
+                status: 'error',
+                variant: 'error',
+                message: response.data.message,
+                response: response.data
+            };
+        }
+    } catch (error) {
+        return {
+            status: 'error',
+            variant: 'error',
+            message: error.response?.data?.message || 'An error occurred',
+            response: error.response?.data || null
+        };
+    }
+};
+
+export const changePasswordAPI = async (request) => {
+    return youzAxios.post('/api/v1/auth/change-password', request).then((response) => {
+        if (response.data.status == 'success') {
+            return {
+                status: 'success',
+                variant: 'default',
+                message: response.data.message,
+                response: response?.data
+            }
+        }
+        else {
+            return {
+                status: 'error',
+                variant: 'error',
+                message: response?.data?.message,
+                response: response
+            }
+        }
+    }).catch((response) => {
+        return {
+            status: 'error',
+            variant: 'error',
+            message: response?.response?.data?.message,
+            response: response?.response?.data
+        }
+    })
+};
