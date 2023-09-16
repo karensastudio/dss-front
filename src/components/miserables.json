@@ -1,0 +1,40 @@
+{
+  "nodes": [
+    {"id": "Low participatory culture.", "group": 0, "slug": "A13"},
+    {"id": "Napoleon", "group": 1, "slug": "A13"},
+    {"id": "Mlle.Baptistine", "group": 1, "slug": "A13"},
+    {"id": "Mme.Magloire", "group": 1, "slug": "A13"},
+    {"id": "CountessdeLo", "group": 1, "slug": "A13"},
+    {"id": "Geborand", "group": 1, "slug": "A13"},
+    {"id": "Champtercier", "group": 1, "slug": "A13"},
+    {"id": "Cravatte", "group": 1, "slug": "A13"},
+    {"id": "Count", "group": 1, "slug": "A13"},
+    {"id": "OldMan", "group": 1, "slug": "A13"},
+    {"id": "Labarre", "group": 2, "slug": "A13"},
+    {"id": "Valjean", "group": 2, "slug": "A13"},
+    {"id": "Marguerite", "group": 3, "slug": "A13"},
+    {"id": "Mme.deR", "group": 2, "slug": "A13"},
+    {"id": "Isabeau", "group": 2, "slug": "A13"},
+    {"id": "Gervais", "group": 2, "slug": "A13"}
+  ],
+  "links": [
+    {"source": "Napoleon", "target": "Low participatory culture.", "value": 1},
+    {"source": "Mlle.Baptistine", "target": "Low participatory culture.", "value": 8},
+    {"source": "Mme.Magloire", "target": "Low participatory culture.", "value": 10},
+    {"source": "Mme.Magloire", "target": "Mlle.Baptistine", "value": 6},
+    {"source": "CountessdeLo", "target": "Low participatory culture.", "value": 1},
+    {"source": "Geborand", "target": "Low participatory culture.", "value": 1},
+    {"source": "Champtercier", "target": "Low participatory culture.", "value": 1},
+    {"source": "Cravatte", "target": "Low participatory culture.", "value": 1},
+    {"source": "Count", "target": "Low participatory culture.", "value": 2},
+    {"source": "OldMan", "target": "Low participatory culture.", "value": 1},
+    {"source": "Valjean", "target": "Labarre", "value": 1},
+    {"source": "Valjean", "target": "Mme.Magloire", "value": 3},
+    {"source": "Valjean", "target": "Mlle.Baptistine", "value": 3},
+    {"source": "Valjean", "target": "Low participatory culture.", "value": 5},
+    {"source": "Marguerite", "target": "Valjean", "value": 1},
+    {"source": "Mme.deR", "target": "Valjean", "value": 1},
+    {"source": "Isabeau", "target": "Valjean", "value": 1},
+    {"source": "Gervais", "target": "Valjean", "value": 1}
+  ]
+}
