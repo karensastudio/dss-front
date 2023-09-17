@@ -644,6 +644,14 @@
   resolved "https://registry.npmjs.org/@remix-run/router/-/router-1.7.2.tgz"
   integrity sha512-7Lcn7IqGMV+vizMPoEl5F0XDshcdDYtMI6uJLQdQz5CfZAwy3vvGKYSUk789qndt5dEC4HfSjviSYlSoHGL2+A==
 
+"@tinymce/tinymce-react@^4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@tinymce/tinymce-react/-/tinymce-react-4.3.0.tgz#5e2f5a58526a1bba9710f54f5fcf16abd4c742a1"
+  integrity sha512-iB4cUsYfcJL4NGuKhqCGYuTmFTje3nPxyPv1HxprTsp/YMGuuiiSNWrv3zwI31QX5Cn8qeq9MrMDnbxuRugHyg==
+  dependencies:
+    prop-types "^15.6.2"
+    tinymce "^6.3.1"
+
 "@tweenjs/tween.js@18 - 21":
   version "21.0.0"
   resolved "https://registry.npmjs.org/@tweenjs/tween.js/-/tween.js-21.0.0.tgz"
@@ -3516,6 +3524,11 @@ tinycolor2@1, tinycolor2@^1.6.0:
   version "1.6.0"
   resolved "https://registry.npmjs.org/tinycolor2/-/tinycolor2-1.6.0.tgz"
   integrity sha512-XPaBkWQJdsf3pLKJV9p4qN/S+fm2Oj8AIPo1BTUhg5oxkvm9+SVEGFdhyOz7tTdUTfvxMiAs4sp6/eZO2Ew+pw==
+
+tinymce@^6.3.1:
+  version "6.7.0"
+  resolved "https://registry.yarnpkg.com/tinymce/-/tinymce-6.7.0.tgz#0ec245502cdefbfa0ff9042b423ac9a01e781423"
+  integrity sha512-Wf2RSobIXQ7XNw3/v4z1lPGiH3Pjsmc/6/7fG28aIS6uVWj/7IhvOPuwfJJDeOx0o0D3nSnoLHgR2KU8JAdE+w==
 
 to-fast-properties@^2.0.0:
   version "2.0.0"

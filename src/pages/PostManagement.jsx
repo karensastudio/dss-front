@@ -10,6 +10,7 @@ import Select from 'react-select';
 import { getTagsApi } from "../api/tags";
 import { Categories } from "../data/posts/Categories";
 import { Priorities } from "../data/posts/Priorities";
+import { Editor } from "@tinymce/tinymce-react";
 
 export default function PostManagementPage({ postId }) {
 
@@ -19,6 +20,13 @@ export default function PostManagementPage({ postId }) {
   const [selectedPriority, setSelectedPriority] = useState(null);
   const [tagOptions, setTagOptions] = useState([]);
   const [selectedTag, setSelectedTag] = useState(null);
+
+  const editorRef = useRef(null);
+  const log = () => {
+    if (editorRef.current) {
+      console.log(editorRef.current.getContent());
+    }
+  };
 
   const isUpdate = !!postId;
 
@@ -123,7 +131,7 @@ export default function PostManagementPage({ postId }) {
         theme="dark"
       />
 
-      <section className="my-[55px] bg-[#202427] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px]">
+      <section className="my-[55px] bg-[#202427] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px]">
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-y-[19px] mb-[31px]">
             <Input
@@ -135,45 +143,57 @@ export default function PostManagementPage({ postId }) {
               rootClasses={'col-span-2 md:col-span-1'}
             />
 
-          <Select
-            defaultValue={selectedCategoty}
-            onChange={setSelectedCategory}
-            options={Categories}
-            className="dark" 
-            isClearable={true}
-            placeholder={<div>Categories</div>}
+            <Select
+              defaultValue={selectedCategoty}
+              onChange={setSelectedCategory}
+              options={Categories}
+              className="dark"
+              isClearable={true}
+              placeholder={<div>Categories</div>}
             />
 
-          <Select
-            defaultValue={selectedPriority}
-            onChange={setSelectedPriority}
-            options={Priorities}
-            isClearable={true}
-           placeholder={<div>Priorities</div>}
+            <Select
+              defaultValue={selectedPriority}
+              onChange={setSelectedPriority}
+              options={Priorities}
+              isClearable={true}
+              placeholder={<div>Priorities</div>}
             />
 
-          <Select
-          defaultValue={selectedTag}
-          onChange={setSelectedTag}
-          options={tagOptions}
-          isClearable={true}
-          isMulti
-          className="basic-multi-select"
-          classNamePrefix="select"
-          placeholder={<div>Tags</div>}
-          />
+            <Select
+              defaultValue={selectedTag}
+              onChange={setSelectedTag}
+              options={tagOptions}
+              isClearable={true}
+              isMulti
+              className="basic-multi-select"
+              classNamePrefix="select"
+              placeholder={<div>Tags</div>}
+            />
 
           </div>
 
-
-          <Input
-              name={'description'}
-              title={"Description"}
-              type={'text'}
-              register={register}
-              getValues={getValues}
-              rootClasses={'col-span-2 md:col-span-1'}
-            />
+          <Editor
+            apiKey='wbb8vh1ley0gypycs4vg2itj4ithfn8yq1ovtizf9zo97pvm'
+            onInit={(evt, editor) => editorRef.current = editor}
+            initialValue="<p>This is the initial content of the editor.</p>"
+            init={{
+              height: 500,
+              menubar: false,
+              content_css: 'dark',
+              skin: 'oxide-dark',
+              plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+              ],
+              toolbar: 'undo redo | blocks | ' +
+                'bold italic forecolor | alignleft aligncenter ' +
+                'alignright alignjustify | bullist numlist outdent indent | ' +
+                'removeformat | help',
+              content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+            }}
+          />
 
           <button
             type="submit"
