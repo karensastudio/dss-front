@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { ToastContainer, toast } from "react-toastify";
 import Input from "../utils/Input";
 import { useAuthHeader } from "react-auth-kit";
-import { createTagApi, getTagByIdApi, updateTagApi } from "../api/tags";
+import { createTagApi, getTagByIdApi, updateTagApi } from "../api/tag";
 
 export default function TagManagement({ tagId }) {
 

@@ -7,7 +7,7 @@ import Input from "../utils/Input";
 import { useAuthHeader } from "react-auth-kit";
 import { createPostApi, updatePostApi, getPostByIdApi } from "../api/post";
 import Select from 'react-select';
-import { getTagsApi } from "../api/tags";
+import { getTagsApi } from "../api/tag";
 import { Categories } from "../data/posts/Categories";
 import { Priorities } from "../data/posts/Priorities";
 
