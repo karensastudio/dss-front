@@ -5,3 +5,10 @@
 .node-label {
     color: #000000;
 }
+
+.css-13cymwt-control,
+.css-art2ul-ValueContainer2,
+#react-select-2-listbox {
+    background-color: #333 !important;
+    color: #fff;
+}
