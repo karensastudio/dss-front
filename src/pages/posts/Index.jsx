@@ -119,7 +119,7 @@ export default function PostIndexPage() {
                           <p className="font-medium text-white">{post.slug}</p>
                         </td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                          <Link to={`/posts/${post.id}`} className="text-gray-300 hover:text-gray-400">
+                          <Link to={`/posts/update/${post.id}`} className="text-gray-300 hover:text-gray-400">
                             Edit <span className="sr-only">, {post.title}</span>
                           </Link>
                           <Link className="text-red-300 hover:text-gray-400 ml-3" onClick={() => handleDeleteClick(post.id)}>
