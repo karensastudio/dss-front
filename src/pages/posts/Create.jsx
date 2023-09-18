@@ -8,11 +8,10 @@ import { useAuthHeader } from "react-auth-kit";
 import { createPostApi, updatePostApi, getPostByIdApi } from "../../api/post";
 import Select from 'react-select';
 import { getTagsApi } from "../../api/tag";
-import { Categories } from "../../data/posts/Categories";
-import { Priorities } from "../../data/posts/Priorities";
 
 import { Editor } from "@tinymce/tinymce-react";
 import { APIUploadFile } from "../../api/uploader";
+import { getUserPostsApi } from "../../api/userPost";
 
 const example_image_upload_handler = (blobInfo, progress) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
@@ -55,14 +54,14 @@ const example_image_upload_handler = (blobInfo, progress) => new Promise((resolv
 });
 
 
-export default function PostCreatePage({ postId }) {
+export default function PostCreatePage() {
 
   const { getValues, register, handleSubmit, formState: { errors } } = useForm()
   const authHeader = useAuthHeader();
-  const [selectedCategoty, setSelectedCategory] = useState(null);
-  const [selectedPriority, setSelectedPriority] = useState(null);
   const [tagOptions, setTagOptions] = useState([]);
-  const [selectedTag, setSelectedTag] = useState(null);
+  const [selectedTag, setSelectedTag] = useState([]);
+  const [parentOptions, setParentOptions] = useState([]);
+  const [selectedParent, setSelectedParent] = useState(null);
 
   const editorRef = useRef(null);
   const log = () => {
@@ -71,30 +70,35 @@ export default function PostCreatePage({ postId }) {
     }
   };
 
-  const isUpdate = !!postId;
-
-  useEffect(() => {
-    if (isUpdate) {
-      fetchPostData();
-    }
-  }, [isUpdate]);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await getTagsApi(authHeader());
-        if (response.status === "success") {
-          const tagOptions = response.response.tags.map((tag) => ({
+        const tagResponse = await getTagsApi(authHeader());
+        if (tagResponse.status === "success") {
+          const tagOptions = tagResponse.response.tags.map((tag) => ({
             value: tag.id.toString(),
             label: tag.name,
           }));
           setTagOptions(tagOptions);
         } else {
-          console.error("Error fetching tag options:", response);
-          toast.error(response.message);
+          console.error("Error fetching tag options:", tagResponse);
+          toast.error(tagResponse.message);
+        }
+
+        const parentResponse = await getUserPostsApi(authHeader());
+        if (parentResponse.status === "success") {
+          const allPosts = [...parentResponse.response.posts.A, ...parentResponse.response.posts.B];
+          const parentOptions = allPosts.map((post) => ({
+            value: post.id.toString(),
+            label: post.title,
+          }));
+          setParentOptions(parentOptions);
+        } else {
+          console.error("Error fetching parent options:", parentResponse);
+          toast.error(parentResponse.message);
         }
       } catch (error) {
-        console.error("Error fetching tag options:", error);
+        console.error("Error fetching data:", error);
       }
     };
 
@@ -103,61 +107,34 @@ export default function PostCreatePage({ postId }) {
 
 
   const onSubmit = async (data) => {
+    const description = editorRef.current.getContent();
+    const selectedTagValues = selectedTag?.map((tag) => tag.value);
+
     const postData = {
       title: data.title,
-      category: selectedCategoty,
-      priority: selectedPriority,
-      description: data.description,
-      parent_id: null,
-      tags: [0],
+      priority: data.priority,
+      description: description,
+      parent_id: selectedParent ? selectedParent.value : null,
+      tags: selectedTagValues,
     };
 
-    console.log(postData);
-    // try {
-    //   if (isUpdate) {
-    //     const response = await updatePostApi(authHeader(), postId, postData);
-    //     if (response.status === "success") {
-    //       toast.success(response.message);
-    //     } else {
-    //       console.error("Error updating post:", response);
-    //       toast.error(response.message);
-    //     }
-    //   } else {
-    //     const response = await createPostApi(authHeader(), postData);
-    //     if (response.status === "success") {
-    //       toast.success(response.message);
-    //     } else {
-    //       console.error("Error creating post:", response);
-    //       toast.error(response.message);
-    //     }
-    //   }
-    // } catch (error) {
-    //   console.error("Error:", error);
-    // }
-  };
-
-  const fetchPostData = async () => {
     try {
-      const response = await getPostByIdApi(authHeader(), postId);
-      if (response.status === "success") {
-        const postData = response.data;
-        getValues("title", postData.title);
-        getValues("category", postData.category);
-        getValues("priority", postData.priority);
-
-      } else {
-        console.error("Error fetching post data:", response);
-        toast.error(response.message);
-      }
+        const response = await createPostApi(authHeader(), postData);
+        if (response.status === "success") {
+          toast.success(response.message);
+        } else {
+          console.error("Error creating post:", response);
+          toast.error(response.message);
+        }
     } catch (error) {
-      console.error("Error fetching post data:", error);
+      console.error("Error:", error);
     }
   };
 
   return (
     <>
       <Helmet>
-        <title>DSS | {isUpdate ? "Edit Post" : "Create Post"}</title>
+        <title>DSS | Create Post</title>
       </Helmet>
 
       <Header />
@@ -175,83 +152,93 @@ export default function PostCreatePage({ postId }) {
       />
 
       <section className="my-[55px] bg-[#202427] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px]">
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="flex flex-col gap-y-[19px] mb-[31px]">
+        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-wrap gap-x-4">
+          <div className="flex-1">
             <Input
               name={'title'}
               title={"Title"}
               type={'text'}
               register={register}
               getValues={getValues}
-              rootClasses={'col-span-2 md:col-span-1'}
             />
-
-            <Select
-              defaultValue={selectedCategoty}
-              onChange={setSelectedCategory}
-              options={Categories}
-              className="dark"
-              isClearable={true}
-              placeholder={<div>Categories</div>}
-            />
-
-            <Select
-              defaultValue={selectedPriority}
-              onChange={setSelectedPriority}
-              options={Priorities}
-              isClearable={true}
-              placeholder={<div>Priorities</div>}
-            />
-
-            <Select
-              defaultValue={selectedTag}
-              onChange={setSelectedTag}
-              options={tagOptions}
-              isClearable={true}
-              isMulti
-              className="basic-multi-select"
-              classNamePrefix="select"
-              placeholder={<div>Tags</div>}
-            />
-
           </div>
 
-          <Editor
-            apiKey='wbb8vh1ley0gypycs4vg2itj4ithfn8yq1ovtizf9zo97pvm'
-            onInit={(evt, editor) => editorRef.current = editor}
-            init={{
-              height: 500,
-              menubar: false,
-              content_css: 'dark',
-              skin: 'oxide-dark',
-              relative_urls: true,
-              document_base_url: 'https://dss-beta.netlify.app/',
-              branding: false,
-              plugins: [
-                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
-              ],
-              toolbar: 'undo redo | blocks |' +
-                'bold italic forecolor | alignleft aligncenter ' +
-                'alignright alignjustify | bullist numlist outdent indent | ' +
-                'removeformat | image | table',
-              content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-              images_replace_blob_uris: true,
-              paste_data_images: false,
-              images_upload_url: 'http://51.15.192.255:8080/api/v1/files/upload',
-              images_upload_handler: example_image_upload_handler
-            }}
-          />
+          <div className="flex-1">
+            <Input
+              name={'priority'}
+              title={"Priority"}
+              type={'text'}
+              register={register}
+              getValues={getValues}
+            />
+          </div>
 
-          <button
-            type="submit"
-            className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full mt-4"
-          >
-            {isUpdate ? "Update Post" : "Create Post"}
-          </button>
+          <div className="w-full mt-4">
+            <Editor
+              apiKey='wbb8vh1ley0gypycs4vg2itj4ithfn8yq1ovtizf9zo97pvm'
+              onInit={(evt, editor) => editorRef.current = editor}
+              init={{
+                height: 500,
+                menubar: false,
+                content_css: 'dark',
+                skin: 'oxide-dark',
+                relative_urls: true,
+                document_base_url: 'https://dss-beta.netlify.app/',
+                branding: false,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                  'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks |' +
+                  'bold italic forecolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ' +
+                  'removeformat | image | table',
+                content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px }',
+                images_replace_blob_uris: true,
+                paste_data_images: false,
+                images_upload_url: 'http://51.15.192.255:8080/api/v1/files/upload',
+                images_upload_handler: example_image_upload_handler
+              }}
+            />
+          </div>
+          <div className="flex-1 mt-4">
+            <Select
+            defaultValue={selectedTag}
+            onChange={setSelectedTag}
+            options={tagOptions}
+            isClearable={true}
+            isMulti
+            className="basic-multi-select"
+            classNamePrefix="dark-select"
+            placeholder={<div>Tags</div>}
+            styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
+            />
+          </div>
+
+          <div className="flex-1 mt-4">
+            <Select
+              value={selectedParent}
+              onChange={(selectedOption) => setSelectedParent(selectedOption)}
+              options={parentOptions}
+              className="basic-select"
+              classNamePrefix="dark-select"
+              placeholder={<div>Parent</div>}
+              styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
+            />
+          </div>
+
+          <div className="w-full mt-4">
+            <button
+              type="submit"
+              className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full"
+            >
+              Create Post
+            </button>
+          </div>
         </form>
       </section>
+
     </>
   );
 }
