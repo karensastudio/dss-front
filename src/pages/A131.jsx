@@ -100,7 +100,7 @@ export default function A131Page() {
             </div>
 
             <div className="flex space-x-[16px] text-white text-[18px] items-center">
-            <label className="text-white text-[16px] cursor-pointer">
+            <label className="text-white text-[16px] cursor-pointer flex items-center">
               Add to My Decision
               <input
                 type="checkbox"
