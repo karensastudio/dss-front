@@ -107,6 +107,7 @@ export function ListOfContentSection() {
                 const response = await getUserPostsApi(authHeader());
                 if (response.status === 'success') {
                     setUserPosts(response.response.posts);
+                    console.log(response.response.posts);
                     setError(null);
                     setIsPostsLoading(false);
                 } else {
@@ -136,12 +137,12 @@ export function ListOfContentSection() {
                 <div className="flex items-center justify-center py-10">
                     <CgSpinner className="text-white text-[48px] animate-spin" />
                 </div>
-            ) : Object.keys(userPosts).reverse().map((category) => (
-                <Disclosure key={category}>
+            ) : userPosts.map((category) => (
+                <Disclosure key={category.id}>
                     {({ open = true }) => (
                         <section className="bg-[#41474D] px-[25px] py-[16px] rounded-[12px]">
                             <Disclosure.Button className="flex w-full justify-between items-center text-left text-[16px] font-medium text-white">
-                                <span>{userPosts[category][0].title}</span>
+                                <span>{category.title}</span>
                                 <div className="bg-[#0071FF] rounded-full p-[14px]">
                                     <BsChevronUp
                                         className={`${open ? 'rotate-180 transform' : 'rotate-90'
@@ -160,7 +161,7 @@ export function ListOfContentSection() {
                             >
                                 <Disclosure.Panel className="px-[27px] mt-[10px]">
                                     <div className="flex flex-col space-y-[16px]">
-                                        {userPosts[category].map((post) => (
+                                        {category.children.map((post) => (
                                             <a
                                                 key={post.id}
                                                 className={`text-[16px] leading-[24px] cursor-pointer ${highlightedPost?.id === post.id ? 'text-[#0071FF]' : 'text-white'
