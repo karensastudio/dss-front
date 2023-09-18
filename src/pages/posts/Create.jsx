@@ -218,7 +218,7 @@ export default function PostCreatePage() {
 
           <div className="flex-1 mt-4">
             <Select
-              value={selectedParent}
+              defaultValue={selectedParent}
               onChange={(selectedOption) => setSelectedParent(selectedOption)}
               options={parentOptions}
               className="basic-select"

@@ -37,3 +37,7 @@
     background-color: #444 !important;
     color: #fff;
 }
+
+.dark-select__single-value {
+    color: #fff !important;
+}
