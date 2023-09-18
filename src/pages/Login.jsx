@@ -31,12 +31,12 @@ export default function LoginPage() {
         });
 
         if (response.status === 'success') {
-            console.log(response);
-            // setUser({
-            //     id: response.response.user.roles.id,
-            //     roles: response.response.user.roles.name,
-            //     permissions: response.response.user.roles.name
-            // });
+            console.log(response.response.user.roles);
+            setUser({
+                id: response.response.user.id,
+                roles: response.response.user.roles.map(role => role.name),
+                permissions: response.response.user.roles.map(role => role.name)
+            });
 
             signIn({
                 token: response.response.token,

@@ -11,6 +11,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from "react-auth-kit";
 import { router } from "./routes";
 import { RecoilRoot } from "recoil";
+import { PermifyProvider } from "@permify/react-role";
 
 const noInternetNotifCustomButton = function () {
   function onClick() {
@@ -26,10 +27,12 @@ const noInternetNotifCustomButton = function () {
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <RecoilRoot>
-    <AuthProvider
-      authType={'localstorage'}
-      authName={'_auth'}>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <PermifyProvider>
+      <AuthProvider
+        authType={'localstorage'}
+        authName={'_auth'}>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </PermifyProvider>
   </RecoilRoot>
 );

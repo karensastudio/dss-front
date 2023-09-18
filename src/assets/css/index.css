@@ -6,9 +6,38 @@
     color: #000000;
 }
 
+.dark-select,
 .css-13cymwt-control,
 .css-art2ul-ValueContainer2,
-#react-select-2-listbox {
+.css-t3isps-control,
+.dark-select__control .dark-select__control--is-focused .dark-select__control--menu-is-open .dark-select__menu .dark-select__menu #react-select-2-listbox {
     background-color: #333 !important;
+    color: #fff !important;
+    border: 1px solid #555 !important;
+}
+
+.basic-multi-select>* {
+    background-color: #333 !important;
+    color: #fff !important;
+    border: 1px solid #555 !important;
+}
+
+.dark-select__multi-value>* {
+    background-color: #555 !important;
+    color: #fff !important;
+    border: 1px solid #555 !important;
+}
+
+.dark-select__multi-value {
+    background-color: transparent !important;
+}
+
+.dark-select__option:not(.menu-is-closed):hover,
+.dark-select__option:not(.menu-is-closed):focus-within {
+    background-color: #444 !important;
     color: #fff;
+}
+
+.dark-select__single-value {
+    color: #fff !important;
 }
