@@ -297,9 +297,13 @@ export function DecisionReportSection() {
                 ))}
             </div>
 
-            <a className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium">
-                Generate Decision Report
-            </a>
+            {
+                (decisions && decisions.length > 0) && (
+                    <a className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium">
+                        Generate Decision Report
+                    </a>
+                )
+            }
 
             {error && (
                 <div className="text-red-500">{error}</div>
