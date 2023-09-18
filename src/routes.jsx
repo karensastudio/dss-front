@@ -12,6 +12,7 @@ import A1Case from "./pages/A1Case";
 import TagCreatePage from "./pages/tags/Create";
 import PostCreatePage from "./pages/posts/Create";
 import TagIndexPage from "./pages/tags/Index";
+import TagUpdatePage from "./pages/tags/Update";
 // import ErrorPage from "./error-page";
 
 export const router = createBrowserRouter([
@@ -74,8 +75,8 @@ export const router = createBrowserRouter([
     },
     {
         path: "/tags/:tagId",
-        element: <TagCreatePage />,
-        // errorElement: <ErrorPage />
+        element: <TagUpdatePage />,
+        // errorElement: <tErrorPage />
     },
     {
         path: "/tags/create",
