@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import { useAuthHeader, useIsAuthenticated, useSignOut } from "react-auth-kit";
 import { logoutAPI } from "../api/auth";
+import { HasAccess } from "@permify/react-role";
 
 export default function Header() {
 
@@ -27,9 +28,21 @@ export default function Header() {
 
                 <div className="space-x-[24px]">
                     {isAuthenticated() ? (
-                        <button className="text-[14px] leading-[18px] font-medium text-white cursor-pointer" onClick={handleLogout}>
-                            Log out
-                        </button>
+                        <>
+                           <HasAccess roles={["super-admin"]} permissions={['post', 'tag']}>
+                                <button className="py-[11px] px-[24px] text-white bg-[#0071FF] rounded-full text-[14px] leading-[18px] font-medium cursor-pointer"
+                                onClick={() => navigate('/posts/managemnet')}>
+                                    Post management
+                                </button>
+                                <button className="py-[11px] px-[24px] text-white bg-[#0071FF] rounded-full text-[14px] leading-[18px] font-medium cursor-pointer"
+                                onClick={() => navigate('/tags/managemnet')}>
+                                     Tag management
+                                </button>
+                            </HasAccess>
+                            <button className="text-[14px] leading-[18px] font-medium text-white cursor-pointer" onClick={handleLogout}>
+                                Log out
+                            </button>
+                        </>
                     ) : (
                         <>
                             <a className="text-[14px] leading-[18px] font-medium text-white cursor-pointer" onClick={() => navigate('/login')}>
