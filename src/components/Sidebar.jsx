@@ -9,28 +9,35 @@ import { getPostBySlugApi, getUserPostsApi } from "../api/userPost";
 import { getBookmarksApi } from "../api/bookmark";
 import { getDecisionsApi } from "../api/decision";
 import { useNavigate } from "react-router-dom";
+import { set } from "react-hook-form";
+import { CgSpinner } from "react-icons/cg";
 
 export function SearchSection() {
     const authHeader = useAuthHeader();
     const [searchValue, setSearchValue] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+    const [isPostsLoading, setIsPostsLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
     const handleSearch = async () => {
         try {
+            setIsPostsLoading(true);
             const response = await searchAPI(authHeader(), searchValue);
             if (response.status === 'success') {
                 setSearchResults(response.response.posts);
                 setError(null);
+                setIsPostsLoading(false);
             } else {
                 setError(response.message);
                 setSearchResults([]);
+                setIsPostsLoading(false);
             }
         } catch (error) {
             console.error(error);
             setError('An unexpected error occurred.');
             setSearchResults([]);
+            setIsPostsLoading(false);
         }
     };
 
@@ -65,24 +72,30 @@ export function SearchSection() {
                 <p className="text-red-500">{error}</p>
             )}
 
-            {searchResults?.length > 0 && (
-                <div className="flex flex-col space-y-[16px]">
-                    {searchResults?.map((result) => (
-                        <div key={result.id} className={`text-[16px] leading-[24px] cursor-pointer ${result.highlight ? 'text-[#0071FF]' : 'text-white'}`}
-                            onClick={() => handleClickOnPost(result)}
-                        >
-                            {result.title}
+            {
+                isPostsLoading ? (
+                    <div className="flex items-center justify-center py-10">
+                        <CgSpinner className="text-white text-[48px] animate-spin" />
+                    </div>
+                ) :
+                    searchResults?.length > 0 && (
+                        <div className="flex flex-col space-y-[16px]">
+                            {searchResults?.map((result) => (
+                                <div key={result.id} className={`text-[16px] leading-[24px] cursor-pointer ${result.highlight ? 'text-[#0071FF]' : 'text-white'}`}
+                                    onClick={() => handleClickOnPost(result)}
+                                >
+                                    {result.title}
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-            )}
+                    )}
         </div>
     );
 }
 
-
 export function ListOfContentSection() {
     const [userPosts, setUserPosts] = useState([]);
+    const [isPostsLoading, setIsPostsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [highlightedPost, setHighlightedPost] = useState(null);
     const authHeader = useAuthHeader();
@@ -95,14 +108,17 @@ export function ListOfContentSection() {
                 if (response.status === 'success') {
                     setUserPosts(response.response.posts);
                     setError(null);
+                    setIsPostsLoading(false);
                 } else {
                     setError(response.message);
                     setUserPosts([]);
+                    setIsPostsLoading(false);
                 }
             } catch (error) {
                 console.error(error);
                 setError('An unexpected error occurred.');
                 setUserPosts([]);
+                setIsPostsLoading(false);
             }
         };
 
@@ -116,7 +132,11 @@ export function ListOfContentSection() {
 
     return (
         <div className="flex flex-col space-y-[16px] mt-[10px]">
-            {Object.keys(userPosts).reverse().map((category) => (
+            {isPostsLoading ? (
+                <div className="flex items-center justify-center py-10">
+                    <CgSpinner className="text-white text-[48px] animate-spin" />
+                </div>
+            ) : Object.keys(userPosts).reverse().map((category) => (
                 <Disclosure key={category}>
                     {({ open = true }) => (
                         <section className="bg-[#41474D] px-[25px] py-[16px] rounded-[12px]">
@@ -143,9 +163,8 @@ export function ListOfContentSection() {
                                         {userPosts[category].map((post) => (
                                             <a
                                                 key={post.id}
-                                                className={`text-[16px] leading-[24px] cursor-pointer ${
-                                                    highlightedPost?.id === post.id ? 'text-[#0071FF]' : 'text-white'
-                                                }`}
+                                                className={`text-[16px] leading-[24px] cursor-pointer ${highlightedPost?.id === post.id ? 'text-[#0071FF]' : 'text-white'
+                                                    }`}
                                                 onClick={() => handlePostClick(post)}
                                             >
                                                 {post.title}
@@ -165,10 +184,12 @@ export function ListOfContentSection() {
         </div>
     );
 }
+
 export function BookmarkSection() {
     const [bookmarks, setBookmarks] = useState([]);
     const [error, setError] = useState(null);
-    const [selectedBookmark, setSelectedBookmark] = useState(null); 
+    const [selectedBookmark, setSelectedBookmark] = useState(null);
+    const [isPostsLoading, setIsPostsLoading] = useState(true);
     const authHeader = useAuthHeader();
     const navigate = useNavigate();
 
@@ -179,14 +200,17 @@ export function BookmarkSection() {
                 if (response.status === 'success') {
                     setBookmarks(response.response.posts);
                     setError(null);
+                    setIsPostsLoading(false);
                 } else {
                     setError(response.message);
                     setBookmarks([]);
+                    setIsPostsLoading(false);
                 }
             } catch (error) {
                 console.error(error);
                 setError('An unexpected error occurred.');
                 setBookmarks([]);
+                setIsPostsLoading(false);
             }
         };
 
@@ -208,12 +232,15 @@ export function BookmarkSection() {
 
     return (
         <div className="flex flex-col space-y-[8px] mt-[10px]">
-            {bookmarks?.map((bookmark) => (
+            {isPostsLoading ? (
+                <div className="flex items-center justify-center py-10">
+                    <CgSpinner className="text-white text-[48px] animate-spin" />
+                </div>
+            ) : bookmarks?.map((bookmark) => (
                 <a
                     key={bookmark.id}
-                    className={`text-[16px] leading-[24px] flex items-center py-[10px] cursor-pointer ${
-                        bookmark.highlight ? 'text-[#0071FF]' : 'text-white' 
-                    }`}
+                    className={`text-[16px] leading-[24px] flex items-center py-[10px] cursor-pointer ${bookmark.highlight ? 'text-[#0071FF]' : 'text-white'
+                        }`}
                     onClick={() => handleBookmarkClick(bookmark)}
                 >
                     <BsBookmarkFill className="mr-[10px]" />
@@ -229,6 +256,7 @@ export function BookmarkSection() {
 export function DecisionReportSection() {
     const [decisions, setDecisions] = useState([]);
     const [error, setError] = useState(null);
+    const [isPostsLoading, setIsPostsLoading] = useState(true);
     const authHeader = useAuthHeader();
 
     useEffect(() => {
@@ -238,14 +266,17 @@ export function DecisionReportSection() {
                 if (response.status === 'success') {
                     setDecisions(response.response.posts);
                     setError(null);
+                    setIsPostsLoading(false);
                 } else {
                     setError(response.message);
                     setDecisions([]);
+                    setIsPostsLoading(false);
                 }
             } catch (error) {
                 console.error(error);
                 setError('An unexpected error occurred.');
                 setDecisions([]);
+                setIsPostsLoading(false);
             }
         };
 
@@ -254,22 +285,26 @@ export function DecisionReportSection() {
 
     return (
         <div className="flex flex-col mt-[10px]">
-        <div className="flex flex-col space-y-[16px] mb-[48px]">
-            {decisions.map((decision) => (
-                <a key={decision.id} className="text-white text-[16px] leading-[24px] flex items-center cursor-pointer">
-                    <span>{decision.title}</span>
-                </a>
-            ))}
+            <div className="flex flex-col space-y-[16px] mb-[48px]">
+                {isPostsLoading ? (
+                    <div className="flex items-center justify-center py-10">
+                        <CgSpinner className="text-white text-[48px] animate-spin" />
+                    </div>
+                ) : decisions.map((decision) => (
+                    <a key={decision.id} className="text-white text-[16px] leading-[24px] flex items-center cursor-pointer">
+                        <span>{decision.title}</span>
+                    </a>
+                ))}
+            </div>
+
+            <a className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium">
+                Generate Decision Report
+            </a>
+
+            {error && (
+                <div className="text-red-500">{error}</div>
+            )}
         </div>
-
-        <a className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium">
-            Generate Decision Report
-        </a>
-
-        {error && (
-            <div className="text-red-500">{error}</div>
-        )}
-    </div>
     )
 }
 
