@@ -48,9 +48,9 @@ export const getUserPostsApi = async (authHeader) => {
     })
 };
 
-  export const getPostByIdApi = async (authHeader, postId) => {
+  export const getPostBySlugApi = async (authHeader, slug) => {
     try {
-      const response = await youzAxios.get(`/api/v1/posts/${postId}`, {
+      const response = await youzAxios.get(`/api/v1/posts/${slug}`, {
         headers: {
           Authorization: authHeader
         }
