@@ -87,7 +87,7 @@ export default function PostCreatePage() {
 
         const parentResponse = await getUserPostsApi(authHeader());
         if (parentResponse.status === "success") {
-          const allPosts = [...parentResponse.response.posts.A, ...parentResponse.response.posts.B];
+          const allPosts = [...parentResponse.response.posts];
           const parentOptions = allPosts.map((post) => ({
             value: post.id.toString(),
             label: post.title,
@@ -188,12 +188,12 @@ export default function PostCreatePage() {
                 plugins: [
                   'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                   'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                  'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                  'insertdatetime', 'media', 'table', 'help', 'wordcount'
                 ],
                 toolbar: 'undo redo | blocks |' +
                   'bold italic forecolor link | alignleft aligncenter ' +
                   'alignright alignjustify | bullist numlist outdent indent | ' +
-                  'removeformat | image | table',
+                  'removeformat | image | table code',
                 content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px }',
                 images_replace_blob_uris: true,
                 paste_data_images: false,
