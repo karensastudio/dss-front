@@ -42,7 +42,7 @@ export function SearchSection() {
             };
         });
         setSearchResults(resultsWithHighlight);
-        navigate(`/A131/${result.slug}`);
+        navigate(`/posts/${result.slug}`);
     };
 
     return (
@@ -111,7 +111,7 @@ export function ListOfContentSection() {
 
     const handlePostClick = (clickedPost) => {
         setHighlightedPost(clickedPost);
-        navigate(`/A131/${clickedPost.slug}`);
+        navigate(`/posts/${clickedPost.slug}`);
     };
 
     return (
@@ -202,7 +202,7 @@ export function BookmarkSection() {
             };
         });
         setBookmarks(bookmarksWithHighlight);
-        navigate(`/A131/${bookmark.slug}`);
+        navigate(`/posts/${bookmark.slug}`);
 
     };
 

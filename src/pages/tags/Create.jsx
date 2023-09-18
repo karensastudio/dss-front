@@ -1,13 +1,13 @@
 import React, { useEffect } from "react";
 import { Helmet } from "react-helmet";
-import Header from "../components/Header";
+import Header from "../../components/Header";
 import { useForm } from "react-hook-form";
 import { ToastContainer, toast } from "react-toastify";
-import Input from "../utils/Input";
+import Input from "../../utils/Input";
 import { useAuthHeader } from "react-auth-kit";
-import { createTagApi, getTagByIdApi, updateTagApi } from "../api/tag";
+import { createTagApi, getTagByIdApi, updateTagApi } from "../../api/tag";
 
-export default function TagManagement({ tagId }) {
+export default function TagCreatePage({ tagId }) {
 
   const { getValues, register, handleSubmit, formState: { errors } } = useForm()
   const authHeader = useAuthHeader();

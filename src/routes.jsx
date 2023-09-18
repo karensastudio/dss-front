@@ -9,8 +9,9 @@ import A13Page from "./pages/A13";
 import A131Page from "./pages/A131";
 import A1IntroPage from "./pages/A1Intro";
 import A1Case from "./pages/A1Case";
-import PostManagementPage from "./pages/PostManagement";
-import TagManagement from "./pages/TagManagement";
+import TagCreatePage from "./pages/tags/Create";
+import PostCreatePage from "./pages/posts/Create";
+import TagIndexPage from "./pages/tags/Index";
 // import ErrorPage from "./error-page";
 
 export const router = createBrowserRouter([
@@ -55,18 +56,25 @@ export const router = createBrowserRouter([
         // errorElement: <ErrorPage />
     },
     {
-        path: "/A131/:slug",
+        path: "/posts/:slug",
         element: <A131Page />,
         // errorElement: <ErrorPage />
     },
     {
-        path: "/posts/managemnet",
-        element: <PostManagementPage />,
+        path: "/posts/create",
+        element: <PostCreatePage />,
+        // errorElement: <ErrorPage />
+    },
+
+    // Tags Admin
+    {
+        path: "/tags",
+        element: <TagIndexPage />,
         // errorElement: <ErrorPage />
     },
     {
-        path: "/tags/managemnet",
-        element: <TagManagement />,
+        path: "/tags/create",
+        element: <TagCreatePage />,
         // errorElement: <ErrorPage />
     }
 

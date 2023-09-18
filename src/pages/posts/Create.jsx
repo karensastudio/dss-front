@@ -1,18 +1,18 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
-import Header from "../components/Header";
+import Header from "../../components/Header";
 import { useForm } from "react-hook-form";
 import { ToastContainer, toast } from "react-toastify";
-import Input from "../utils/Input";
+import Input from "../../utils/Input";
 import { useAuthHeader } from "react-auth-kit";
-import { createPostApi, updatePostApi, getPostByIdApi } from "../api/post";
+import { createPostApi, updatePostApi, getPostByIdApi } from "../../api/post";
 import Select from 'react-select';
-import { getTagsApi } from "../api/tag";
-import { Categories } from "../data/posts/Categories";
-import { Priorities } from "../data/posts/Priorities";
+import { getTagsApi } from "../../api/tag";
+import { Categories } from "../../data/posts/Categories";
+import { Priorities } from "../../data/posts/Priorities";
 
 import { Editor } from "@tinymce/tinymce-react";
-import { APIUploadFile } from "../api/uploader";
+import { APIUploadFile } from "../../api/uploader";
 
 const example_image_upload_handler = (blobInfo, progress) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
@@ -55,7 +55,7 @@ const example_image_upload_handler = (blobInfo, progress) => new Promise((resolv
 });
 
 
-export default function PostManagementPage({ postId }) {
+export default function PostCreatePage({ postId }) {
 
   const { getValues, register, handleSubmit, formState: { errors } } = useForm()
   const authHeader = useAuthHeader();
