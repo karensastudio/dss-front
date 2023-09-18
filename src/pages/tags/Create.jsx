@@ -6,11 +6,13 @@ import { ToastContainer, toast } from "react-toastify";
 import Input from "../../utils/Input";
 import { useAuthHeader } from "react-auth-kit";
 import { createTagApi, getTagByIdApi, updateTagApi } from "../../api/tag";
+import { useNavigate } from "react-router-dom";
 
 export default function TagCreatePage({ tagId }) {
 
   const { getValues, register, handleSubmit, formState: { errors } } = useForm()
   const authHeader = useAuthHeader();
+  const navigate = useNavigate();
 
   const isUpdate = !!tagId;
 
@@ -31,6 +33,7 @@ export default function TagCreatePage({ tagId }) {
         const response = await updateTagApi(authHeader(), tagId, tagData);
         if (response.status === "success") {
           toast.success(response.message);
+          navigate('/tags');
         } else {
           console.error("Error updating tag:", response);
           toast.error(response.message);
@@ -39,6 +42,7 @@ export default function TagCreatePage({ tagId }) {
         const response = await createTagApi(authHeader(), tagData);
         if (response.status === "success") {
           toast.success(response.message);
+          navigate('/tags');
         } else {
           console.error("Error creating tag:", response);
           toast.error(response.message);
@@ -100,7 +104,7 @@ export default function TagCreatePage({ tagId }) {
 
           <button
             type="submit"
-            className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full mt-4"
+            className="bg-blue-700 hover:bg-blue-800 text-white text-sm py-3 px-5 rounded-full mt-4"
           >
             {isUpdate ? "Update Tag" : "Create Tag"}
           </button>

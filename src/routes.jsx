@@ -73,6 +73,11 @@ export const router = createBrowserRouter([
         // errorElement: <ErrorPage />
     },
     {
+        path: "/tags/:tagId",
+        element: <TagCreatePage />,
+        // errorElement: <ErrorPage />
+    },
+    {
         path: "/tags/create",
         element: <TagCreatePage />,
         // errorElement: <ErrorPage />

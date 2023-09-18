@@ -33,12 +33,12 @@ export default function Header() {
                         isAuthenticated() && (
                             <HasAccess roles={["super-admin"]} permissions={['post', 'tag']}>
                                 <button className="text-white rounded-full text-[14px] leading-[18px] font-medium cursor-pointer"
-                                    onClick={() => navigate('/posts/create')}>
-                                    Create Post
+                                    onClick={() => navigate('/tags')}>
+                                    Tags
                                 </button>
                                 <button className="text-white rounded-full text-[14px] leading-[18px] font-medium cursor-pointer"
-                                    onClick={() => navigate('/tags/create')}>
-                                    Create Tag
+                                    onClick={() => navigate('/posts/create')}>
+                                    Create Post
                                 </button>
                             </HasAccess>
                         )
