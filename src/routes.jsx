@@ -55,7 +55,7 @@ export const router = createBrowserRouter([
         // errorElement: <ErrorPage />
     },
     {
-        path: "/A131/:id",
+        path: "/A131/:slug",
         element: <A131Page />,
         // errorElement: <ErrorPage />
     },

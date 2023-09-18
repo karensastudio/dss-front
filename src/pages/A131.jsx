@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet";
 import Header from "../components/Header";
 import Input from "../utils/Input";
 import Checkbox from "../utils/Checkbox";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthHeader } from "react-auth-kit";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
@@ -10,25 +10,41 @@ import { BsBookmark, BsChevronLeft, BsShare } from "react-icons/bs";
 import UserLayout from "../layouts/User";
 import { attachDecisionApi, detachDecisionApi } from "../api/decision";
 import { attachBookmarkApi, detachBookmarkApi } from "../api/bookmark";
+import { getPostBySlugApi } from "../api/userPost";
 
 export default function A131Page() {
     const location = useLocation();
-    const [postData, setPostData] = useState(location.state?.postData); 
+    const [post, setPost] = useState([]);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate()
     const authHeader = useAuthHeader();
+    const slug = location.pathname.split("/")[2];
 
-    console.log(postData);
+    const fetchPostData = async () => {
+        try {
+          const response = await getPostBySlugApi(authHeader(), slug);
+          
+          if (response.status === 'success') {
+            setPost(response.response.post);
+          } else {
+            console.error(response.message);
+          }
+        } catch (error) {
+          console.error(error.message);
+        } finally {
+          setLoading(false);
+        }
+      };
+
 
     const handleBookmarkChange = async () => {
         try {
-            const updatedPostData = { ...postData, is_bookmark: !postData.is_bookmark };
-            setPostData(updatedPostData);
-
-
-            if (updatedPostData.is_bookmark) {
-                await detachBookmarkApi(authHeader(), postData.id);
+            if (post.is_bookmark) {
+                await detachBookmarkApi(authHeader(), post.id).then(() => {fetchPostData()});
+                toast.success("Bookmark removed");
             } else {
-                await attachBookmarkApi(authHeader(), postData.id);
+                await attachBookmarkApi(authHeader(), post.id).then(() => {fetchPostData()});
+                toast.success("Bookmark added");
             }
         } catch (error) {
             console.error(error);
@@ -37,18 +53,22 @@ export default function A131Page() {
 
     const handleDecisionChange = async () => {
         try {
-            const updatedPostData = { ...postData, is_decision: !postData.is_decision };
-            setPostData(updatedPostData);
-
-            if (updatedPostData.is_decision) {
-                await detachDecisionApi(authHeader(), postData.id);
+            if (post.is_decision) {
+                await detachDecisionApi(authHeader(), post.id).then(() => {fetchPostData()});
+                toast.success("Decision removed");
             } else {
-                await attachDecisionApi(authHeader(), postData.id);
+                await attachDecisionApi(authHeader(), post.id).then(() => {fetchPostData()});
+                toast.success("Decision added");
             }
         } catch (error) {
             console.error(error);
         }
     };
+
+    useEffect(() => {
+        fetchPostData();
+        console.log(post);
+      }, [slug]);
 
     return (
         <UserLayout pageTitle={'Homepage'}>
@@ -64,13 +84,12 @@ export default function A131Page() {
                 theme="dark"
             />
 
-            {postData && (
                 <div className="w-full">
                 <div className="mx-[40px] py-[24px] border-b-[1px] border-b-white flex items-center justify-between">
-                    <p className="text-white text-[14px] leading-[20px] text-opacity-60">Section A | Consideration A1 | {postData.category}{postData.priority}. {postData.title}</p>
+                    <p className="text-white text-[14px] leading-[20px] text-opacity-60">Section A | Consideration A1 | {post?.category}{post?.priority}. {post?.title}</p>
 
                     <div className="flex space-x-[16px] text-white text-[18px] cursor-pointer">
-                        <BsBookmark className={postData.is_bookmark ? "text-[#0071FF]" : ""} onClick={handleBookmarkChange}/>
+                        <BsBookmark   className={post?.is_bookmark ? "text-[#0071FF]" : ""} onClick={handleBookmarkChange}/>
                         <BsShare />
                     </div>
                 </div>
@@ -85,7 +104,7 @@ export default function A131Page() {
               Add to My Decision
               <input
                 type="checkbox"
-                checked={postData.is_decision}
+                checked={post?.is_decision}
                 onChange={handleDecisionChange}
                 className="w-[24px] h-[24px] rounded-[4px] bg-[#2B2F33] ml-[10px] inline-flex"
               />
@@ -94,12 +113,12 @@ export default function A131Page() {
             </div>
 
             <div className="mx-[40px] py-[16px]">
-            <h1 className="text-white text-[24px] leading-[32px]">{postData.title}</h1>
+            <h1 className="text-white text-[24px] leading-[32px]">{post?.title}</h1>
             </div>
 
             <div className="mx-[40px] py-[24px]">
             <div className="flex items-center justify-start space-x-[8px]">
-            {postData.tags.map((tag) => (
+            {post?.tags?.map((tag) => (
                 <span key={tag.id} className="px-[12px] py-[2px] text-[12px] leading-[20px] text-white rounded-full border-[1px] border-white">#{tag.name}</span>
             ))}
             </div>
@@ -107,7 +126,7 @@ export default function A131Page() {
 
             <div className="mx-[40px] py-[16px]">
             <p className="text-white text-[18px] leading-[24px]">
-                {postData.title}
+                {post?.title}
             </p>
             </div>
 
@@ -127,7 +146,6 @@ export default function A131Page() {
             </div>
 
             </div>
-            )}
 
         </UserLayout>
     )

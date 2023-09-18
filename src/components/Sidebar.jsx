@@ -42,18 +42,7 @@ export function SearchSection() {
             };
         });
         setSearchResults(resultsWithHighlight);
-
-        try {
-            const response = await getPostBySlugApi(authHeader(), result.slug);
-            if (response.status === 'success') {
-                navigate(`/A131/${result.id}`, { state: { postData: response.response.post } });
-            } else {
-                setError(response.message);
-            }
-        } catch (error) {
-            console.error(error);
-            setError('An unexpected error occurred while fetching the post data.');
-        }
+        navigate(`/A131/${result.slug}`);
     };
 
     return (
@@ -97,6 +86,7 @@ export function ListOfContentSection() {
     const [error, setError] = useState(null);
     const [highlightedPost, setHighlightedPost] = useState(null);
     const authHeader = useAuthHeader();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUserPosts = async () => {
@@ -119,20 +109,9 @@ export function ListOfContentSection() {
         fetchUserPosts();
     }, []);
 
-    const handlePostClick = async (clickedPost) => {
+    const handlePostClick = (clickedPost) => {
         setHighlightedPost(clickedPost);
-
-        try {
-            const response = await getPostBySlugApi(authHeader(), clickedPost.slug);
-            if (response.status === 'success') {
-                console.log(response.response.post);
-            } else {
-                setError(response.message);
-            }
-        } catch (error) {
-            console.error(error);
-            setError('An unexpected error occurred while fetching the post data.');
-        }
+        navigate(`/A131/${clickedPost.slug}`);
     };
 
     return (
@@ -191,6 +170,7 @@ export function BookmarkSection() {
     const [error, setError] = useState(null);
     const [selectedBookmark, setSelectedBookmark] = useState(null); 
     const authHeader = useAuthHeader();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchBookmarks = async () => {
@@ -222,18 +202,8 @@ export function BookmarkSection() {
             };
         });
         setBookmarks(bookmarksWithHighlight);
+        navigate(`/A131/${bookmark.slug}`);
 
-        try {
-            const response = await getPostBySlugApi(authHeader(), bookmark.slug);
-            if (response.status === 'success') {
-                console.log(response.response.post);
-            } else {
-                setError(response.message);
-            }
-        } catch (error) {
-            console.error(error);
-            setError('An unexpected error occurred while fetching the post data.');
-        }
     };
 
     return (
