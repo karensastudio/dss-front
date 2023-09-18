@@ -14,6 +14,7 @@ import PostCreatePage from "./pages/posts/Create";
 import TagIndexPage from "./pages/tags/Index";
 import TagUpdatePage from "./pages/tags/Update";
 import PostIndexPage from "./pages/posts/Index";
+import PostUpdatePage from "./pages/posts/Update";
 // import ErrorPage from "./error-page";
 
 export const router = createBrowserRouter([
@@ -74,11 +75,11 @@ export const router = createBrowserRouter([
         element: <PostIndexPage />,
         // errorElement: <ErrorPage />
     },
-    // {
-    //     path: "/posts/:postId",
-    //     element: <TagUpdatePage />,
-    //     // errorElement: <tErrorPage />
-    // },
+    {
+        path: "/posts/update/:postId",
+        element: <PostUpdatePage />,
+        // errorElement: <tErrorPage />
+    },
     {
         path: "/posts/create",
         element: <PostCreatePage />,
