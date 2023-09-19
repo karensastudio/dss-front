@@ -21,7 +21,7 @@ export default function A131Page() {
     const authHeader = useAuthHeader();
     const slug = location.pathname.split("/")[2];
     const isAuthenticated = useIsAuthenticated();
-    
+    const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
 
     const fetchPostData = async () => {
         try {
@@ -42,15 +42,19 @@ export default function A131Page() {
 
     const handleBookmarkChange = async () => {
         try {
+            setIsBookmarkLoading(true);
             if (post.is_bookmark) {
                 await detachBookmarkApi(authHeader(), post.id).then(() => { fetchPostData() });
                 toast.success("Bookmark removed");
+                setIsBookmarkLoading(false);
             } else {
                 await attachBookmarkApi(authHeader(), post.id).then(() => { fetchPostData() });
                 toast.success("Bookmark added");
+                setIsBookmarkLoading(false);
             }
         } catch (error) {
             console.error(error);
+            setIsBookmarkLoading(false);
         }
     };
 
@@ -107,7 +111,9 @@ export default function A131Page() {
                     </p>
 
                     <div className="flex space-x-[16px] text-white text-[18px] cursor-pointer">
-                        <BsBookmark className={post?.is_bookmark ? "text-[#0071FF]" : ""} onClick={handleBookmarkChange} />
+                        {
+                            isBookmarkLoading ? <div className="animate-spin rounded-full h-[24px] w-[24px] border-t-[2px] border-white"></div> : <BsBookmark className={post?.is_bookmark ? "text-[#0071FF]" : ""} onClick={handleBookmarkChange} />
+                        }
                         <BsShare />
                     </div>
                 </div>
