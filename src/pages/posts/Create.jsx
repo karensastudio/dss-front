@@ -197,7 +197,7 @@ export default function PostCreatePage() {
                 content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px }',
                 images_replace_blob_uris: true,
                 paste_data_images: false,
-                images_upload_url: 'http://51.15.192.255:8080/api/v1/files/upload',
+                images_upload_url: 'https://api.dssproject.me/api/v1/files/upload',
                 images_upload_handler: example_image_upload_handler
               }}
             />
