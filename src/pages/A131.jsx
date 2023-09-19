@@ -20,7 +20,8 @@ export default function A131Page() {
     const navigate = useNavigate()
     const authHeader = useAuthHeader();
     const slug = location.pathname.split("/")[2];
-    const isAuthenticated = useIsAuthenticated()
+    const isAuthenticated = useIsAuthenticated();
+    
 
     const fetchPostData = async () => {
         try {
@@ -113,7 +114,7 @@ export default function A131Page() {
                 <div className="mx-[40px] py-[24px] flex items-center justify-between">
                     <div className="flex items-center text-white text-opacity-60 text-[14px] leading-[20px] cursor-pointer">
                         <BsChevronLeft className="mr-[12px]" />
-                        <span onClick={() => { navigate('/') }}>Go back</span>
+                        <span onClick={() => { navigate(-1) }}>Go back</span>
                     </div>
 
                     <div className="flex space-x-[16px] text-white text-[18px] items-center">
