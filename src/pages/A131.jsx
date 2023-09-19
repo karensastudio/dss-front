@@ -11,6 +11,7 @@ import UserLayout from "../layouts/User";
 import { attachDecisionApi, detachDecisionApi } from "../api/decision";
 import { attachBookmarkApi, detachBookmarkApi } from "../api/bookmark";
 import { getPostBySlugApi } from "../api/userPost";
+import parse from 'html-react-parser';
 
 export default function A131Page() {
     const location = useLocation();
@@ -126,7 +127,7 @@ export default function A131Page() {
 
                 <div className="mx-[40px] py-[16px]">
                     <p className="text-white text-[18px] leading-[24px]">
-                        {post?.description}
+                        {parse(post?.description)}
                     </p>
                 </div>
 
