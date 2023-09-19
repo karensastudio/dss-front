@@ -3,7 +3,7 @@ import Header from "../components/Header";
 import Input from "../utils/Input";
 import Checkbox from "../utils/Checkbox";
 import { useEffect, useState } from "react";
-import { useAuthHeader } from "react-auth-kit";
+import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { BsBookmark, BsChevronLeft, BsShare } from "react-icons/bs";
@@ -20,6 +20,7 @@ export default function A131Page() {
     const navigate = useNavigate()
     const authHeader = useAuthHeader();
     const slug = location.pathname.split("/")[2];
+    const isAuthenticated = useIsAuthenticated()
 
     const fetchPostData = async () => {
         try {
@@ -66,6 +67,19 @@ export default function A131Page() {
         }
     };
 
+    const getPostBreadcrumbByParentTitles = (post) => {
+        let breadcrumb = [];
+
+        if (post.parent) {
+            breadcrumb = getPostBreadcrumbByParentTitles(post.parent);
+        }
+
+        breadcrumb.push(post.title);
+
+        return breadcrumb;
+
+    };
+
     useEffect(() => {
         fetchPostData();
         console.log(post);
@@ -87,7 +101,9 @@ export default function A131Page() {
 
             <div className="w-full">
                 <div className="mx-[40px] py-[24px] border-b-[1px] border-b-white flex items-center justify-between">
-                    <p className="text-white text-[14px] leading-[20px] text-opacity-60">Section A | Consideration A1 | {post?.category}{post?.priority}. {post?.title}</p>
+                    <p className="text-white text-[14px] leading-[20px] text-opacity-60">
+                        {getPostBreadcrumbByParentTitles(post).join(' > ')}
+                    </p>
 
                     <div className="flex space-x-[16px] text-white text-[18px] cursor-pointer">
                         <BsBookmark className={post?.is_bookmark ? "text-[#0071FF]" : ""} onClick={handleBookmarkChange} />
@@ -131,21 +147,26 @@ export default function A131Page() {
                     </p>
                 </div>
 
-                <div className="mx-[40px] py-[16px]">
+                {
+                    isAuthenticated() && (
+                        <>
+                            <div className="mx-[40px] py-[16px]">
 
-                    <h2 className="text-[18px] text-white leading-[24px] mb-[16px]">Add a note, to go into your report</h2>
+                                <h2 className="text-[18px] text-white leading-[24px] mb-[16px]">Add a note, to go into your report</h2>
 
-                    <textarea name="comment" className="w-full rounded-[12px] px-[25px] py-[16px]" placeholder="Write note ..." cols="30" rows="1"></textarea>
-                </div>
+                                <textarea name="comment" className="w-full rounded-[12px] px-[25px] py-[16px]" placeholder="Write note ..." cols="30" rows="1"></textarea>
+                            </div>
 
-                <div className="mx-[40px] py-[24px] flex items-center justify-between">
-                    <p className="text-white text-[18px] leading-[24px]">Would you like to add a Consideration, Tech Note, Case Study ect. to the system?</p>
+                            <div className="mx-[40px] py-[24px] flex items-center justify-between">
+                                <p className="text-white text-[18px] leading-[24px]">Would you like to add a Consideration, Tech Note, Case Study ect. to the system?</p>
 
-                    <div className="bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium min-w-fit">
-                        Propose to editor
-                    </div>
-                </div>
-
+                                <div className="bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium min-w-fit">
+                                    Propose to editor
+                                </div>
+                            </div>
+                        </>
+                    )
+                }
             </div>
 
         </UserLayout>
