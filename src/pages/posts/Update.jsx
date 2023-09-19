@@ -122,55 +122,57 @@ export default function PostUpdatePage() {
 
       <section className="my-[55px] bg-[#202427] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px]">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-wrap gap-x-4">
-            <div className="flex-1">
-              <Input
-                name={'title'}
-                title={"Title"}
-                type={'text'}
-                register={register}
-                defaultValue={postData?.title}
-              />
-            </div>
+          <div className="flex-1">
+            <Input
+              name={'title'}
+              title={"Title"}
+              type={'text'}
+              register={register}
+              defaultValue={postData?.title}
+            />
+          </div>
 
-            <div className="flex-1">
-              <Input
-                name={'priority'}
-                title={"Priority"}
-                type={'text'}
-                register={register}
-                defaultValue={postData?.priority}
-              />
-            </div>
+          <div className="flex-1">
+            <Input
+              name={'priority'}
+              title={"Priority"}
+              type={'text'}
+              register={register}
+              defaultValue={postData?.priority}
+            />
+          </div>
 
-            <div className="w-full mt-4">
-              <Editor
-                apiKey="wbb8vh1ley0gypycs4vg2itj4ithfn8yq1ovtizf9zo97pvm"
-                initialValue={editorContent}
-                onEditorChange={(content) => setEditorContent(content)}
-                init={{
-                  height: 500,
-                  menubar: false,
-                  content_css: 'dark',
-                  skin: 'oxide-dark',
-                  relative_urls: true,
-                  document_base_url: 'https://dss-beta.netlify.app/',
-                  branding: false,
-                  plugins: [
-                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
-                  ],
-                  toolbar: 'undo redo | blocks |' +
-                    'bold italic forecolor link | alignleft aligncenter ' +
-                    'alignright alignjustify | bullist numlist outdent indent | ' +
-                    'removeformat | image | table',
-                  content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px }',
-                  images_replace_blob_uris: true,
-                  paste_data_images: false,
-                  images_upload_url: 'YOUR_IMAGE_UPLOAD_URL',
-                }}
-              />
-            </div>
+          <div className="w-full mt-4">
+            <Editor
+              apiKey="wbb8vh1ley0gypycs4vg2itj4ithfn8yq1ovtizf9zo97pvm"
+              initialValue={editorContent}
+              onEditorChange={(content) => setEditorContent(content)}
+              init={{
+                height: 500,
+                menubar: false,
+                content_css: 'dark',
+                skin: 'oxide-dark',
+                relative_urls: true,
+                document_base_url: 'https://dss-beta.netlify.app/',
+                branding: false,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                  'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks |' +
+                  'bold italic forecolor link | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ' +
+                  'removeformat | image | table',
+                content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px }',
+                images_replace_blob_uris: true,
+                paste_data_images: false,
+                images_upload_url: 'YOUR_IMAGE_UPLOAD_URL',
+              }}
+            />
+          </div>
+
+          <div className="flex w-full space-x-5">
 
             <div className="flex-1 mt-4">
               <Select
@@ -197,6 +199,7 @@ export default function PostUpdatePage() {
                 styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
               />
             </div>
+          </div>
 
           <button
             type="submit"

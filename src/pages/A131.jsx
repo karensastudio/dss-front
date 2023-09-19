@@ -102,7 +102,7 @@ export default function A131Page() {
             <div className="w-full">
                 <div className="mx-[40px] py-[24px] border-b-[1px] border-b-white flex items-center justify-between">
                     <p className="text-white text-[14px] leading-[20px] text-opacity-60">
-                        {getPostBreadcrumbByParentTitles(post).join(' > ')}
+                        {getPostBreadcrumbByParentTitles(post).join(' | ')}
                     </p>
 
                     <div className="flex space-x-[16px] text-white text-[18px] cursor-pointer">
@@ -110,7 +110,7 @@ export default function A131Page() {
                         <BsShare />
                     </div>
                 </div>
-                <div className="mx-[40px] py-[24px] mb-[68px] flex items-center justify-between">
+                <div className="mx-[40px] py-[24px] flex items-center justify-between">
                     <div className="flex items-center text-white text-opacity-60 text-[14px] leading-[20px] cursor-pointer">
                         <BsChevronLeft className="mr-[12px]" />
                         <span onClick={() => { navigate('/') }}>Go back</span>
@@ -143,7 +143,7 @@ export default function A131Page() {
 
                 <div className="mx-[40px] py-[16px]">
                     <p className="text-white text-[18px] leading-[24px]">
-                        {parse(post?.description)}
+                        {post?.description && parse(post?.description)}
                     </p>
                 </div>
 
