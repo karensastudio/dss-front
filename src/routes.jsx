@@ -13,6 +13,8 @@ import TagCreatePage from "./pages/tags/Create";
 import PostCreatePage from "./pages/posts/Create";
 import TagIndexPage from "./pages/tags/Index";
 import TagUpdatePage from "./pages/tags/Update";
+import PostIndexPage from "./pages/posts/Index";
+import PostUpdatePage from "./pages/posts/Update";
 // import ErrorPage from "./error-page";
 
 export const router = createBrowserRouter([
@@ -60,6 +62,23 @@ export const router = createBrowserRouter([
         path: "/posts/:slug",
         element: <A131Page />,
         // errorElement: <ErrorPage />
+    },
+    {
+        path: "/posts/create",
+        element: <PostCreatePage />,
+        // errorElement: <ErrorPage />
+    },
+
+    // Posts Admin
+    {
+        path: "/posts",
+        element: <PostIndexPage />,
+        // errorElement: <ErrorPage />
+    },
+    {
+        path: "/posts/update/:postId",
+        element: <PostUpdatePage />,
+        // errorElement: <tErrorPage />
     },
     {
         path: "/posts/create",
