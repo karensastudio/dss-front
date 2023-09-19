@@ -323,26 +323,8 @@ export function DecisionReportSection() {
 
 export function GraphSection() {
     return (
-        <ForceGraph2D
-            graphData={data}
-            nodeColor='#000000'
-            backgroundColor="#ffffff"
-            width={document.getElementById('sidebar-content').offsetWidth - 80}
-            height={document.getElementById('sidebar-content').parentElement.offsetHeight - 300}
-            nodeLabel="id"
-            onNodeClick={(node) => {
-                window.location.href = '/' + node.slug;
-            }}
-            nodeThreeObject={node => {
-                const nodeEl = document.createElement('a');
-                nodeEl.textContent = node.id;
-                nodeEl.style.color = '#000000';
-                nodeEl.className = 'node-label';
-                nodeEl.innerText = node.id;
-                return new CSS2DObject(nodeEl);
-            }}
-            nodeThreeObjectExtend={true}
-        />
+        <iframe width="100%" height="730" frameborder="0"
+            src="https://observablehq.com/embed/@d3/force-directed-tree?cells=chart%2Cdrag"></iframe>
     );
 }
 
