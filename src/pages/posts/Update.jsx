@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import Header from "../../components/Header";
@@ -24,6 +24,9 @@ export default function PostUpdatePage() {
   const [parentOptions, setParentOptions] = useState([]);
   const [selectedParent, setSelectedParent] = useState();
 
+  const editorRef = useRef(null);
+
+
   useEffect(() => {
     const fetchPostData = async () => {
       try {
@@ -31,7 +34,10 @@ export default function PostUpdatePage() {
         if (response.status === "success") {
           const post = response.response.post;
           setPostData(post);
-          console.log(post);
+
+          setValue("title", post.title);
+          setValue("priority", post.priority);
+
           setEditorContent(post.description);
           setSelectedTags(post.tags.map((tag) => ({ value: tag.id.toString(), label: tag.name })));
           console.log(selectedTags);
@@ -83,9 +89,10 @@ export default function PostUpdatePage() {
       const postData = {
         title: data.title,
         priority: data.priority,
-        description: editorContent,
+        description: editorRef.current.getContent(),
         tags: selectedTags.map((tag) => tag.value),
       };
+      console.log(postData);
 
       const response = await updatePostApi(authHeader(), postId, postData);
       if (response.status === "success") {
@@ -146,7 +153,7 @@ export default function PostUpdatePage() {
             <Editor
               apiKey="wbb8vh1ley0gypycs4vg2itj4ithfn8yq1ovtizf9zo97pvm"
               initialValue={editorContent}
-              onEditorChange={(content) => setEditorContent(content)}
+              onInit={(evt, editor) => editorRef.current = editor}
               init={{
                 height: 500,
                 menubar: false,
@@ -163,7 +170,7 @@ export default function PostUpdatePage() {
                 toolbar: 'undo redo | blocks |' +
                   'bold italic forecolor link | alignleft aligncenter ' +
                   'alignright alignjustify | bullist numlist outdent indent | ' +
-                  'removeformat | image | table',
+                  'removeformat | image | table code',
                 content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px }',
                 images_replace_blob_uris: true,
                 paste_data_images: false,

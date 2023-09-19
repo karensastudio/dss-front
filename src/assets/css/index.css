@@ -41,3 +41,16 @@
 .dark-select__single-value {
     color: #fff !important;
 }
+
+.editor-text {
+    font-size: 14px;
+}
+
+.editor-text .consideration {
+    color: #fff;
+    padding: 16px 25px;
+    background-color: #0071FF;
+    border-radius: 12px;
+    margin: 8px 0;
+    width: 100%;
+}

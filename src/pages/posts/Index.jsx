@@ -6,7 +6,7 @@ import { useAuthHeader } from "react-auth-kit";
 import { Link } from "react-router-dom";
 import { CgMathPlus } from "react-icons/cg";
 import { getUserPostsApi } from "../../api/userPost";
-import { deletePostApi } from "../../api/post";
+import { deletePostApi, getPostsApi } from "../../api/post";
 
 export default function PostIndexPage() {
 
@@ -45,7 +45,7 @@ export default function PostIndexPage() {
 
   const fetchPostsData = async () => {
     try {
-      const response = await getUserPostsApi(authHeader());
+      const response = await getPostsApi(authHeader());
       if (response.status === "success") {
         setPosts(response.response.posts);
       } else {

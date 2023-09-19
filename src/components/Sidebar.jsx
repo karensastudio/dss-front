@@ -4,7 +4,7 @@ import { BsSearch, BsChevronUp, BsBookmarkFill } from "react-icons/bs";
 import { ForceGraph2D, ForceGraph3D, ForceGraphVR, ForceGraphAR } from 'react-force-graph';
 import data from './miserables.json';
 import { searchAPI } from "../api/search";
-import { useAuthHeader } from "react-auth-kit";
+import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import { getPostBySlugApi, getUserPostsApi } from "../api/userPost";
 import { getBookmarksApi } from "../api/bookmark";
 import { getDecisionsApi } from "../api/decision";
@@ -161,6 +161,14 @@ export function ListOfContentSection() {
                             >
                                 <Disclosure.Panel className="px-[27px] mt-[10px]">
                                     <div className="flex flex-col space-y-[16px]">
+                                        <a
+                                            key={category.id}
+                                            className={`text-[16px] leading-[24px] cursor-pointer ${highlightedPost?.id === category.id ? 'text-[#0071FF]' : 'text-white'
+                                                }`}
+                                            onClick={() => handlePostClick(category)}
+                                        >
+                                            Introduction
+                                        </a>
                                         {category.children.map((post) => (
                                             <a
                                                 key={post.id}
@@ -341,6 +349,7 @@ export function GraphSection() {
 
 export default function Sidebar() {
     const [activePage, setActivePage] = useState("dashboard");
+    const isAuthenticated = useIsAuthenticated()
 
     return (
         <aside className="px-[40px] py-[32px] min-h-full" id="sidebar-content">
@@ -352,18 +361,24 @@ export default function Sidebar() {
                 <div onClick={() => setActivePage('dashboard')} className={`cursor-pointer text-white py-[12px] ${activePage == 'dashboard' ? 'border-b-2 border-b-white' : 'text-opacity-60'} `}>
                     List of Content
                 </div>
+                {
+                    isAuthenticated() && (
+                        <>
+                            <div onClick={() => setActivePage('bookmark')} className={`cursor-pointer text-white py-[12px] ${activePage == 'bookmark' ? 'border-b-2 border-b-white' : 'text-opacity-60'} `}>
+                                Your Bookmarks
+                            </div>
 
-                <div onClick={() => setActivePage('bookmark')} className={`cursor-pointer text-white py-[12px] ${activePage == 'bookmark' ? 'border-b-2 border-b-white' : 'text-opacity-60'} `}>
-                    Your Bookmarks
-                </div>
+                            <div onClick={() => setActivePage('decision-graph')} className={`cursor-pointer text-white py-[12px] ${activePage == 'decision-graph' ? 'border-b-2 border-b-white' : 'text-opacity-60'} `}>
+                                Your Decision Graph
+                            </div>
 
-                <div onClick={() => setActivePage('decision-graph')} className={`cursor-pointer text-white py-[12px] ${activePage == 'decision-graph' ? 'border-b-2 border-b-white' : 'text-opacity-60'} `}>
-                    Your Decision Graph
-                </div>
+                            <div onClick={() => setActivePage('decision-report')} className={`cursor-pointer text-white py-[12px] ${activePage == 'decision-report' ? 'border-b-2 border-b-white' : 'text-opacity-60'} `}>
+                                Your Decision Report
+                            </div>
+                        </>
+                    )
+                }
 
-                <div onClick={() => setActivePage('decision-report')} className={`cursor-pointer text-white py-[12px] ${activePage == 'decision-report' ? 'border-b-2 border-b-white' : 'text-opacity-60'} `}>
-                    Your Decision Report
-                </div>
 
             </div>
 

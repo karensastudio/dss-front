@@ -142,9 +142,9 @@ export default function A131Page() {
                 </div>
 
                 <div className="mx-[40px] py-[16px]">
-                    <p className="text-white text-[18px] leading-[24px]">
+                    <div className="text-white editor-text">
                         {post?.description && parse(post?.description)}
-                    </p>
+                    </div>
                 </div>
 
                 {
