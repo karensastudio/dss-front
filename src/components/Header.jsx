@@ -37,8 +37,8 @@ export default function Header() {
                                     Tags
                                 </button>
                                 <button className="text-white rounded-full text-[14px] leading-[18px] font-medium cursor-pointer"
-                                    onClick={() => navigate('/posts/create')}>
-                                    Create Post
+                                    onClick={() => navigate('/posts')}>
+                                    Posts
                                 </button>
                             </HasAccess>
                         )

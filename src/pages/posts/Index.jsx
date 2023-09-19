@@ -46,9 +46,8 @@ export default function PostIndexPage() {
   const fetchPostsData = async () => {
     try {
       const response = await getUserPostsApi(authHeader());
-      const allPosts = [...response.response.posts.A, ...response.response.posts.B];
       if (response.status === "success") {
-        setPosts(allPosts);
+        setPosts(response.response.posts);
       } else {
         console.error("Error fetching post data:", response);
         toast.error(response.message);

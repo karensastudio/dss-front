@@ -22,7 +22,7 @@ export default function PostUpdatePage() {
   const [tagOptions, setTagOptions] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
   const [parentOptions, setParentOptions] = useState([]);
-  const [selectedParent, setSelectedParent] = useState(null);
+  const [selectedParent, setSelectedParent] = useState();
 
   useEffect(() => {
     const fetchPostData = async () => {
@@ -31,8 +31,10 @@ export default function PostUpdatePage() {
         if (response.status === "success") {
           const post = response.response.post;
           setPostData(post);
+          console.log(post);
           setEditorContent(post.description);
           setSelectedTags(post.tags.map((tag) => ({ value: tag.id.toString(), label: tag.name })));
+          console.log(selectedTags);
         } else {
           console.error("Error fetching post data:", response);
           toast.error(response.message);
@@ -58,8 +60,7 @@ export default function PostUpdatePage() {
 
         const parentResponse = await getUserPostsApi(authHeader());
         if (parentResponse.status === "success") {
-          const allPosts = [...parentResponse.response.posts.A, ...parentResponse.response.posts.B];
-          const parentOptions = allPosts.map((post) => ({
+          const parentOptions = parentResponse.response.posts.map((post) => ({
             value: post.id.toString(),
             label: post.title,
           }));
@@ -119,7 +120,7 @@ export default function PostUpdatePage() {
         theme="dark"
       />
 
-      <section className="my-[55px] bg-[#202427] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px]">
+      <section className="my-[55px] bg-[#202427] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px]">
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-wrap gap-x-4">
             <div className="flex-1">
               <Input
