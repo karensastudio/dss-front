@@ -54,3 +54,13 @@
     margin: 8px 0;
     width: 100%;
 }
+
+.comment-popup {
+    max-width: 50rem !important;
+}
+
+@media (max-width: 640px) {
+    .comment-popup {
+        max-width: 100% !important;
+    }
+}

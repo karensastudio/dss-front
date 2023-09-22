@@ -6,17 +6,19 @@ import { useEffect, useState } from "react";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { BsBookmark, BsChevronLeft, BsShare } from "react-icons/bs";
+import { BsBookmark, BsChevronLeft, BsFillChatTextFill, BsShare } from "react-icons/bs";
 import UserLayout from "../layouts/User";
 import { attachDecisionApi, detachDecisionApi } from "../api/decision";
 import { attachBookmarkApi, detachBookmarkApi } from "../api/bookmark";
 import { getPostBySlugApi } from "../api/userPost";
 import parse from 'html-react-parser';
+import CommentPopUp from "../components/CommentPopUp";
 
 export default function A131Page() {
     const location = useLocation();
     const [post, setPost] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isChatOpen, setIsChatOpen] = useState(false);
     const navigate = useNavigate()
     const authHeader = useAuthHeader();
     const slug = location.pathname.split("/")[2];
@@ -85,9 +87,16 @@ export default function A131Page() {
 
     };
 
+    const openChat = () => {
+        setIsChatOpen(true);
+      };
+    
+      const closeChat = () => {
+        setIsChatOpen(false);
+      };
+
     useEffect(() => {
         fetchPostData();
-        console.log(post);
     }, [slug]);
 
     return (
@@ -111,6 +120,7 @@ export default function A131Page() {
                     </p>
 
                     <div className="flex space-x-[16px] text-white text-[18px] cursor-pointer">
+                        <BsFillChatTextFill onClick={openChat} />
                         {
                             isBookmarkLoading ? <div className="animate-spin rounded-full h-[24px] w-[24px] border-t-[2px] border-white"></div> : <BsBookmark className={post?.is_bookmark ? "text-[#0071FF]" : ""} onClick={handleBookmarkChange} />
                         }
@@ -175,7 +185,7 @@ export default function A131Page() {
                     )
                 }
             </div>
-
+            {isChatOpen && <CommentPopUp onClose={closeChat} />}
         </UserLayout>
     )
 
