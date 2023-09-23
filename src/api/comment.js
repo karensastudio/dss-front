@@ -114,7 +114,7 @@ export const getNotesApi = async (authHeader) => {
 
 export const getNoteByIdApi = async (authHeader, noteId) => {
     try {
-      const response = await youzAxios.get(`/api/v1/notes//${noteId}`, {
+      const response = await youzAxios.get(`/api/v1/notes/${noteId}`, {
         headers: {
           Authorization: authHeader
         }
@@ -178,7 +178,7 @@ export const getNoteByIdApi = async (authHeader, noteId) => {
     }
   };
   
-  export const deleteTagApi = async (authHeader, noteId) => {
+  export const deleteNoteApi = async (authHeader, noteId) => {
     try {
       const response = await youzAxios.delete(`/api/v1/notes/${noteId}`, {
         headers: {
