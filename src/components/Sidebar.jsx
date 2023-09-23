@@ -1,5 +1,5 @@
 import { Disclosure, Transition } from "@headlessui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BsSearch, BsChevronUp, BsBookmarkFill } from "react-icons/bs";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import { getUserPostsApi } from "../api/userPost";
@@ -7,6 +7,7 @@ import { getDecisionsApi } from "../api/decision";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { CgSpinner } from "react-icons/cg";
+import * as d3 from 'd3';
 
 
 export function SearchSection() {
@@ -299,17 +300,17 @@ export function DecisionReportSection() {
                         <CgSpinner className="text-[48px] animate-spin" />
                     </div>
                 ) : decisions.map((decision) => (
-                    <a key={decision.id} className="text-[16px] leading-[24px] flex items-center cursor-pointer">
+                    <span key={decision.id} className="text-[16px] leading-[24px] flex items-center cursor-pointer">
                         <span>{decision.title}</span>
-                    </a>
+                    </span>
                 ))}
             </div>
 
             {
                 (decisions && decisions.length > 0) && (
-                    <a className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-[16px] leading-[18px] font-medium">
+                    <span className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-[16px] leading-[18px] font-medium">
                         Generate Decision Report
-                    </a>
+                    </span>
                 )
             }
 
@@ -321,10 +322,92 @@ export function DecisionReportSection() {
 }
 
 export function GraphSection() {
-    return (
-        <iframe width="100%" height="730" frameborder="0"
-            src="https://observablehq.com/embed/@d3/force-directed-tree?cells=chart%2Cdrag"></iframe>
-    );
+const svgRef = useRef(null);
+  const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const authHeader = useAuthHeader();
+  
+  const fetchUserPosts = async () => {
+    try {
+      const response = await getUserPostsApi(authHeader());
+      if (response.status === 'success') {
+        setData(response.response);
+        setError(null);
+      } else {
+        setError(response.message);
+      }
+    } catch (error) {
+      console.error(error);
+      setError('An unexpected error occurred.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchUserPosts();
+  }, []);
+  
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+  
+    const width = 800;
+    const height = 400;
+  
+    const svg = d3.select(svgRef.current);
+  
+    const simulation = d3
+      .forceSimulation(data?.posts || [])
+      .force('link', d3.forceLink().id((d) => d.id))
+      .force('charge', d3.forceManyBody())
+      .force('center', d3.forceCenter(width / 2, height / 2));
+  
+    const link = svg
+      .selectAll('line')
+      .data(data?.posts || [])
+      .enter()
+      .append('line')
+      .attr('stroke', '#999')
+      .attr('stroke-opacity', 0.6)
+      .attr('stroke-width', 1);
+  
+    const node = svg
+      .selectAll('circle')
+      .data(data?.posts || [])
+      .enter()
+      .append('circle')
+      .attr('r', 5)
+      .attr('fill', 'blue');
+  
+    function ticked() {
+      link
+        .attr('x1', (d) => d?.source?.x || 0)
+        .attr('y1', (d) => d?.source?.y || 0)
+        .attr('x2', (d) => d?.target?.x || 0)
+        .attr('y2', (d) => d?.target?.y || 0);
+  
+      node.attr('cx', (d) => d?.x || 0).attr('cy', (d) => d?.y || 0);
+    }
+  
+    simulation.on('tick', ticked);
+  
+    return () => {
+      simulation.stop();
+    };
+  }, [data]);
+  
+  if (isLoading) {
+    return <p>Loading...</p>;
+  }
+  
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
+  
+  return <svg ref={svgRef} width="100%" height="730" />;
 }
 
 
