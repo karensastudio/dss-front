@@ -75,13 +75,11 @@ export default function PostUpdatePage() {
         if (response.status === "success") {
           const post = response.response.post;
           setPostData(post);
-
           setValue("title", post.title);
           setValue("priority", post.priority);
-
           setEditorContent(post.description);
           setSelectedTags(post.tags.map((tag) => ({ value: tag.id.toString(), label: tag.name })));
-          console.log(selectedTags);
+          setSelectedParent({ value: response.response.post.parent.id, label: response.response.post.parent.title })
         } else {
           console.error("Error fetching post data:", response);
           toast.error(response.message);
@@ -226,6 +224,7 @@ export default function PostUpdatePage() {
             <div className="flex-1 mt-4">
               <Select
                 defaultValue={selectedTags}
+                value={selectedTags}
                 onChange={setSelectedTags}
                 options={tagOptions}
                 isClearable={true}
@@ -240,6 +239,7 @@ export default function PostUpdatePage() {
             <div className="flex-1 mt-4">
               <Select
                 defaultValue={selectedParent}
+                value={selectedParent}
                 onChange={(selectedOption) => setSelectedParent(selectedOption)}
                 options={parentOptions}
                 className="basic-select"

@@ -15,6 +15,9 @@ import TagIndexPage from "./pages/tags/Index";
 import TagUpdatePage from "./pages/tags/Update";
 import PostIndexPage from "./pages/posts/Index";
 import PostUpdatePage from "./pages/posts/Update";
+import NoteIndexPage from "./pages/notes/Index";
+import NoteUpdatePage from "./pages/notes/Update";
+import NoteCreatePage from "./pages/notes/Create";
 // import ErrorPage from "./error-page";
 
 export const router = createBrowserRouter([
@@ -100,6 +103,23 @@ export const router = createBrowserRouter([
     {
         path: "/tags/create",
         element: <TagCreatePage />,
+        // errorElement: <ErrorPage />
+    },
+
+    // Notes
+    {
+        path: "/notes",
+        element: <NoteIndexPage/>,
+        // errorElement: <ErrorPage />
+    },
+    {
+        path: "/notes/:noteId",
+        element: <NoteUpdatePage />,
+        // errorElement: <tErrorPage />
+    },
+    {
+        path: "/notes/create",
+        element: <NoteCreatePage />,
         // errorElement: <ErrorPage />
     }
 

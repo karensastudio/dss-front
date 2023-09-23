@@ -40,6 +40,10 @@ export default function Header() {
                                     onClick={() => navigate('/posts')}>
                                     Posts
                                 </button>
+                                <button className="text-white rounded-full text-[14px] leading-[18px] font-medium cursor-pointer"
+                                    onClick={() => navigate('/notes')}>
+                                    Notes
+                                </button>
                             </HasAccess>
                         )
                     }
