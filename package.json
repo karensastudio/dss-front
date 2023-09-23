@@ -30,6 +30,7 @@
     "react-router-dom": "^6.14.2",
     "react-select": "^5.7.4",
     "react-toastify": "^9.1.3",
+    "react-tooltip": "^5.21.4",
     "recoil": "^0.7.7",
     "sort-by": "^1.2.0"
   },

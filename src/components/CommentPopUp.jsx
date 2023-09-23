@@ -1,11 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuthHeader } from "react-auth-kit";
-import { BsX, BsXLg } from "react-icons/bs";
-import { createCommentApi } from "../api/comment";
+import { BsXLg } from "react-icons/bs";
+import { addNoteApi, proposeToEditorApi } from "../api/comment";
+import { CgSpinner } from "react-icons/cg";
+import { toast } from "react-toastify";
 
-function CommentPopUp({ onClose }) {
+function CommentPopUp({ type, postId, onClose }) {
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const authHeader = useAuthHeader();
+
+  useEffect(() => {
+    setMessage("");
+    setLoading(false);
+  }, [type]);
 
   const handleTextareaChange = (e) => {
     setMessage(e.target.value);
@@ -16,19 +24,32 @@ function CommentPopUp({ onClose }) {
   };
 
   const handleCreateComment = async () => {
-    console.log('create comment');
-    // try {
-    //     const response = await createCommentApi(authHeader(), message);
-    //     if (response.status === "success") {
-    //       toast.success(response.message);
-    //     } else {
-    //       console.error("Error creating post:", response);
-    //       toast.error(response.message);
-    //     }
-    // } catch (error) {
-    //   console.error("Error:", error);
-    // }
-  }
+    setLoading(true);
+
+    const apiFunction = type === "propose" ? proposeToEditorApi : addNoteApi;
+
+    const commentData = {
+      post_id: postId,
+      [type]: message,
+    };
+
+    try {
+      const response = await apiFunction(authHeader(), commentData);
+      if (response.status === "success") {
+        toast.success(response.message);
+        setMessage("");
+      } else {
+        console.error("Error creating comment:", response);
+        toast.error(response.message);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("An error occurred while creating the comment.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="fixed z-10 inset-0 overflow-y-auto">
@@ -67,8 +88,21 @@ function CommentPopUp({ onClose }) {
                 etc. to the system?
               </p>
 
-              <div className="bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium min-w-fit" onClick={handleCreateComment}>
-                Propose to editor
+            <div
+              className={`bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium min-w-fit cursor-pointer ${
+              loading ? "opacity-60 pointer-events-none" : ""
+              }`}
+              onClick={handleCreateComment}
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <CgSpinner className="text-white text-[20px] animate-spin" />
+                </div>
+              ) : type === "propose" ? (
+                <>Propose to editor</>
+              ) : (
+                <>Add your note</>
+              )}
               </div>
             </div>
           </div>

@@ -81,6 +81,7 @@ export default function PostUpdatePage() {
 
           setEditorContent(post.description);
           setSelectedTags(post.tags.map((tag) => ({ value: tag.id.toString(), label: tag.name })));
+          console.log(post.tags);
           console.log(selectedTags);
         } else {
           console.error("Error fetching post data:", response);

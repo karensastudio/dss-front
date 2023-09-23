@@ -6,18 +6,23 @@ import { useEffect, useState } from "react";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { BsBookmark, BsChevronLeft, BsFillChatTextFill, BsShare } from "react-icons/bs";
+import { BsBookmark, BsChevronLeft, BsFillChatTextFill, BsPencilSquare, BsShare } from "react-icons/bs";
 import UserLayout from "../layouts/User";
 import { attachDecisionApi, detachDecisionApi } from "../api/decision";
 import { attachBookmarkApi, detachBookmarkApi } from "../api/bookmark";
 import { getPostBySlugApi } from "../api/userPost";
 import parse from 'html-react-parser';
 import CommentPopUp from "../components/CommentPopUp";
+import 'react-tooltip/dist/react-tooltip.css'
+import { Tooltip } from 'react-tooltip'
+
+
 
 export default function A131Page() {
     const location = useLocation();
     const [post, setPost] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [commentType, setCommentType] = useState('propose');
     const [isChatOpen, setIsChatOpen] = useState(false);
     const navigate = useNavigate()
     const authHeader = useAuthHeader();
@@ -87,9 +92,10 @@ export default function A131Page() {
 
     };
 
-    const openChat = () => {
+    const openChat = (type) => {
         setIsChatOpen(true);
-      };
+        setCommentType(type);
+    };
     
       const closeChat = () => {
         setIsChatOpen(false);
@@ -120,7 +126,23 @@ export default function A131Page() {
                     </p>
 
                     <div className="flex space-x-[16px] text-white text-[18px] cursor-pointer">
-                        <BsFillChatTextFill onClick={openChat} />
+
+                        <BsFillChatTextFill
+                            onClick={() => openChat('note')}
+                            data-for="note-tooltip"
+                            data-tooltip-id="note-tooltip"
+                            data-tooltip-content="Add your note"
+                        />
+                        <Tooltip id="note-tooltip"/>
+
+                        <BsPencilSquare
+                            onClick={() => openChat('propose')}
+                            data-for="propose-tooltip"
+                            data-tooltip-id="propose-tooltip"
+                            data-tooltip-content="Propose to editor"
+                        />
+                        <Tooltip id="propose-tooltip"/>
+
                         {
                             isBookmarkLoading ? <div className="animate-spin rounded-full h-[24px] w-[24px] border-t-[2px] border-white"></div> : <BsBookmark className={post?.is_bookmark ? "text-[#0071FF]" : ""} onClick={handleBookmarkChange} />
                         }
@@ -163,29 +185,8 @@ export default function A131Page() {
                         {post?.description && parse(post?.description)}
                     </div>
                 </div>
-
-                {
-                    isAuthenticated() && (
-                        <>
-                            <div className="mx-[40px] py-[16px]">
-
-                                <h2 className="text-[18px] text-white leading-[24px] mb-[16px]">Add a note, to go into your report</h2>
-
-                                <textarea name="comment" className="w-full rounded-[12px] px-[25px] py-[16px]" placeholder="Write note ..." cols="30" rows="1"></textarea>
-                            </div>
-
-                            <div className="mx-[40px] py-[24px] flex items-center justify-between">
-                                <p className="text-white text-[18px] leading-[24px]">Would you like to add a Consideration, Tech Note, Case Study ect. to the system?</p>
-
-                                <div className="bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium min-w-fit">
-                                    Propose to editor
-                                </div>
-                            </div>
-                        </>
-                    )
-                }
             </div>
-            {isChatOpen && <CommentPopUp onClose={closeChat} />}
+            {isChatOpen && <CommentPopUp type={commentType} postId={post.id} onClose={closeChat} />}
         </UserLayout>
     )
 

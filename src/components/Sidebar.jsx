@@ -107,7 +107,6 @@ export function ListOfContentSection() {
                 const response = await getUserPostsApi(authHeader());
                 if (response.status === 'success') {
                     setUserPosts(response.response.posts);
-                    console.log(response.response.posts);
                     setError(null);
                     setIsPostsLoading(false);
                 } else {
