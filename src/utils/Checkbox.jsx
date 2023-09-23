@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Checkbox(props) {
+    const { isLightMode } = useTheme();
     const {
         name,
         rootClasses,
@@ -41,7 +43,7 @@ export default function Checkbox(props) {
                     onKeyUp={(e) => setValue(e.target.value)}
                 />
 
-                <label htmlFor={name}>
+                <label htmlFor={name} className={`${isLightMode ? 'text-[#202427]' : 'text-white'}`}>
                     {props.children}
                 </label>
             </div>

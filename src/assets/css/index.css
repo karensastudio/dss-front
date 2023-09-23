@@ -2,8 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    background-color: #111315 !important;
+    /* Dark mode background color */
+    color: #ffffff !important;
+    /* Dark mode text color */
+}
+
+.light-mode {
+    background-color: #ececec !important;
+    /* Light mode background color */
+    color: #111315 !important;
+    /* Light mode text color */
+}
+
+body.dark-mode {
+    background-color: #111315;
+    color: #ffffff;
+}
+
+body.light-mode {
+    background-color: #ececec;
+    color: #111315;
+}
+
+
 .node-label {
-    color: #000000;
+    color: #111315;
 }
 
 .dark-select,
@@ -16,17 +41,13 @@
     border: 1px solid #555 !important;
 }
 
-.basic-multi-select>* {
+.basic-multi-select>*,
+.dark-select__multi-value>* {
     background-color: #333 !important;
     color: #fff !important;
     border: 1px solid #555 !important;
 }
 
-.dark-select__multi-value>* {
-    background-color: #555 !important;
-    color: #fff !important;
-    border: 1px solid #555 !important;
-}
 
 .dark-select__multi-value {
     background-color: transparent !important;
@@ -42,6 +63,22 @@
     color: #fff !important;
 }
 
+.dark-multi-select>* {
+    background-color: white !important;
+    color: #111315 !important;
+    border: 1px solid #555 !important;
+}
+
+.light-select,
+.dark-multi-select .css-13cymwt-control,
+.dark-multi-select .css-art2ul-ValueContainer2,
+.dark-multi-select .css-t3isps-control,
+.dark-multi-select .dark-select__control .dark-select__control--is-focused .dark-select__control--menu-is-open .dark-select__menu .dark-select__menu #react-select-2-listbox {
+    background-color: #fff !important;
+    color: #333 !important;
+    border: 1px solid #d6d6d6 !important;
+}
+
 .editor-text {
     font-size: 14px;
 }
@@ -55,9 +92,69 @@
     width: 100%;
 }
 
+.light-editor-text * {
+    color: #444 !important;
+}
+
 .comment-popup {
     max-width: 50rem !important;
 }
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: #2196F3;
+}
+
+input:checked+.slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
 
 @media (max-width: 640px) {
     .comment-popup {

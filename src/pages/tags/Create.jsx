@@ -7,9 +7,10 @@ import Input from "../../utils/Input";
 import { useAuthHeader } from "react-auth-kit";
 import { createTagApi, getTagByIdApi, updateTagApi } from "../../api/tag";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function TagCreatePage({ tagId }) {
-
+  const { isLightMode } = useTheme();
   const { getValues, register, handleSubmit, formState: { errors } } = useForm()
   const authHeader = useAuthHeader();
   const navigate = useNavigate();
@@ -89,7 +90,8 @@ export default function TagCreatePage({ tagId }) {
         theme="dark"
       />
 
-      <section className="my-[55px] bg-[#202427] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px]">
+    <div className="h-screen bg-opacity-0 bg-transparent">
+      <section className={`my-[55px] bg-[#202427] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px] ${isLightMode ? 'bg-white text-[#111315]' : 'bg-[#202427] text-white'}`}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-y-[19px] mb-[31px]">
             <Input
@@ -110,6 +112,7 @@ export default function TagCreatePage({ tagId }) {
           </button>
         </form>
       </section>
+      </div>
     </>
   );
 }

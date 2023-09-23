@@ -10,8 +10,10 @@ import { getNoteByIdApi, updateNoteApi } from "../../api/comment";
 import Select from 'react-select';
 import { getPostsApi } from "../../api/post";
 import { CgSpinner } from "react-icons/cg";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function NoteUpdatePage() {
+  const {isLightMode} = useTheme();
   const { noteId } = useParams();
   const authHeader = useAuthHeader();
   const navigate = useNavigate();
@@ -114,7 +116,8 @@ export default function NoteUpdatePage() {
         theme="dark"
       />
 
-      <section className="my-[55px] bg-[#202427] md:rounded-[12px] max-w-4xl mx-auto px-[16px] md:px-[105px] py-[60px]">
+    <div className="h-screen bg-opacity-0 bg-transparent">
+      <section className={`${isLightMode ? 'bg-white text-[#111315]' : 'bg-[#202427] text-white'} my-[55px] md:rounded-[12px] max-w-4xl mx-auto px-[16px] md:px-[105px] py-[60px]`}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-y-[19px] mb-[31px]">
             <Input
@@ -132,8 +135,8 @@ export default function NoteUpdatePage() {
               value={selectedPost}
               onChange={(selectedOption) => setSelectedPost(selectedOption)}
               options={posts}
-              className="basic-multi-select"
-              classNamePrefix="dark-select"
+              className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
+              classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
               placeholder={<div>Posts</div>}
             />
           </div>
@@ -152,6 +155,7 @@ export default function NoteUpdatePage() {
           </button>
         </form>
       </section>
+      </div>
     </>
   );
 }

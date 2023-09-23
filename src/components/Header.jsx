@@ -2,9 +2,11 @@ import { Link, useNavigate } from "react-router-dom"
 import { useAuthHeader, useIsAuthenticated, useSignOut } from "react-auth-kit";
 import { logoutAPI } from "../api/auth";
 import { HasAccess } from "@permify/react-role";
+import ToggleThemeSwitch from "./ToggleThemeSwitch";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Header() {
-
+    const { isLightMode } = useTheme();
     const navigate = useNavigate();
     const isAuthenticated = useIsAuthenticated()
     const authHeader = useAuthHeader();
@@ -22,7 +24,7 @@ export default function Header() {
         }
     };
     return (
-        <header className="bg-black">
+        <header className={`${isLightMode ? 'bg-white text-[#111315]' : 'bg-[#111315] text-white'}`}>
             <div className="mx-auto max-w-7xl flex items-center justify-between h-[62px] px-[16px] md:px-0">
                 <div className="space-x-10 flex items-center justify-start">
                     <Link to={'/'} >
@@ -32,15 +34,15 @@ export default function Header() {
                     {
                         isAuthenticated() && (
                             <HasAccess roles={["super-admin"]} permissions={['post', 'tag']}>
-                                <button className="text-white rounded-full text-[14px] leading-[18px] font-medium cursor-pointer"
+                                <button className="rounded-full text-[14px] leading-[18px] font-medium cursor-pointer"
                                     onClick={() => navigate('/tags')}>
                                     Tags
                                 </button>
-                                <button className="text-white rounded-full text-[14px] leading-[18px] font-medium cursor-pointer"
+                                <button className="rounded-full text-[14px] leading-[18px] font-medium cursor-pointer"
                                     onClick={() => navigate('/posts')}>
                                     Posts
                                 </button>
-                                <button className="text-white rounded-full text-[14px] leading-[18px] font-medium cursor-pointer"
+                                <button className="rounded-full text-[14px] leading-[18px] font-medium cursor-pointer"
                                     onClick={() => navigate('/notes')}>
                                     Notes
                                 </button>
@@ -50,16 +52,17 @@ export default function Header() {
                 </div>
 
                 <div className="space-x-[24px]">
+                <ToggleThemeSwitch />
                     {isAuthenticated() ? (
-                        <button className="text-[14px] leading-[18px] font-medium text-white cursor-pointer" onClick={handleLogout}>
+                        <button className="text-[14px] leading-[18px] font-medium cursor-pointer" onClick={handleLogout}>
                             Log out
                         </button>
                     ) : (
                         <>
-                            <a className="text-[14px] leading-[18px] font-medium text-white cursor-pointer" onClick={() => navigate('/login')}>
+                            <a className="text-[14px] leading-[18px] font-medium cursor-pointer" onClick={() => navigate('/login')}>
                                 Log in
                             </a>
-                            <a className="py-[11px] px-[24px] text-white bg-[#0071FF] rounded-full text-[14px] leading-[18px] font-medium cursor-pointer" onClick={() => navigate('/register')}>
+                            <a className="py-[11px] px-[24px] bg-[#0071FF] rounded-full text-[14px] leading-[18px] font-medium cursor-pointer" onClick={() => navigate('/register')}>
                                 Get Started
                             </a>
                         </>

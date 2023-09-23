@@ -12,6 +12,7 @@ import { getTagsApi } from "../../api/tag";
 import { Editor } from "@tinymce/tinymce-react";
 import { APIUploadFile } from "../../api/uploader";
 import { getUserPostsApi } from "../../api/userPost";
+import { useTheme } from "../../context/ThemeContext";
 
 const example_image_upload_handler = (blobInfo, progress) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
@@ -55,7 +56,7 @@ const example_image_upload_handler = (blobInfo, progress) => new Promise((resolv
 
 
 export default function PostCreatePage() {
-
+  const { isLightMode } = useTheme();
   const { getValues, register, handleSubmit, formState: { errors } } = useForm()
   const authHeader = useAuthHeader();
   const [tagOptions, setTagOptions] = useState([]);
@@ -151,7 +152,8 @@ export default function PostCreatePage() {
         theme="dark"
       />
 
-      <section className="my-[55px] bg-[#202427] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px]">
+    <div className="h-screen bg-opacity-0 bg-transparent">
+      <section className={`my-[55px] bg-[#202427] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px] ${isLightMode ? 'bg-white text-[#111315]' : 'bg-[#202427] text-white'}`}>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-wrap gap-x-4">
           <div className="flex-1">
             <Input
@@ -209,8 +211,8 @@ export default function PostCreatePage() {
             options={tagOptions}
             isClearable={true}
             isMulti
-            className="basic-multi-select"
-            classNamePrefix="dark-select"
+            className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
+            classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
             placeholder={<div>Tags</div>}
             styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
             />
@@ -221,8 +223,8 @@ export default function PostCreatePage() {
               defaultValue={selectedParent}
               onChange={(selectedOption) => setSelectedParent(selectedOption)}
               options={parentOptions}
-              className="basic-select"
-              classNamePrefix="dark-select"
+              className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
+              classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
               placeholder={<div>Parent</div>}
               styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
             />
@@ -238,7 +240,7 @@ export default function PostCreatePage() {
           </div>
         </form>
       </section>
-
+    </div>          
     </>
   );
 }
