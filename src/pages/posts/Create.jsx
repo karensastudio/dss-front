@@ -190,12 +190,12 @@ export default function PostCreatePage() {
                 plugins: [
                   'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                   'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                  'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                  'insertdatetime', 'media', 'table', 'help', 'wordcount', 'accordion'
                 ],
                 toolbar: 'undo redo | blocks |' +
                   'bold italic forecolor link | alignleft aligncenter ' +
                   'alignright alignjustify | bullist numlist outdent indent | ' +
-                  'removeformat | image | table code',
+                  'removeformat | image | table code accordion',
                 content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px }',
                 images_replace_blob_uris: true,
                 paste_data_images: false,
