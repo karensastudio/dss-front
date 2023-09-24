@@ -340,10 +340,11 @@ export function GraphSection() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const authHeader = useAuthHeader();
+    const navigate = useNavigate();
   
     const fetchDecisions = async () => {
       try {
-        const response = await getDecisionsApi(authHeader());
+        const response = await getUserPostsApi(authHeader());
         if (response.status === 'success' && response.response.posts) {
           setData(response.response.posts);
           setError(null);
@@ -356,6 +357,10 @@ export function GraphSection() {
       } finally {
         setIsLoading(false);
       }
+    };
+
+    const handleNodeClick = async (node) => {
+        navigate(`/posts/${node.target.__data__.slug}`)
     };
   
     useEffect(() => {
@@ -415,9 +420,24 @@ export function GraphSection() {
         .enter()
         .append('circle')
         .attr('r', 5)
-        .attr('fill', (d) => (isLightMode ? 'black' : 'white'));
+        .attr('fill', (d) => {
+            if (isLightMode && !d.is_decision) {
+              return 'black';
+            } else if (isLightMode && d.is_decision) {
+              return 'green';
+            } else if (!isLightMode && !d.is_decision) {
+              return 'white';
+            } else if (!isLightMode && d.is_decision) {
+              return 'yellow';
+            } else {
+              return 'blue';
+            }
+          })
+          .on('click', (d) => handleNodeClick(d));
+
+        // node.append('title').text((d) => `${d.title}\nDecision: ${d.is_decision ? 'Yes' : 'No'}`)
   
-      node.append('title').text((d) => d.title);
+        node.append('title').text((d) => d.title);
   
       function ticked() {
         link
