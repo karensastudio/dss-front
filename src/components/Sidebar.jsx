@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { CgSpinner } from "react-icons/cg";
 import * as d3 from 'd3';
+import { getBookmarksApi } from "../api/bookmark";
 
 
 export function SearchSection() {
@@ -196,8 +197,8 @@ export function BookmarkSection() {
     const { isLightMode } = useTheme();
     const [bookmarks, setBookmarks] = useState([]);
     const [error, setError] = useState(null);
-    const [selectedBookmark, setSelectedBookmark] = useState(null);
     const [isPostsLoading, setIsPostsLoading] = useState(true);
+    const [highlightedBookmark, setHighlightedBookmark] = useState(null);
     const authHeader = useAuthHeader();
     const navigate = useNavigate();
 
@@ -226,15 +227,8 @@ export function BookmarkSection() {
     }, []);
 
     const handleBookmarkClick = async (bookmark) => {
-        setSelectedBookmark(bookmark);
-        const bookmarksWithHighlight = bookmarks.map((b) => {
-            return {
-                ...b,
-                highlight: b.id === bookmark.id
-            };
-        });
-        setBookmarks(bookmarksWithHighlight);
-        navigate(`/posts/${bookmark.slug}`);
+        setHighlightedBookmark(bookmark);
+        navigate(`/posts/${bookmark.slug}`)
 
     };
 
@@ -245,12 +239,17 @@ export function BookmarkSection() {
                     <CgSpinner className="text-white text-[48px] animate-spin" />
                 </div>
             ) : bookmarks?.map((bookmark) => (
-                <a
+                    <a
                     key={bookmark.id}
-                    className={`text-[16px] leading-[24px] flex items-center py-[10px] cursor-pointer ${bookmark.highlight ? 'text-[#0071FF]' : 'text-white'
-                        }`}
+                    className={`text-[16px] leading-[24px] cursor-pointer flex items-center ${
+                        highlightedBookmark?.id === bookmark.id
+                        ? 'text-[#0071FF]'
+                        : isLightMode
+                        ? 'text-[#111315]'
+                        : 'text-white'
+                    }`}
                     onClick={() => handleBookmarkClick(bookmark)}
-                >
+                    >
                     <BsBookmarkFill className="mr-[10px]" />
                     <span>{bookmark.title}</span>
                 </a>
@@ -266,7 +265,14 @@ export function DecisionReportSection() {
     const [decisions, setDecisions] = useState([]);
     const [error, setError] = useState(null);
     const [isPostsLoading, setIsPostsLoading] = useState(true);
+    const [highlightedDecision, setHighlightedDecision] = useState(null);
+    const navigate = useNavigate();
     const authHeader = useAuthHeader();
+
+    const handleDecisionClick = async (clickedDecision) => {
+        setHighlightedDecision(clickedDecision);
+        navigate(`/posts/${clickedDecision.slug}`)
+    };
 
     useEffect(() => {
         const fetchDecisions = async () => {
@@ -300,15 +306,21 @@ export function DecisionReportSection() {
                         <CgSpinner className="text-[48px] animate-spin" />
                     </div>
                 ) : decisions.map((decision) => (
-                    <span key={decision.id} className="text-[16px] leading-[24px] flex items-center cursor-pointer">
-                        <span>{decision.title}</span>
-                    </span>
+                        <span
+                        key={decision.id}
+                        className={`text-[16px] leading-[24px] cursor-pointer ${
+                            highlightedDecision?.id === decision.id ? 'text-[#0071FF]' : isLightMode ? 'text-[#111315]' : 'text-white'
+                        }`}
+                        onClick={() => handleDecisionClick(decision)}
+                        >
+                        {decision.title}
+                        </span>
                 ))}
             </div>
 
             {
                 (decisions && decisions.length > 0) && (
-                    <span className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-[16px] leading-[18px] font-medium">
+                    <span className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-[16px] leading-[18px] font-medium cursor-pointer">
                         Generate Decision Report
                     </span>
                 )
@@ -322,94 +334,118 @@ export function DecisionReportSection() {
 }
 
 export function GraphSection() {
-const svgRef = useRef(null);
-  const [data, setData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const authHeader = useAuthHeader();
+    const { isLightMode } = useTheme();
+    const svgRef = useRef(null);
+    const [data, setData] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const authHeader = useAuthHeader();
   
-  const fetchUserPosts = async () => {
-    try {
-      const response = await getUserPostsApi(authHeader());
-      if (response.status === 'success') {
-        setData(response.response);
-        setError(null);
-      } else {
-        setError(response.message);
+    const fetchDecisions = async () => {
+      try {
+        const response = await getDecisionsApi(authHeader());
+        if (response.status === 'success' && response.response.posts) {
+          setData(response.response.posts);
+          setError(null);
+        } else {
+          setError('No valid data received from API');
+        }
+      } catch (error) {
+        console.error(error);
+        setError('An unexpected error occurred.');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error(error);
-      setError('An unexpected error occurred.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  useEffect(() => {
-    fetchUserPosts();
-  }, []);
-  
-  useEffect(() => {
-    if (!data) {
-      return;
-    }
-  
-    const width = 800;
-    const height = 400;
-  
-    const svg = d3.select(svgRef.current);
-  
-    const simulation = d3
-      .forceSimulation(data?.posts || [])
-      .force('link', d3.forceLink().id((d) => d.id))
-      .force('charge', d3.forceManyBody())
-      .force('center', d3.forceCenter(width / 2, height / 2));
-  
-    const link = svg
-      .selectAll('line')
-      .data(data?.posts || [])
-      .enter()
-      .append('line')
-      .attr('stroke', '#999')
-      .attr('stroke-opacity', 0.6)
-      .attr('stroke-width', 1);
-  
-    const node = svg
-      .selectAll('circle')
-      .data(data?.posts || [])
-      .enter()
-      .append('circle')
-      .attr('r', 5)
-      .attr('fill', 'blue');
-  
-    function ticked() {
-      link
-        .attr('x1', (d) => d?.source?.x || 0)
-        .attr('y1', (d) => d?.source?.y || 0)
-        .attr('x2', (d) => d?.target?.x || 0)
-        .attr('y2', (d) => d?.target?.y || 0);
-  
-      node.attr('cx', (d) => d?.x || 0).attr('cy', (d) => d?.y || 0);
-    }
-  
-    simulation.on('tick', ticked);
-  
-    return () => {
-      simulation.stop();
     };
-  }, [data]);
   
-  if (isLoading) {
-    return <p>Loading...</p>;
+    useEffect(() => {
+      fetchDecisions();
+    }, []);
+  
+    useEffect(() => {
+      if (!data || data.length === 0) {
+        return;
+      }
+  
+      const width = 800;
+      const height = 700;
+  
+      const svg = d3.select(svgRef.current);
+  
+      const flattenData = (data) => {
+        const nodes = [];
+        const links = [];
+  
+        const traverse = (node, parent) => {
+          nodes.push(node);
+          if (parent) {
+            links.push({ source: parent, target: node });
+          }
+          if (node.children) {
+            node.children.forEach((child) => traverse(child, node));
+          }
+        };
+  
+        data.forEach((rootNode) => traverse(rootNode, null));
+  
+        return { nodes, links };
+      };
+  
+      const { nodes, links } = flattenData(data);
+  
+      const simulation = d3
+        .forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id((d) => d.id).distance(40).strength(2))
+        .force('charge', d3.forceManyBody().strength(-50))
+        .force('x', d3.forceX(width / 2))
+        .force('y', d3.forceY(height / 2));
+  
+      const link = svg
+        .selectAll('line')
+        .data(links)
+        .enter()
+        .append('line')
+        .attr('stroke', (d) => (isLightMode ? 'black' : 'white'))
+        .attr('stroke-opacity', 0.6)
+        .attr('stroke-width', 1);
+  
+      const node = svg
+        .selectAll('circle')
+        .data(nodes)
+        .enter()
+        .append('circle')
+        .attr('r', 5)
+        .attr('fill', (d) => (isLightMode ? 'black' : 'white'));
+  
+      node.append('title').text((d) => d.title);
+  
+      function ticked() {
+        link
+          .attr('x1', (d) => d.source.x)
+          .attr('y1', (d) => d.source.y)
+          .attr('x2', (d) => d.target.x)
+          .attr('y2', (d) => d.target.y);
+  
+        node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
+      }
+  
+      simulation.on('tick', ticked);
+  
+      return () => {
+        simulation.stop();
+      };
+    }, [data, isLightMode]);
+  
+    if (isLoading) {
+      return <p>Loading...</p>;
+    }
+  
+    if (error) {
+      return <p>Error: {error}</p>;
+    }
+  
+    return <svg ref={svgRef} width="100%" height="730" />;
   }
-  
-  if (error) {
-    return <p>Error: {error}</p>;
-  }
-  
-  return <svg ref={svgRef} width="100%" height="730" />;
-}
-
 
 export default function Sidebar() {
     const { isLightMode } = useTheme();
