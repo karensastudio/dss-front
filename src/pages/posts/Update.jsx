@@ -11,6 +11,7 @@ import Select from 'react-select';
 import { Editor } from "@tinymce/tinymce-react";
 import { getTagsApi } from "../../api/tag";
 import { getUserPostsApi } from "../../api/userPost";
+import { useTheme } from "../../context/ThemeContext";
 
 const example_image_upload_handler = (blobInfo, progress) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
@@ -54,6 +55,7 @@ const example_image_upload_handler = (blobInfo, progress) => new Promise((resolv
 
 
 export default function PostUpdatePage() {
+  const {isLightMode} = useTheme();
   const { postId } = useParams();
   const authHeader = useAuthHeader();
   const navigate = useNavigate();
@@ -166,7 +168,8 @@ export default function PostUpdatePage() {
         theme="dark"
       />
 
-      <section className="my-[55px] bg-[#202427] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px]">
+    <div className="h-screen bg-opacity-0 bg-transparent">
+      <section className={`${isLightMode ? 'bg-white text-[#111315]' : 'bg-[#202427] text-white'} my-[55px] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px]`}>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-wrap gap-x-4">
           <div className="flex-1">
             <Input
@@ -204,12 +207,12 @@ export default function PostUpdatePage() {
                 plugins: [
                   'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
                   'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                  'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                  'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount', 'accordion'
                 ],
                 toolbar: 'undo redo | blocks |' +
                   'bold italic forecolor link | alignleft aligncenter ' +
                   'alignright alignjustify | bullist numlist outdent indent | ' +
-                  'removeformat | image | table code',
+                  'removeformat | image | table code accordion',
                 content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px }',
                 images_replace_blob_uris: true,
                 paste_data_images: false,
@@ -229,8 +232,8 @@ export default function PostUpdatePage() {
                 options={tagOptions}
                 isClearable={true}
                 isMulti
-                className="basic-multi-select"
-                classNamePrefix="dark-select"
+                className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
+                classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
                 placeholder={<div>Tags</div>}
                 styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
               />
@@ -242,8 +245,8 @@ export default function PostUpdatePage() {
                 value={selectedParent}
                 onChange={(selectedOption) => setSelectedParent(selectedOption)}
                 options={parentOptions}
-                className="basic-select"
-                classNamePrefix="dark-select"
+                className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
+                classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
                 placeholder={<div>Parent</div>}
                 styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
               />
@@ -258,6 +261,7 @@ export default function PostUpdatePage() {
           </button>
         </form>
       </section>
+      </div>
     </>
   );
 }

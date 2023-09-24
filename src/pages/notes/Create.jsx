@@ -9,9 +9,10 @@ import { useNavigate } from "react-router-dom";
 import { addNoteApi } from "../../api/comment";
 import { getPostsApi } from "../../api/post";
 import Select from 'react-select';
+import { useTheme } from "../../context/ThemeContext";
 
 export default function NoteCreatePage() {
-
+  const { isLightMode } = useTheme();
   const { getValues, register, handleSubmit, formState: { errors } } = useForm()
   const authHeader = useAuthHeader();
   const [posts, setPosts] = useState([]);
@@ -82,7 +83,8 @@ export default function NoteCreatePage() {
         theme="dark"
       />
 
-      <section className="my-[55px] bg-[#202427] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px]">
+      <div className="h-screen bg-opacity-0 bg-transparent">
+      <section className={`my-[55px] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px] ${isLightMode ? 'bg-white text-[#111315]' : 'bg-[#202427] text-white'}`}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-y-[19px] mb-[31px]">
             <Input
@@ -99,8 +101,8 @@ export default function NoteCreatePage() {
             defaultValue={selectedPost}
             onChange={(selectedOption) => setSelectedPost(selectedOption)}
             options={posts}
-            className="basic-multi-select"
-            classNamePrefix="dark-select"
+            className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
+            classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
             placeholder={<div>Posts</div>}
             />
           </div>
@@ -113,6 +115,7 @@ export default function NoteCreatePage() {
           </button>
         </form>
       </section>
+      </div>
     </>
   );
 }

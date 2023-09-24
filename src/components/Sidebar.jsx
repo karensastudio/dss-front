@@ -1,18 +1,17 @@
 import { Disclosure, Transition } from "@headlessui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BsSearch, BsChevronUp, BsBookmarkFill } from "react-icons/bs";
-import { ForceGraph2D, ForceGraph3D, ForceGraphVR, ForceGraphAR } from 'react-force-graph';
-import data from './miserables.json';
-import { searchAPI } from "../api/search";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
-import { getPostBySlugApi, getUserPostsApi } from "../api/userPost";
-import { getBookmarksApi } from "../api/bookmark";
+import { getUserPostsApi } from "../api/userPost";
 import { getDecisionsApi } from "../api/decision";
 import { useNavigate } from "react-router-dom";
-import { set } from "react-hook-form";
+import { useTheme } from "../context/ThemeContext";
 import { CgSpinner } from "react-icons/cg";
+import * as d3 from 'd3';
+
 
 export function SearchSection() {
+    const { isLightMode } = useTheme();
     const authHeader = useAuthHeader();
     const [searchValue, setSearchValue] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -94,6 +93,7 @@ export function SearchSection() {
 }
 
 export function ListOfContentSection() {
+    const { isLightMode } = useTheme();
     const [userPosts, setUserPosts] = useState([]);
     const [isPostsLoading, setIsPostsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -139,14 +139,11 @@ export function ListOfContentSection() {
             ) : userPosts.map((category) => (
                 <Disclosure key={category.id}>
                     {({ open = true }) => (
-                        <section className="bg-[#41474D] px-[25px] py-[16px] rounded-[12px]">
-                            <Disclosure.Button className="flex w-full justify-between items-center text-left text-[16px] font-medium text-white">
+                        <section className={`px-[25px] py-[16px] rounded-[12px] ${isLightMode ? 'bg-white text-[#111315]' : 'bg-[#41474D] text-white'}`}>
+                            <Disclosure.Button className="flex w-full justify-between items-center text-left text-[16px] font-medium">
                                 <span>{category.title}</span>
                                 <div className="bg-[#0071FF] rounded-full p-[14px]">
-                                    <BsChevronUp
-                                        className={`${open ? 'rotate-180 transform' : 'rotate-90'
-                                            } text-[16px] text-white`}
-                                    />
+                                    <BsChevronUp className={`${open ? 'rotate-180 transform' : 'rotate-90'} text-[16px] text-white`}/>
                                 </div>
                             </Disclosure.Button>
                             <Transition
@@ -160,23 +157,25 @@ export function ListOfContentSection() {
                             >
                                 <Disclosure.Panel className="px-[27px] mt-[10px]">
                                     <div className="flex flex-col space-y-[16px]">
-                                        <a
+                                        <span
                                             key={category.id}
-                                            className={`text-[16px] leading-[24px] cursor-pointer ${highlightedPost?.id === category.id ? 'text-[#0071FF]' : 'text-white'
-                                                }`}
+                                            className={`text-[16px] leading-[24px] cursor-pointer ${
+                                                highlightedPost?.id === category.id ? 'text-[#0071FF]' : isLightMode ? 'text-[#111315]' : 'text-white'
+                                            }`}
                                             onClick={() => handlePostClick(category)}
-                                        >
-                                            Introduction
-                                        </a>
-                                        {category.children.map((post) => (
-                                            <a
-                                                key={post.id}
-                                                className={`text-[16px] leading-[24px] cursor-pointer ${highlightedPost?.id === post.id ? 'text-[#0071FF]' : 'text-white'
-                                                    }`}
-                                                onClick={() => handlePostClick(post)}
                                             >
-                                                {post.title}
-                                            </a>
+                                            Introduction
+                                        </span>
+                                        {category.children.map((post) => (
+                                            <span
+                                            key={post.id}
+                                            className={`text-[16px] leading-[24px] cursor-pointer ${
+                                              highlightedPost?.id === post.id ? 'text-[#0071FF]' : isLightMode ? 'text-[#111315]' : 'text-white'
+                                            }`}
+                                            onClick={() => handlePostClick(post)}
+                                          >
+                                            {post.title}
+                                            </span>
                                         ))}
                                     </div>
                                 </Disclosure.Panel>
@@ -194,6 +193,7 @@ export function ListOfContentSection() {
 }
 
 export function BookmarkSection() {
+    const { isLightMode } = useTheme();
     const [bookmarks, setBookmarks] = useState([]);
     const [error, setError] = useState(null);
     const [selectedBookmark, setSelectedBookmark] = useState(null);
@@ -262,6 +262,7 @@ export function BookmarkSection() {
 }
 
 export function DecisionReportSection() {
+    const { isLightMode } = useTheme();
     const [decisions, setDecisions] = useState([]);
     const [error, setError] = useState(null);
     const [isPostsLoading, setIsPostsLoading] = useState(true);
@@ -293,23 +294,23 @@ export function DecisionReportSection() {
 
     return (
         <div className="flex flex-col mt-[10px]">
-            <div className="flex flex-col space-y-[16px] mb-[48px]">
+            <div className={`flex flex-col space-y-[16px] mb-[48px] ${isLightMode ? 'text-[#111315]' : 'text-white'}`}>
                 {isPostsLoading ? (
                     <div className="flex items-center justify-center py-10">
-                        <CgSpinner className="text-white text-[48px] animate-spin" />
+                        <CgSpinner className="text-[48px] animate-spin" />
                     </div>
                 ) : decisions.map((decision) => (
-                    <a key={decision.id} className="text-white text-[16px] leading-[24px] flex items-center cursor-pointer">
+                    <span key={decision.id} className="text-[16px] leading-[24px] flex items-center cursor-pointer">
                         <span>{decision.title}</span>
-                    </a>
+                    </span>
                 ))}
             </div>
 
             {
                 (decisions && decisions.length > 0) && (
-                    <a className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium">
+                    <span className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-[16px] leading-[18px] font-medium">
                         Generate Decision Report
-                    </a>
+                    </span>
                 )
             }
 
@@ -321,47 +322,142 @@ export function DecisionReportSection() {
 }
 
 export function GraphSection() {
-    return (
-        <iframe width="100%" height="730" frameborder="0"
-            src="https://observablehq.com/embed/@d3/force-directed-tree?cells=chart%2Cdrag"></iframe>
-    );
+const svgRef = useRef(null);
+  const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const authHeader = useAuthHeader();
+  
+  const fetchUserPosts = async () => {
+    try {
+      const response = await getUserPostsApi(authHeader());
+      if (response.status === 'success') {
+        setData(response.response);
+        setError(null);
+      } else {
+        setError(response.message);
+      }
+    } catch (error) {
+      console.error(error);
+      setError('An unexpected error occurred.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchUserPosts();
+  }, []);
+  
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+  
+    const width = 800;
+    const height = 400;
+  
+    const svg = d3.select(svgRef.current);
+  
+    const simulation = d3
+      .forceSimulation(data?.posts || [])
+      .force('link', d3.forceLink().id((d) => d.id))
+      .force('charge', d3.forceManyBody())
+      .force('center', d3.forceCenter(width / 2, height / 2));
+  
+    const link = svg
+      .selectAll('line')
+      .data(data?.posts || [])
+      .enter()
+      .append('line')
+      .attr('stroke', '#999')
+      .attr('stroke-opacity', 0.6)
+      .attr('stroke-width', 1);
+  
+    const node = svg
+      .selectAll('circle')
+      .data(data?.posts || [])
+      .enter()
+      .append('circle')
+      .attr('r', 5)
+      .attr('fill', 'blue');
+  
+    function ticked() {
+      link
+        .attr('x1', (d) => d?.source?.x || 0)
+        .attr('y1', (d) => d?.source?.y || 0)
+        .attr('x2', (d) => d?.target?.x || 0)
+        .attr('y2', (d) => d?.target?.y || 0);
+  
+      node.attr('cx', (d) => d?.x || 0).attr('cy', (d) => d?.y || 0);
+    }
+  
+    simulation.on('tick', ticked);
+  
+    return () => {
+      simulation.stop();
+    };
+  }, [data]);
+  
+  if (isLoading) {
+    return <p>Loading...</p>;
+  }
+  
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
+  
+  return <svg ref={svgRef} width="100%" height="730" />;
 }
 
 
 export default function Sidebar() {
+    const { isLightMode } = useTheme();
     const [activePage, setActivePage] = useState("dashboard");
     const isAuthenticated = useIsAuthenticated()
 
     return (
         <aside className="px-[40px] py-[32px] min-h-full" id="sidebar-content">
             <div className="py-[24px] flex items-center justify-start space-x-[18px] text-[14px] font-normal">
-                <div onClick={() => setActivePage('search')} className={`cursor-pointer text-white py-[12px]  ${activePage == 'search' ? 'border-b-2 border-b-white' : 'text-opacity-60'} `}>
-                    <BsSearch className="text-[18px]" />
+
+                    <div
+                onClick={() => setActivePage('search')}
+                className={`cursor-pointer py-[12px] ${isLightMode ? 'text-[#111315]' : 'text-white'} ${activePage == 'search' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
+                >
+                <BsSearch className="text-[18px]" />
                 </div>
 
-                <div onClick={() => setActivePage('dashboard')} className={`cursor-pointer text-white py-[12px] ${activePage == 'dashboard' ? 'border-b-2 border-b-white' : 'text-opacity-60'} `}>
-                    List of Content
+                <div
+                onClick={() => setActivePage('dashboard')}
+                className={`cursor-pointer py-[12px] ${isLightMode ? 'text-[#111315]' : 'text-white'} ${activePage == 'dashboard' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
+                >
+                List of Content
                 </div>
-                {
-                    isAuthenticated() && (
-                        <>
-                            <div onClick={() => setActivePage('bookmark')} className={`cursor-pointer text-white py-[12px] ${activePage == 'bookmark' ? 'border-b-2 border-b-white' : 'text-opacity-60'} `}>
-                                Your Bookmarks
-                            </div>
+                {isAuthenticated() && (
+                <>
+                    <div
+                    onClick={() => setActivePage('bookmark')}
+                    className={`cursor-pointer py-[12px] ${isLightMode ? 'text-[#111315]' : 'text-white'} ${activePage == 'bookmark' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
+                    >
+                    Your Bookmarks
+                    </div>
 
-                            <div onClick={() => setActivePage('decision-graph')} className={`cursor-pointer text-white py-[12px] ${activePage == 'decision-graph' ? 'border-b-2 border-b-white' : 'text-opacity-60'} `}>
-                                Your Decision Graph
-                            </div>
+                    <div
+                    onClick={() => setActivePage('decision-graph')}
+                    className={`cursor-pointer py-[12px] ${isLightMode ? 'text-[#111315]' : 'text-white'} ${activePage == 'decision-graph' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
+                    >
+                    Your Decision Graph
+                    </div>
 
-                            <div onClick={() => setActivePage('decision-report')} className={`cursor-pointer text-white py-[12px] ${activePage == 'decision-report' ? 'border-b-2 border-b-white' : 'text-opacity-60'} `}>
-                                Your Decision Report
-                            </div>
-                        </>
-                    )
-                }
-
-
-            </div>
+                    <div
+                    onClick={() => setActivePage('decision-report')}
+                    className={`cursor-pointer py-[12px] ${isLightMode ? 'text-[#111315]' : 'text-white'} ${activePage == 'decision-report' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
+                    >
+                    Your Decision Report
+                    </div>
+                </>
+                )}
+              </div>
 
             {
                 activePage == 'search' ? <SearchSection /> : null

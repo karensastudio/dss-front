@@ -7,9 +7,10 @@ import { Link } from "react-router-dom";
 import { CgMathPlus } from "react-icons/cg";
 import { getUserPostsApi } from "../../api/userPost";
 import { deletePostApi, getPostsApi } from "../../api/post";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function PostIndexPage() {
-
+  const { isLightMode } = useTheme();
   const authHeader = useAuthHeader();
   const [posts, setPosts] = useState([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -76,15 +77,15 @@ export default function PostIndexPage() {
         pauseOnHover
         theme="dark"
       />
-
-      <section className="my-[55px] bg-[#202427] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px]">
+      <div className="h-screen bg-opacity-0 bg-transparent">
+      <section className={`my-[55px] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px] ${isLightMode ? 'bg-white text-[#202427]' : 'bg-[#202427] text-white'}`}>
         <div className="flex flex-col">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-[24px] font-bold text-[#F9FAFB] mb-3">Posts</h1>
+            <h1 className={`text-[24px] font-bold ${isLightMode ? 'text-[#111315]' : 'text-[#F9FAFB]'} mb-3`}>Posts</h1>
 
             <Link
               to={`/posts/create`}
-              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700"
+              className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-full bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700 text-white"
             >
               <CgMathPlus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
               Add Post
@@ -93,14 +94,14 @@ export default function PostIndexPage() {
 
           <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
             <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-              <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+              <div className="overflow-hidden shadow ring-1 ring-[#111315] ring-opacity-5 md:rounded-lg">
                 <table className="min-w-full divide-y divide-gray-900">
                   <thead className="bg-white bg-opacity-5">
                     <tr>
-                      <th scope="col" className="py-3.5 pl-4 pr-3 text-start text-sm font-semibold text-white sm:pl-6">
+                      <th scope="col" className="py-3.5 pl-4 pr-3 text-start text-sm font-semibold sm:pl-6">
                         Title
                       </th>
-                      <th scope="col" className="px-3 py-3.5 text-start text-sm font-semibold text-white">
+                      <th scope="col" className="px-3 py-3.5 text-start text-sm font-semibold">
                         Slug
                       </th>
                       <th scope="col" className="relative py-3.5 pr-3 pl-4 sm:pl-6">
@@ -112,10 +113,10 @@ export default function PostIndexPage() {
                     {posts.map((post) => (
                       <tr key={post.id}>
                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                          <p className="font-medium text-white">{post.title}</p>
+                          <p className="font-medium">{post.title}</p>
                         </td>
                         <td className="whitespace-nowrap py-4 pr-4 pl-3 text-sm sm:pr-6">
-                          <p className="font-medium text-white">{post.slug}</p>
+                          <p className="font-medium">{post.slug}</p>
                         </td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                           <Link to={`/posts/update/${post.id}`} className="text-gray-300 hover:text-gray-400">
@@ -129,17 +130,17 @@ export default function PostIndexPage() {
                           <div className="fixed z-10 inset-0 overflow-y-auto">
                             <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
                               <div className="fixed inset-0 transition-opacity">
-                                <div className="absolute inset-0 bg-gray-900 opacity-75"></div>
+                                <div className={`absolute inset-0 opacity-75 ${isLightMode ? 'bg-gray-300' : 'bg-gray-900'}`}></div>
                               </div>
                               <span className="hidden sm:inline-block sm:align-middle sm:h-screen"></span>&#8203;
                               <div className="inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                                <div className="bg-gray-900 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                                  <h3 className="text-lg leading-6 font-medium text-white">Confirm Deletion</h3>
+                                <div className={`px-4 pt-5 pb-4 sm:p-6 sm:pb-4 ${isLightMode ? 'bg-gray-100' : 'bg-gray-900'}`}>
+                                  <h3 className="text-lg leading-6 font-medium">Confirm Deletion</h3>
                                   <div className="mt-2">
                                     <p className="text-sm text-gray-400">Are you sure you want to delete this item?</p>
                                   </div>
                                 </div>
-                                <div className="bg-gray-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                <div className={`px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse ${isLightMode ? 'bg-gray-200' : 'bg-gray-800'}`}>
                                   <button
                                     onClick={handleConfirmDelete}
                                     className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
@@ -148,7 +149,7 @@ export default function PostIndexPage() {
                                   </button>
                                   <button
                                     onClick={handleCancelDelete}
-                                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-600 shadow-sm px-4 py-2 bg-gray-700 text-base font-medium text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 sm:mt-0 sm:w-auto sm:text-sm"
+                                    className={`mt-3 w-full inline-flex justify-center rounded-md border border-gray-600 shadow-sm px-4 py-2 text-base font-medium text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 sm:mt-0 sm:w-auto sm:text-sm`}
                                   >
                                     Cancel
                                   </button>
@@ -168,6 +169,7 @@ export default function PostIndexPage() {
           </div>
         </div>
       </section>
+      </div>
     </>
   );
 }

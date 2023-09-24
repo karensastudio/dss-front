@@ -12,6 +12,7 @@ import { AuthProvider } from "react-auth-kit";
 import { router } from "./routes";
 import { RecoilRoot } from "recoil";
 import { PermifyProvider } from "@permify/react-role";
+import { ThemeProvider } from "./context/ThemeContext";
 
 const noInternetNotifCustomButton = function () {
   function onClick() {
@@ -31,7 +32,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <AuthProvider
         authType={'localstorage'}
         authName={'_auth'}>
-        <RouterProvider router={router} />
+        <ThemeProvider>
+          <RouterProvider router={router} />
+        </ThemeProvider>
       </AuthProvider>
     </PermifyProvider>
   </RecoilRoot>

@@ -1,7 +1,3 @@
-import { Helmet } from "react-helmet";
-import Header from "../components/Header";
-import Input from "../utils/Input";
-import Checkbox from "../utils/Checkbox";
 import { useEffect, useState } from "react";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -15,10 +11,12 @@ import parse from 'html-react-parser';
 import CommentPopUp from "../components/CommentPopUp";
 import 'react-tooltip/dist/react-tooltip.css'
 import { Tooltip } from 'react-tooltip'
+import { useTheme } from "../context/ThemeContext";
 
 
 
 export default function A131Page() {
+    const { isLightMode } = useTheme();
     const location = useLocation();
     const [post, setPost] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -119,13 +117,14 @@ export default function A131Page() {
                 theme="dark"
             />
 
-            <div className="w-full">
-                <div className="mx-[40px] py-[24px] border-b-[1px] border-b-white flex items-center justify-between">
-                    <p className="text-white text-[14px] leading-[20px] text-opacity-60">
+            <div className={`w-full ${isLightMode ? 'bg-white text-[#111315]' : 'bg-[#111315] text-white'}`}>
+
+                <div className={`mx-[40px] py-[24px] border-b-[1px] flex items-center justify-between ${isLightMode ? 'border-b-[#111315]' : 'border-b-white'}`}>
+                    <p className="text-[14px] leading-[20px] text-opacity-60">
                         {getPostBreadcrumbByParentTitles(post).join(' | ')}
                     </p>
 
-                    <div className="flex space-x-[16px] text-white text-[18px] cursor-pointer">
+                    <div className="flex space-x-[16px] text-[18px] cursor-pointer">
 
                         <BsFillChatTextFill
                             onClick={() => openChat('note')}
@@ -144,19 +143,19 @@ export default function A131Page() {
                         <Tooltip id="propose-tooltip"/>
 
                         {
-                            isBookmarkLoading ? <div className="animate-spin rounded-full h-[24px] w-[24px] border-t-[2px] border-white"></div> : <BsBookmark className={post?.is_bookmark ? "text-[#0071FF]" : ""} onClick={handleBookmarkChange} />
+                            isBookmarkLoading ? <div className={`animate-spin rounded-full h-[24px] w-[24px] border-t-[2px] ${isLightMode ? 'border-[#111315]' : 'border-white'}`}></div> : <BsBookmark className={post?.is_bookmark ? "text-[#0071FF]" : ""} onClick={handleBookmarkChange} />
                         }
                         <BsShare />
                     </div>
                 </div>
                 <div className="mx-[40px] py-[24px] flex items-center justify-between">
-                    <div className="flex items-center text-white text-opacity-60 text-[14px] leading-[20px] cursor-pointer">
+                    <div className="flex items-center text-opacity-60 text-[14px] leading-[20px] cursor-pointer">
                         <BsChevronLeft className="mr-[12px]" />
                         <span onClick={() => { navigate(-1) }}>Go back</span>
                     </div>
 
-                    <div className="flex space-x-[16px] text-white text-[18px] items-center">
-                        <label className="text-white text-[16px] cursor-pointer flex items-center">
+                    <div className="flex space-x-[16px] text-[18px] items-center">
+                        <label className="text-[16px] cursor-pointer flex items-center">
                             Add to My Decision
                             <input
                                 type="checkbox"
@@ -169,19 +168,19 @@ export default function A131Page() {
                 </div>
 
                 <div className="mx-[40px] py-[16px]">
-                    <h1 className="text-white text-[24px] leading-[32px]">{post?.title}</h1>
+                    <h1 className="text-[24px] leading-[32px]">{post?.title}</h1>
                 </div>
 
                 <div className="mx-[40px] py-[24px]">
                     <div className="flex items-center justify-start space-x-[8px]">
                         {post?.tags?.map((tag) => (
-                            <span key={tag.id} className="px-[12px] py-[2px] text-[12px] leading-[20px] text-white rounded-full border-[1px] border-white">#{tag.name}</span>
+                            <span key={tag.id} className={`px-[12px] py-[2px] text-[12px] leading-[20px] rounded-full border-[1px] ${isLightMode ? 'border-[#111315]' : 'border-white'}`}>#{tag.name}</span>
                         ))}
                     </div>
                 </div>
 
                 <div className="mx-[40px] py-[16px]">
-                    <div className="text-white editor-text">
+                    <div className={`${isLightMode ? 'light-editor-text' : 'editor-text'}`}>
                         {post?.description && parse(post?.description)}
                     </div>
                 </div>

@@ -4,6 +4,7 @@ import { useAuthUser } from "react-auth-kit";
 import { Helmet } from "react-helmet";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import { useTheme } from "../context/ThemeContext";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
@@ -20,20 +21,20 @@ export default function UserLayout({ children, pageTitle }) {
 
 
     const auth = useAuthUser();
-
+    const { isLightMode } = useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false)
 
     return (
-        <main className="min-h-screen flex flex-col items-stretch justify-stretch">
+        <main className={`min-h-screen flex flex-col items-stretch justify-stretch ${isLightMode ? 'light-mode' : ''}`}>
             <Helmet>
                 <title>DSS | {pageTitle}</title>
             </Helmet>
 
             <Header />
 
-            <section className="bg-[#111315] h-full grow flex flex-col">
+            <section className={`h-full grow flex flex-col ${isLightMode ? 'bg-white' : 'bg-[#111315]'}`}>
                 <div className="grid grid-cols-2 w-full h-full grow">
-                    <div className="min-h-full col-span-1 bg-[#202427]">
+                    <div className={`min-h-full col-span-1 ${isLightMode ? 'bg-[#d9e6f1]' : 'bg-[#202427]'}`}>
                         <Sidebar />
                     </div>
                     <div className="min-h-full col-span-1">

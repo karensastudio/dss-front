@@ -7,8 +7,10 @@ import { ToastContainer, toast } from "react-toastify";
 import Input from "../../utils/Input";
 import { useAuthHeader } from "react-auth-kit";
 import { getTagByIdApi, updateTagApi } from "../../api/tag";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function TagUpdatePage() {
+  const {isLightMode} = useTheme();
   const { tagId } = useParams();
   const authHeader = useAuthHeader();
   const navigate = useNavigate();
@@ -70,7 +72,8 @@ export default function TagUpdatePage() {
         theme="dark"
       />
 
-      <section className="my-[55px] bg-[#202427] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px]">
+    <div className="h-screen bg-opacity-0 bg-transparent">
+      <section className={`${isLightMode ? 'bg-white text-[#111315]' : 'bg-[#202427] text-white'} my-[55px] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px]`}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-y-[19px] mb-[31px]">
             <Input
@@ -99,6 +102,7 @@ export default function TagUpdatePage() {
           </button>
         </form>
       </section>
+      </div>
     </>
   );
 }
