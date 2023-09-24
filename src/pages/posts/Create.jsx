@@ -16,7 +16,7 @@ import { useTheme } from "../../context/ThemeContext";
 
 const example_image_upload_handler = (blobInfo, progress) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
-  xhr.open('POST', 'http://51.15.192.255:8080/api/v1/files/upload');
+  xhr.open('POST', 'https://api.dssproject.me/api/v1/files/upload');
 
   xhr.upload.onprogress = (e) => {
     progress(e.loaded / e.total * 100);
