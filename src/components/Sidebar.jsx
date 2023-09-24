@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { CgSpinner } from "react-icons/cg";
 import * as d3 from 'd3';
+import { getBookmarksApi } from "../api/bookmark";
 
 
 export function SearchSection() {
@@ -196,8 +197,8 @@ export function BookmarkSection() {
     const { isLightMode } = useTheme();
     const [bookmarks, setBookmarks] = useState([]);
     const [error, setError] = useState(null);
-    const [selectedBookmark, setSelectedBookmark] = useState(null);
     const [isPostsLoading, setIsPostsLoading] = useState(true);
+    const [highlightedBookmark, setHighlightedBookmark] = useState(null);
     const authHeader = useAuthHeader();
     const navigate = useNavigate();
 
@@ -226,15 +227,8 @@ export function BookmarkSection() {
     }, []);
 
     const handleBookmarkClick = async (bookmark) => {
-        setSelectedBookmark(bookmark);
-        const bookmarksWithHighlight = bookmarks.map((b) => {
-            return {
-                ...b,
-                highlight: b.id === bookmark.id
-            };
-        });
-        setBookmarks(bookmarksWithHighlight);
-        navigate(`/posts/${bookmark.slug}`);
+        setHighlightedBookmark(bookmark);
+        navigate(`/posts/${bookmark.slug}`)
 
     };
 
@@ -245,12 +239,17 @@ export function BookmarkSection() {
                     <CgSpinner className="text-white text-[48px] animate-spin" />
                 </div>
             ) : bookmarks?.map((bookmark) => (
-                <a
+                    <a
                     key={bookmark.id}
-                    className={`text-[16px] leading-[24px] flex items-center py-[10px] cursor-pointer ${bookmark.highlight ? 'text-[#0071FF]' : 'text-white'
-                        }`}
+                    className={`text-[16px] leading-[24px] cursor-pointer flex items-center ${
+                        highlightedBookmark?.id === bookmark.id
+                        ? 'text-[#0071FF]'
+                        : isLightMode
+                        ? 'text-[#111315]'
+                        : 'text-white'
+                    }`}
                     onClick={() => handleBookmarkClick(bookmark)}
-                >
+                    >
                     <BsBookmarkFill className="mr-[10px]" />
                     <span>{bookmark.title}</span>
                 </a>
@@ -266,7 +265,14 @@ export function DecisionReportSection() {
     const [decisions, setDecisions] = useState([]);
     const [error, setError] = useState(null);
     const [isPostsLoading, setIsPostsLoading] = useState(true);
+    const [highlightedDecision, setHighlightedDecision] = useState(null);
+    const navigate = useNavigate();
     const authHeader = useAuthHeader();
+
+    const handleDecisionClick = async (clickedDecision) => {
+        setHighlightedDecision(clickedDecision);
+        navigate(`/posts/${clickedDecision.slug}`)
+    };
 
     useEffect(() => {
         const fetchDecisions = async () => {
@@ -300,15 +306,21 @@ export function DecisionReportSection() {
                         <CgSpinner className="text-[48px] animate-spin" />
                     </div>
                 ) : decisions.map((decision) => (
-                    <span key={decision.id} className="text-[16px] leading-[24px] flex items-center cursor-pointer">
-                        <span>{decision.title}</span>
-                    </span>
+                        <span
+                        key={decision.id}
+                        className={`text-[16px] leading-[24px] cursor-pointer ${
+                            highlightedDecision?.id === decision.id ? 'text-[#0071FF]' : isLightMode ? 'text-[#111315]' : 'text-white'
+                        }`}
+                        onClick={() => handleDecisionClick(decision)}
+                        >
+                        {decision.title}
+                        </span>
                 ))}
             </div>
 
             {
                 (decisions && decisions.length > 0) && (
-                    <span className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-[16px] leading-[18px] font-medium">
+                    <span className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-[16px] leading-[18px] font-medium cursor-pointer">
                         Generate Decision Report
                     </span>
                 )
