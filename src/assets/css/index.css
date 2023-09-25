@@ -155,6 +155,15 @@ input:checked+.slider:before {
     border-radius: 50%;
 }
 
+.graph-bg {
+    background-color: white;
+    border-radius: 5px;
+}
+
+.node-text {
+    font-size: 12px;
+}
+
 
 @media (max-width: 640px) {
     .comment-popup {
