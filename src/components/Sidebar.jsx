@@ -320,7 +320,8 @@ export function DecisionReportSection() {
 
             {
                 (decisions && decisions.length > 0) && (
-                    <span className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-[16px] leading-[18px] font-medium cursor-pointer">
+                    <span className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-[16px] leading-[18px] font-medium cursor-pointer"
+                    onClick={() => {navigate('/decision/pdf')}}>
                         Generate Decision Report
                     </span>
                 )
@@ -342,29 +343,52 @@ export function GraphSection() {
     const authHeader = useAuthHeader();
     const navigate = useNavigate();
   
-    const fetchDecisions = async () => {
-      try {
-        const response = await getUserPostsApi(authHeader());
-        if (response.status === 'success' && response.response.posts) {
-          setData(response.response.posts);
-          setError(null);
-        } else {
-          setError('No valid data received from API');
+    const fetchUserPosts = async () => {
+        try {
+          const response = await getUserPostsApi(authHeader());
+          if (response.status === 'success' && response.response.posts) {
+            const root = {
+              id: 'root',
+              title: 'root',
+              children: [],
+              is_decision: false,
+              created_at: '',
+            };
+            
+            response.response.posts.forEach((post) => {
+                root.children.push(post);
+                console.log(root);
+            });
+            
+            response.response.posts.forEach((post) => {
+              if (post.children.length === 0) {
+                post.children.push(root);
+              }
+            });
+      
+            setData([root, ...response.response.posts]);
+            setError(null);
+          } else {
+            setError('No valid data received from API');
+          }
+        } catch (error) {
+          console.error(error);
+          setError('An unexpected error occurred.');
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error(error);
-        setError('An unexpected error occurred.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
+      };
+  
     const handleNodeClick = async (node) => {
-        navigate(`/posts/${node.target.__data__.slug}`)
+      if (node.id === 'root') {
+        return;
+      } else {
+        navigate(`/posts/${node.target.__data__.slug}`);
+      }
     };
   
     useEffect(() => {
-      fetchDecisions();
+      fetchUserPosts();
     }, []);
   
     useEffect(() => {
@@ -380,28 +404,35 @@ export function GraphSection() {
       const flattenData = (data) => {
         const nodes = [];
         const links = [];
-  
-        const traverse = (node, parent) => {
-          nodes.push(node);
-          if (parent) {
-            links.push({ source: parent, target: node });
+      
+        const stack = [...data];
+        const visitedNodes = new Set();
+      
+        while (stack.length > 0) {
+          const currentNode = stack.pop();
+      
+          if (!visitedNodes.has(currentNode)) {
+            visitedNodes.add(currentNode);
+            nodes.push(currentNode);
+      
+            if (currentNode.children) {
+              currentNode.children.forEach((child) => {
+                links.push({ source: currentNode, target: child });
+                stack.push(child);
+              });
+            }
           }
-          if (node.children) {
-            node.children.forEach((child) => traverse(child, node));
-          }
-        };
-  
-        data.forEach((rootNode) => traverse(rootNode, null));
-  
+        }
+      
         return { nodes, links };
       };
-  
+
       const { nodes, links } = flattenData(data);
   
       const simulation = d3
         .forceSimulation(nodes)
-        .force('link', d3.forceLink(links).id((d) => d.id).distance(40).strength(2))
-        .force('charge', d3.forceManyBody().strength(-50))
+        .force('link', d3.forceLink(links).id((d) => d.id).distance(100).strength(2))
+        .force('charge', d3.forceManyBody().strength(-100))
         .force('x', d3.forceX(width / 2))
         .force('y', d3.forceY(height / 2));
   
@@ -421,17 +452,11 @@ export function GraphSection() {
         .append('circle')
         .attr('r', 5)
         .attr('fill', (d) => {
-            if (isLightMode && !d.is_decision) {
-              return 'black';
-            } else if (isLightMode && d.is_decision) {
-              return 'green';
-            } else if (!isLightMode && !d.is_decision) {
-              return 'white';
-            } else if (!isLightMode && d.is_decision) {
-              return 'yellow';
-            } else {
-              return 'blue';
-            }
+            if (isLightMode) {
+                return d.is_decision ? '#0071FF' : 'black';
+              } else {
+                return d.is_decision ? '#0071FF' : 'white';
+              }
           })
           .on('click', (d) => handleNodeClick(d));
 
