@@ -18,6 +18,7 @@ import PostUpdatePage from "./pages/posts/Update";
 import NoteIndexPage from "./pages/notes/Index";
 import NoteUpdatePage from "./pages/notes/Update";
 import NoteCreatePage from "./pages/notes/Create";
+import DecisionPdfPage from "./pages/DecisionPdf";
 // import ErrorPage from "./error-page";
 
 export const router = createBrowserRouter([
@@ -67,8 +68,8 @@ export const router = createBrowserRouter([
         // errorElement: <ErrorPage />
     },
     {
-        path: "/posts/create",
-        element: <PostCreatePage />,
+        path: "/decision/pdf",
+        element: <DecisionPdfPage />,
         // errorElement: <ErrorPage />
     },
 

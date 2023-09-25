@@ -320,7 +320,8 @@ export function DecisionReportSection() {
 
             {
                 (decisions && decisions.length > 0) && (
-                    <span className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-[16px] leading-[18px] font-medium cursor-pointer">
+                    <span className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-[16px] leading-[18px] font-medium cursor-pointer"
+                    onClick={() => {navigate('/decision/pdf')}}>
                         Generate Decision Report
                     </span>
                 )
