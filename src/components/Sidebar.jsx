@@ -9,6 +9,7 @@ import { useTheme } from "../context/ThemeContext";
 import { CgSpinner } from "react-icons/cg";
 import * as d3 from 'd3';
 import { getBookmarksApi } from "../api/bookmark";
+import { searchAPI } from "../api/search";
 
 
 export function SearchSection() {
@@ -52,6 +53,12 @@ export function SearchSection() {
         navigate(`/posts/${result.slug}`);
     };
 
+    const handleOnEnterSearch = (e) => {
+        if(e.key == 'Enter'){
+            handleSearch();
+        }
+    }
+
     return (
         <div className="flex flex-col space-y-[16px]">
 
@@ -61,6 +68,7 @@ export function SearchSection() {
                     placeholder="Search for content"
                     className="w-full bg-transparent rounded-none focus-within:outline-none text-white py-[15px] text-[20px] border-b-2 border-b-white border-opacity-25 focus:border-opacity-100 leading-[32px] font-medium"
                     onChange={(e) => setSearchValue(e.target.value)}
+                    onKeyUp={(e) => handleOnEnterSearch(e)}
                 />
 
                 <button type="button" className="ml-auto flex bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium" onClick={handleSearch}>
