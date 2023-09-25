@@ -63,6 +63,7 @@ export default function PostCreatePage() {
   const [selectedTag, setSelectedTag] = useState([]);
   const [parentOptions, setParentOptions] = useState([]);
   const [selectedParent, setSelectedParent] = useState(null);
+  const [selectedRelated, setSelectedRelated] = useState(null);
 
   const editorRef = useRef(null);
   const log = () => {
@@ -110,15 +111,16 @@ export default function PostCreatePage() {
   const onSubmit = async (data) => {
     const description = editorRef.current.getContent();
     const selectedTagValues = selectedTag?.map((tag) => tag.value);
+    const selectedRelatedValues = selectedRelated?.map((related) => related.value);
 
     const postData = {
       title: data.title,
       priority: data.priority,
       description: description,
       parent_id: selectedParent ? selectedParent.value : null,
+      related: selectedRelatedValues,
       tags: selectedTagValues,
     };
-
     try {
         const response = await createPostApi(authHeader(), postData);
         if (response.status === "success") {
@@ -226,6 +228,20 @@ export default function PostCreatePage() {
               className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
               classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
               placeholder={<div>Parent</div>}
+              styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
+            />
+          </div>
+
+          <div className="flex-1 mt-4">
+            <Select
+              defaultValue={selectedRelated}
+              onChange={setSelectedRelated}
+              options={parentOptions}
+              isClearable={true}
+              isMulti
+              className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
+              classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
+              placeholder={<div>Related</div>}
               styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
             />
           </div>
