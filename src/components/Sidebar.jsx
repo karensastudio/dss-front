@@ -9,6 +9,7 @@ import { useTheme } from "../context/ThemeContext";
 import { CgSpinner } from "react-icons/cg";
 import * as d3 from 'd3';
 import { getBookmarksApi } from "../api/bookmark";
+import { searchAPI } from "../api/search";
 
 
 export function SearchSection() {
@@ -52,6 +53,12 @@ export function SearchSection() {
         navigate(`/posts/${result.slug}`);
     };
 
+    const handleOnEnterSearch = (e) => {
+        if(e.key == 'Enter'){
+            handleSearch();
+        }
+    }
+
     return (
         <div className="flex flex-col space-y-[16px]">
 
@@ -61,6 +68,7 @@ export function SearchSection() {
                     placeholder="Search for content"
                     className="w-full bg-transparent rounded-none focus-within:outline-none text-white py-[15px] text-[20px] border-b-2 border-b-white border-opacity-25 focus:border-opacity-100 leading-[32px] font-medium"
                     onChange={(e) => setSearchValue(e.target.value)}
+                    onKeyUp={(e) => handleOnEnterSearch(e)}
                 />
 
                 <button type="button" className="ml-auto flex bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium" onClick={handleSearch}>
@@ -343,52 +351,29 @@ export function GraphSection() {
     const authHeader = useAuthHeader();
     const navigate = useNavigate();
   
-    const fetchUserPosts = async () => {
-        try {
-          const response = await getUserPostsApi(authHeader());
-          if (response.status === 'success' && response.response.posts) {
-            const root = {
-              id: 'root',
-              title: 'root',
-              children: [],
-              is_decision: false,
-              created_at: '',
-            };
-            
-            response.response.posts.forEach((post) => {
-                root.children.push(post);
-                console.log(root);
-            });
-            
-            response.response.posts.forEach((post) => {
-              if (post.children.length === 0) {
-                post.children.push(root);
-              }
-            });
-      
-            setData([root, ...response.response.posts]);
-            setError(null);
-          } else {
-            setError('No valid data received from API');
-          }
-        } catch (error) {
-          console.error(error);
-          setError('An unexpected error occurred.');
-        } finally {
-          setIsLoading(false);
+    const fetchDecisions = async () => {
+      try {
+        const response = await getUserPostsApi(authHeader());
+        if (response.status === 'success' && response.response.posts) {
+          setData(response.response.posts);
+          setError(null);
+        } else {
+          setError('No valid data received from API');
         }
-      };
-  
-    const handleNodeClick = async (node) => {
-      if (node.id === 'root') {
-        return;
-      } else {
-        navigate(`/posts/${node.target.__data__.slug}`);
+      } catch (error) {
+        console.error(error);
+        setError('An unexpected error occurred.');
+      } finally {
+        setIsLoading(false);
       }
+    };
+
+    const handleNodeClick = async (node) => {
+        navigate(`/posts/${node.target.__data__.slug}`)
     };
   
     useEffect(() => {
-      fetchUserPosts();
+      fetchDecisions();
     }, []);
   
     useEffect(() => {
@@ -404,35 +389,28 @@ export function GraphSection() {
       const flattenData = (data) => {
         const nodes = [];
         const links = [];
-      
-        const stack = [...data];
-        const visitedNodes = new Set();
-      
-        while (stack.length > 0) {
-          const currentNode = stack.pop();
-      
-          if (!visitedNodes.has(currentNode)) {
-            visitedNodes.add(currentNode);
-            nodes.push(currentNode);
-      
-            if (currentNode.children) {
-              currentNode.children.forEach((child) => {
-                links.push({ source: currentNode, target: child });
-                stack.push(child);
-              });
-            }
+  
+        const traverse = (node, parent) => {
+          nodes.push(node);
+          if (parent) {
+            links.push({ source: parent, target: node });
           }
-        }
-      
+          if (node.children) {
+            node.children.forEach((child) => traverse(child, node));
+          }
+        };
+  
+        data.forEach((rootNode) => traverse(rootNode, null));
+  
         return { nodes, links };
       };
-
+  
       const { nodes, links } = flattenData(data);
   
       const simulation = d3
         .forceSimulation(nodes)
-        .force('link', d3.forceLink(links).id((d) => d.id).distance(100).strength(2))
-        .force('charge', d3.forceManyBody().strength(-100))
+        .force('link', d3.forceLink(links).id((d) => d.id).distance(300).strength(1))
+        .force('charge', d3.forceManyBody().strength(-1000))
         .force('x', d3.forceX(width / 2))
         .force('y', d3.forceY(height / 2));
   
@@ -441,38 +419,45 @@ export function GraphSection() {
         .data(links)
         .enter()
         .append('line')
-        .attr('stroke', (d) => (isLightMode ? 'black' : 'white'))
-        .attr('stroke-opacity', 0.6)
+        .attr('stroke', 'black')
+        .attr('stroke-opacity', 0.3)
         .attr('stroke-width', 1);
   
-      const node = svg
-        .selectAll('circle')
+        const nodeGroup = svg
+        .selectAll('g.node')
         .data(nodes)
         .enter()
+        .append('g')
+        .attr('class', 'node')
+        .on('click', (d) => handleNodeClick(d));
+
+        nodeGroup
         .append('circle')
-        .attr('r', 5)
+        .attr('r', 15)
         .attr('fill', (d) => {
             if (isLightMode) {
-                return d.is_decision ? '#0071FF' : 'black';
-              } else {
-                return d.is_decision ? '#0071FF' : 'white';
-              }
-          })
-          .on('click', (d) => handleNodeClick(d));
+            return d.is_decision ? '#BF625F' : '#C7A567';
+            } else {
+            return d.is_decision ? '#BF625F' : '#C7A567';
+            }
+        });
 
-        // node.append('title').text((d) => `${d.title}\nDecision: ${d.is_decision ? 'Yes' : 'No'}`)
+        nodeGroup
+        .append('text')
+        .attr('dy', '-1.5em')
+        .attr('text-anchor', 'middle')
+        .attr('class', 'node-text') 
+        .text((d) => d.title);
   
-        node.append('title').text((d) => d.title);
-  
-      function ticked() {
+    function ticked() {
         link
-          .attr('x1', (d) => d.source.x)
-          .attr('y1', (d) => d.source.y)
-          .attr('x2', (d) => d.target.x)
-          .attr('y2', (d) => d.target.y);
-  
-        node.attr('cx', (d) => d.x).attr('cy', (d) => d.y);
-      }
+            .attr('x1', (d) => d.source.x)
+            .attr('y1', (d) => d.source.y)
+            .attr('x2', (d) => d.target.x)
+            .attr('y2', (d) => d.target.y);
+        
+        nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
+        }
   
       simulation.on('tick', ticked);
   
@@ -489,8 +474,12 @@ export function GraphSection() {
       return <p>Error: {error}</p>;
     }
   
-    return <svg ref={svgRef} width="100%" height="730" />;
-  }
+    return (
+        <div className="graph-bg">
+          <svg ref={svgRef} width="100%" height="730" />
+        </div>
+      );
+}
 
 export default function Sidebar() {
     const { isLightMode } = useTheme();
