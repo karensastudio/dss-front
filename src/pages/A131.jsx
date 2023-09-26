@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { BsBookmark, BsChevronLeft, BsFillChatTextFill, BsPencilSquare, BsShare } from "react-icons/bs";
+import { BsChevronLeft } from "react-icons/bs";
+import { MdMessage, MdContactMail, MdOutlineBookmarkBorder, MdOutlineBookmark, MdOutlineShare } from "react-icons/md";
 import UserLayout from "../layouts/User";
 import { attachDecisionApi, detachDecisionApi } from "../api/decision";
 import { attachBookmarkApi, detachBookmarkApi } from "../api/bookmark";
@@ -28,8 +29,13 @@ export default function A131Page() {
     const authHeader = useAuthHeader();
     const slug = location.pathname.split("/")[2];
     const isAuthenticated = useIsAuthenticated();
+
     const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+    const [isBookmarked, setIsBookmarked] = useState(false);
+
     const [isDecisionLoading, setIsDecisionLoading] = useState(false);
+    const [isDecision, setIsDecision] = useState(false);
+
     const [tagDataLoading, setTagDataLoading] = useState(false);
     const [tagLoadingState, setTagLoadingState] = useState({});
 
@@ -39,8 +45,12 @@ export default function A131Page() {
 
             if (response.status === 'success') {
                 setPost(response.response.post);
+
                 setIsDecisionLoading(false);
+                setIsDecision(response.response.post.is_decision);
+
                 setIsBookmarkLoading(false);
+                setIsBookmarked(response.response.post.is_bookmark);
             } else {
                 console.error(response.message);
             }
@@ -82,9 +92,11 @@ export default function A131Page() {
             setIsBookmarkLoading(true);
             if (post.is_bookmark) {
                 await detachBookmarkApi(authHeader(), post.id).then(() => { fetchPostData() });
+                setIsBookmarked(false);
                 toast.success("Bookmark removed");
             } else {
                 await attachBookmarkApi(authHeader(), post.id).then(() => { fetchPostData() });
+                setIsBookmarked(true);
                 toast.success("Bookmark added");
             }
         } catch (error) {
@@ -98,9 +110,11 @@ export default function A131Page() {
             setIsDecisionLoading(true)
             if (post.is_decision) {
                 await detachDecisionApi(authHeader(), post.id).then(() => { fetchPostData() });
+                setIsDecision(false);
                 toast.success("Decision removed");
             } else {
                 await attachDecisionApi(authHeader(), post.id).then(() => { fetchPostData() });
+                setIsDecision(true);
                 toast.success("Decision added");;
             }
         } catch (error) {
@@ -151,33 +165,54 @@ export default function A131Page() {
 
             <div className={`w-full bg-white text-[#111315] dark:bg-[#111315] dark:text-white`}>
 
-                <div className={`mx-[40px] py-[24px] border-b-[1px] flex items-center justify-between border-b-[#111315] dark:border-b-white`}>
+                <div className={`mx-[40px] py-[24px] border-b-[1px] flex items-center justify-between space-x-[16px] border-b-[#111315] dark:border-b-white`}>
                     <p className="text-[14px] leading-[20px] text-opacity-60">
                         {getPostBreadcrumbByParentTitles(post).join(' | ')}
                     </p>
 
-                    <div className="flex space-x-[16px] text-[18px] cursor-pointer">
-
-                        <BsFillChatTextFill
-                            onClick={() => openChat('note')}
-                            data-for="note-tooltip"
-                            data-tooltip-id="note-tooltip"
-                            data-tooltip-content="Add your note"
-                        />
-                        <Tooltip id="note-tooltip" />
-
-                        <BsPencilSquare
-                            onClick={() => openChat('propose')}
-                            data-for="propose-tooltip"
-                            data-tooltip-id="propose-tooltip"
-                            data-tooltip-content="Propose to editor"
-                        />
-                        <Tooltip id="propose-tooltip" />
+                    <div className="flex space-x-[20px] text-[18px] cursor-pointer items-center">
 
                         {
-                            isBookmarkLoading ? <div className={`animate-spin rounded-full h-[24px] w-[24px] border-t-[2px] border-[#111315] dark:border-white`}></div> : <BsBookmark className={post?.is_bookmark ? "text-[#0071FF]" : ""} onClick={handleBookmarkChange} />
+                            isAuthenticated() && (
+                                <>
+                                    <MdMessage
+                                        className="text-[22px]"
+                                        onClick={() => openChat('note')}
+                                        data-for="note-tooltip"
+                                        data-tooltip-id="note-tooltip"
+                                        data-tooltip-content="Add your note"
+                                    />
+                                    <Tooltip id="note-tooltip" />
+                                </>
+                            )
                         }
-                        <BsShare />
+
+                        {
+                            isAuthenticated() && (
+                                <>
+                                    <MdContactMail
+                                        className="text-[22px]"
+                                        onClick={() => openChat('propose')}
+                                        data-for="propose-tooltip"
+                                        data-tooltip-id="propose-tooltip"
+                                        data-tooltip-content="Propose to editor"
+                                    />
+                                    <Tooltip id="propose-tooltip" />
+                                </>
+                            )
+                        }
+
+                        {
+                            isAuthenticated() && (
+                                isBookmarkLoading ? <div className={`animate-spin rounded-full h-[24px] w-[24px] border-t-[2px] border-[#111315] dark:border-white`}></div> :
+                                    (
+                                        isBookmarked ?
+                                            <MdOutlineBookmark className="text-[22px]" onClick={handleBookmarkChange} /> :
+                                            <MdOutlineBookmarkBorder className="text-[22px]" onClick={handleBookmarkChange} />
+                                    )
+                            )
+                        }
+                        <MdOutlineShare className="text-[22px]" />
                     </div>
                 </div>
                 <div className="mx-[40px] py-[24px] flex items-center justify-between">
@@ -197,7 +232,7 @@ export default function A131Page() {
                                     Add to My Decision
                                     <input
                                         type="checkbox"
-                                        checked={post?.is_decision}
+                                        checked={isDecision}
                                         onChange={handleDecisionChange}
                                         className="w-[24px] h-[24px] rounded-[4px] bg-[#2B2F33] ml-[10px] inline-flex"
                                     />
