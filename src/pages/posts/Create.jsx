@@ -13,6 +13,7 @@ import { Editor } from "@tinymce/tinymce-react";
 import { APIUploadFile } from "../../api/uploader";
 import { getUserPostsApi } from "../../api/userPost";
 import { useTheme } from "../../context/ThemeContext";
+import { useNavigate } from "react-router";
 
 const example_image_upload_handler = (blobInfo, progress) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
@@ -57,6 +58,7 @@ const example_image_upload_handler = (blobInfo, progress) => new Promise((resolv
 
 export default function PostCreatePage() {
   const { isLightMode } = useTheme();
+  const navigate = useNavigate();
   const { getValues, register, handleSubmit, formState: { errors } } = useForm()
   const authHeader = useAuthHeader();
   const [tagOptions, setTagOptions] = useState([]);
@@ -125,6 +127,7 @@ export default function PostCreatePage() {
         const response = await createPostApi(authHeader(), postData);
         if (response.status === "success") {
           toast.success(response.message);
+          navigate('/posts');
         } else {
           console.error("Error creating post:", response);
           toast.error(response.message);
