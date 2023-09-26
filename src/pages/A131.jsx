@@ -12,6 +12,7 @@ import CommentPopUp from "../components/CommentPopUp";
 import 'react-tooltip/dist/react-tooltip.css'
 import { Tooltip } from 'react-tooltip'
 import { useTheme } from "../context/ThemeContext";
+import { CgSpinner } from "react-icons/cg";
 
 
 
@@ -27,6 +28,7 @@ export default function A131Page() {
     const slug = location.pathname.split("/")[2];
     const isAuthenticated = useIsAuthenticated();
     const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+    const [isDecisionLoading, setIsDecisionLoading] = useState(false);
 
     const fetchPostData = async () => {
         try {
@@ -34,6 +36,8 @@ export default function A131Page() {
 
             if (response.status === 'success') {
                 setPost(response.response.post);
+                setIsDecisionLoading(false);
+                setIsBookmarkLoading(false);
             } else {
                 console.error(response.message);
             }
@@ -51,11 +55,9 @@ export default function A131Page() {
             if (post.is_bookmark) {
                 await detachBookmarkApi(authHeader(), post.id).then(() => { fetchPostData() });
                 toast.success("Bookmark removed");
-                setIsBookmarkLoading(false);
             } else {
                 await attachBookmarkApi(authHeader(), post.id).then(() => { fetchPostData() });
                 toast.success("Bookmark added");
-                setIsBookmarkLoading(false);
             }
         } catch (error) {
             console.error(error);
@@ -65,15 +67,17 @@ export default function A131Page() {
 
     const handleDecisionChange = async () => {
         try {
+            setIsDecisionLoading(true)
             if (post.is_decision) {
                 await detachDecisionApi(authHeader(), post.id).then(() => { fetchPostData() });
                 toast.success("Decision removed");
             } else {
                 await attachDecisionApi(authHeader(), post.id).then(() => { fetchPostData() });
-                toast.success("Decision added");
+                toast.success("Decision added");;
             }
         } catch (error) {
             console.error(error);
+            setIsDecisionLoading(false);
         }
     };
 
@@ -155,15 +159,21 @@ export default function A131Page() {
                     </div>
 
                     <div className="flex space-x-[16px] text-[18px] items-center">
-                        <label className="text-[16px] cursor-pointer flex items-center">
-                            Add to My Decision
-                            <input
-                                type="checkbox"
-                                checked={post?.is_decision}
-                                onChange={handleDecisionChange}
-                                className="w-[24px] h-[24px] rounded-[4px] bg-[#2B2F33] ml-[10px] inline-flex"
-                            />
-                        </label>
+                        {isDecisionLoading ? (
+                            <div className={`flex items-center justify-center`}>
+                                <CgSpinner className="text-white text-[20px] animate-spin" />
+                            </div>
+                        ) : (
+                            <label className="text-[16px] cursor-pointer flex items-center">
+                                Add to My Decision
+                                <input
+                                    type="checkbox"
+                                    checked={post?.is_decision}
+                                    onChange={handleDecisionChange}
+                                    className="w-[24px] h-[24px] rounded-[4px] bg-[#2B2F33] ml-[10px] inline-flex"
+                                />
+                            </label>
+                        )}
                     </div>
                 </div>
 
