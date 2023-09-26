@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
 
 export default function Input(props) {
-    const { isLightMode } = useTheme();
     const {
         name,
         title,
@@ -38,9 +37,9 @@ export default function Input(props) {
 
     return (
         <fieldset htmlFor={name} className={rootClasses}>
-            <div className={`min-h-[56px] relative flex rounded-[4px] px-[14px] py-[10px] ${isLightMode ? 'bg-[#dbdbdb]' : 'bg-[#41474D]'}`}>
+            <div className={`min-h-[56px] relative flex rounded-[4px] px-[14px] py-[10px] bg-[#dbdbdb] dark:bg-[#41474D]`}>
                 <input
-                    className={`${isLightMode ? 'bg-[#dbdbdb] text-[#111315] placeholder-[#111315]' : 'bg-[#41474D] text-white placeholder-[#FFFFFF]'} pt-[16px] w-full text-[16px] placeholder-opacity-[0.5] outline-none focus:outline-none leading-[20px] font-medium peer ${inputClasses ? inputClasses : ''}`}
+                    className={`bg-[#dbdbdb] text-[#111315] placeholder-[#111315] dark:bg-[#41474D] dark:text-white dark:placeholder-[#FFFFFF] pt-[16px] w-full text-[16px] placeholder-opacity-[0.5] outline-none focus:outline-none leading-[20px] font-medium peer ${inputClasses ? inputClasses : ''}`}
                     name={name}
                     id={name}
                     type={type}
@@ -55,7 +54,7 @@ export default function Input(props) {
             
                 <label
                     htmlFor={name}
-                    className={`cursor-text ${isLightMode ? 'text-[#111315]' : 'text-[#FFFFFF]'} transition-all absolute top-1/2 -translate-y-1/2 peer-focus:leading-[14px] peer-focus:text-[12px] peer-focus:top-[10px] peer-focus:translate-y-0 peer-focus:opacity-50 ${
+                    className={`cursor-text text-[#111315] dark:text-[#FFFFFF] transition-all absolute top-1/2 -translate-y-1/2 peer-focus:leading-[14px] peer-focus:text-[12px] peer-focus:top-[10px] peer-focus:translate-y-0 peer-focus:opacity-50 ${
                     labelClasses
                     } ${
                     props.defaultValue !== ""

@@ -14,7 +14,6 @@ import { useTheme } from "../context/ThemeContext";
 
 
 export default function LoginPage() {
-    const { isLightMode } = useTheme();
     const { getValues, register, handleSubmit, formState: { errors } } = useForm()
 
     const [submitButtonStatus, setSubmitButtonStatus] = useState(null)
@@ -64,7 +63,7 @@ export default function LoginPage() {
     }
 
     return (
-        <main className={`${isLightMode && 'bg-white'} `}>
+        <main className={`bg-white dark:bg-black`}>
             <Helmet>
                 <title>DSS | Registration</title>
             </Helmet>
@@ -85,8 +84,8 @@ export default function LoginPage() {
 
             <div className="h-screen bg-opacity-0 bg-transparent">
 
-            <section className={`${isLightMode ? 'bg-blue-50' : 'bg-[#202427]'} my-[55px] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px]`}>
-                <h1 className={`${isLightMode ? 'text-[#202427]' : 'text-white'} text-[24px] leading-[29px] font-medium mb-[43px]`}>Sign in</h1>
+            <section className={`bg-neutral-100 dark:bg-[#202427] my-[55px] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px]`}>
+                <h1 className={`text-[#202427] dark:text-white text-[24px] leading-[29px] font-medium mb-[43px]`}>Sign in</h1>
 
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="flex flex-col gap-y-[19px] mb-[31px]">

@@ -7,7 +7,6 @@ import { toast } from "react-toastify";
 import { useTheme } from "../context/ThemeContext";
 
 function CommentPopUp({ type, postId, onClose }) {
-  const { isLightMode } = useTheme();
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const authHeader = useAuthHeader();
@@ -61,7 +60,7 @@ function CommentPopUp({ type, postId, onClose }) {
         </div>
         <span className="hidden sm:inline-block sm:align-middle sm:h-screen"></span>&#8203;
         <div className="inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full comment-popup">
-          <div className={`${isLightMode ? 'bg-gray-200 text-[#111315]' : 'bg-gray-900 text-white'} px-4 pt-5 pb-4 sm:p-6 sm:pb-4`}>
+          <div className={`bg-gray-200 text-[#111315] dark:bg-gray-900 dark:text-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4`}>
             <div className="mx-[40px] py-[16px]">
               <button
                 onClick={handleClose}

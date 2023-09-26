@@ -6,7 +6,6 @@ import ToggleThemeSwitch from "./ToggleThemeSwitch";
 import { useTheme } from "../context/ThemeContext";
 
 export default function Header() {
-    const { isLightMode } = useTheme();
     const navigate = useNavigate();
     const isAuthenticated = useIsAuthenticated()
     const authHeader = useAuthHeader();
@@ -24,11 +23,11 @@ export default function Header() {
         }
     };
     return (
-        <header className={`${isLightMode ? 'bg-white text-[#111315] border-b' : 'bg-[#111315] text-white'}`}>
+        <header className={`bg-white text-[#111315] border-b border-b-neutral-200 dark:border-b-neutral-800 dark:bg-[#111315] dark:text-white`}>
             <div className="mx-auto max-w-7xl flex items-center justify-between h-[62px] px-[16px] md:px-0">
                 <div className="space-x-10 flex items-center justify-start">
                     <Link to={'/'} >
-                        <h1 className={`font-extrabold text-xl ${isLightMode ? 'text-black' : 'text-white'}`}>DSS</h1>
+                        <h1 className={`font-extrabold text-xl text-black dark:text-white`}>DSS</h1>
                     </Link>
 
                     {
@@ -62,7 +61,7 @@ export default function Header() {
                             <a className="text-[14px] leading-[18px] font-medium cursor-pointer" onClick={() => navigate('/login')}>
                                 Log in
                             </a>
-                            <a className={`py-[11px] px-[24px] bg-[#0071FF] rounded-full text-[14px] leading-[18px] ${isLightMode && 'text-white'} font-medium cursor-pointer`} onClick={() => navigate('/register')}>
+                            <a className={`py-[11px] px-[24px] bg-[#0071FF] rounded-full text-[14px] leading-[18px] text-white font-medium cursor-pointer`} onClick={() => navigate('/register')}>
                                 Get Started
                             </a>
                         </>

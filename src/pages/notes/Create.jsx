@@ -84,7 +84,7 @@ export default function NoteCreatePage() {
       />
 
       <div className="h-screen bg-opacity-0 bg-transparent">
-      <section className={`my-[55px] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px] ${isLightMode ? 'bg-white text-[#111315]' : 'bg-[#202427] text-white'}`}>
+      <section className={`my-[55px] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px] bg-white text-[#111315] dark:bg-[#202427] dark:text-white`}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-y-[19px] mb-[31px]">
             <Input

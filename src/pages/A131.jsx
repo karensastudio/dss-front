@@ -18,7 +18,6 @@ import { getUserTagByIdApi } from "../api/tag";
 
 
 export default function A131Page() {
-    const { isLightMode } = useTheme();
     const location = useLocation();
     const [post, setPost] = useState([]);
     const [tag, setTag] = useState(null);
@@ -127,10 +126,10 @@ export default function A131Page() {
         setIsChatOpen(true);
         setCommentType(type);
     };
-    
-      const closeChat = () => {
+
+    const closeChat = () => {
         setIsChatOpen(false);
-      };
+    };
 
     useEffect(() => {
         fetchPostData();
@@ -150,9 +149,9 @@ export default function A131Page() {
                 theme="dark"
             />
 
-            <div className={`w-full ${isLightMode ? 'bg-white text-[#111315]' : 'bg-[#111315] text-white'}`}>
+            <div className={`w-full bg-white text-[#111315] dark:bg-[#111315] dark:text-white`}>
 
-                <div className={`mx-[40px] py-[24px] border-b-[1px] flex items-center justify-between ${isLightMode ? 'border-b-[#111315]' : 'border-b-white'}`}>
+                <div className={`mx-[40px] py-[24px] border-b-[1px] flex items-center justify-between border-b-[#111315] dark:border-b-white`}>
                     <p className="text-[14px] leading-[20px] text-opacity-60">
                         {getPostBreadcrumbByParentTitles(post).join(' | ')}
                     </p>
@@ -165,7 +164,7 @@ export default function A131Page() {
                             data-tooltip-id="note-tooltip"
                             data-tooltip-content="Add your note"
                         />
-                        <Tooltip id="note-tooltip"/>
+                        <Tooltip id="note-tooltip" />
 
                         <BsPencilSquare
                             onClick={() => openChat('propose')}
@@ -173,10 +172,10 @@ export default function A131Page() {
                             data-tooltip-id="propose-tooltip"
                             data-tooltip-content="Propose to editor"
                         />
-                        <Tooltip id="propose-tooltip"/>
+                        <Tooltip id="propose-tooltip" />
 
                         {
-                            isBookmarkLoading ? <div className={`animate-spin rounded-full h-[24px] w-[24px] border-t-[2px] ${isLightMode ? 'border-[#111315]' : 'border-white'}`}></div> : <BsBookmark className={post?.is_bookmark ? "text-[#0071FF]" : ""} onClick={handleBookmarkChange} />
+                            isBookmarkLoading ? <div className={`animate-spin rounded-full h-[24px] w-[24px] border-t-[2px] border-[#111315] dark:border-white`}></div> : <BsBookmark className={post?.is_bookmark ? "text-[#0071FF]" : ""} onClick={handleBookmarkChange} />
                         }
                         <BsShare />
                     </div>
@@ -187,23 +186,25 @@ export default function A131Page() {
                         <span onClick={() => { navigate(-1) }}>Go back</span>
                     </div>
 
-                    <div className="flex space-x-[16px] text-[18px] items-center">
-                        {isDecisionLoading ? (
-                            <div className={`flex items-center justify-center`}>
-                                <CgSpinner className="text-white text-[20px] animate-spin" />
-                            </div>
-                        ) : (
-                            <label className="text-[16px] cursor-pointer flex items-center">
-                                Add to My Decision
-                                <input
-                                    type="checkbox"
-                                    checked={post?.is_decision}
-                                    onChange={handleDecisionChange}
-                                    className="w-[24px] h-[24px] rounded-[4px] bg-[#2B2F33] ml-[10px] inline-flex"
-                                />
-                            </label>
-                        )}
-                    </div>
+                    {isAuthenticated() && (
+                        <div className="flex space-x-[16px] text-[18px] items-center">
+                            {isDecisionLoading ? (
+                                <div className={`flex items-center justify-center`}>
+                                    <CgSpinner className="text-white text-[20px] animate-spin" />
+                                </div>
+                            ) : (
+                                <label className="text-[16px] cursor-pointer flex items-center">
+                                    Add to My Decision
+                                    <input
+                                        type="checkbox"
+                                        checked={post?.is_decision}
+                                        onChange={handleDecisionChange}
+                                        className="w-[24px] h-[24px] rounded-[4px] bg-[#2B2F33] ml-[10px] inline-flex"
+                                    />
+                                </label>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="mx-[40px] py-[16px]">
@@ -212,26 +213,26 @@ export default function A131Page() {
 
                 <div className="mx-[40px] py-[24px]">
                     <div className="flex items-center justify-start space-x-[8px]">
-                    {post?.tags?.map((tag) => (
-                        <div key={tag.id} className="flex items-center">
-                            <span
-                                className={`px-[12px] py-[2px] text-[12px] leading-[20px] rounded-full border-[1px] cursor-pointer ${isLightMode ? 'border-[#111315]' : 'border-white'}`}
-                                onClick={() => fetchTagData(tag.id)}
-                            >
-                                #{tag.name}
-                            </span>
-                            {tagLoadingState[tag.id] ? (
-                                <div className="flex items-center justify-center ml-2">
-                                    <CgSpinner className="text-white text-[20px] animate-spin" />
-                                </div>
-                            ) : null}
-                        </div>
+                        {post?.tags?.map((tag) => (
+                            <div key={tag.id} className="flex items-center">
+                                <span
+                                    className={`px-[12px] py-[2px] text-[12px] leading-[20px] rounded-full border-[1px] cursor-pointer border-[#111315] dark:border-white`}
+                                    onClick={() => fetchTagData(tag.id)}
+                                >
+                                    #{tag.name}
+                                </span>
+                                {tagLoadingState[tag.id] ? (
+                                    <div className="flex items-center justify-center ml-2">
+                                        <CgSpinner className="text-white text-[20px] animate-spin" />
+                                    </div>
+                                ) : null}
+                            </div>
                         ))}
                     </div>
                 </div>
 
                 <div className="mx-[40px] py-[16px]">
-                    <div className={`text-editor text-[14px] dark:text-[#444444] ${~isLightMode && 'dark'}`}>
+                    <div className={`text-editor text-[14px] dark:text-[#444444]`}>
                         {post?.description && parse(post?.description)}
                     </div>
                 </div>

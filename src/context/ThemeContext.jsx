@@ -9,8 +9,11 @@ export function ThemeProvider({ children }) {
     const savedMode = localStorage.getItem('theme-mode');
     if (savedMode) {
       setIsLightMode(savedMode === 'light');
+      
+      if(savedMode === 'light') document.querySelector('html').classList.remove('dark');
+      else document.querySelector('html').classList.add('dark');
+
     } else {
-      const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
       setIsLightMode(!prefersDarkMode);
     }
   }, []);

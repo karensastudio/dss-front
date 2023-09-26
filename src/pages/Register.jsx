@@ -9,7 +9,6 @@ import { useTheme } from "../context/ThemeContext";
 
 
 export default function RegisterPage() {
-    const { isLightMode } = useTheme();
     const { getValues, register, handleSubmit, formState: { errors } } = useForm()
 
     async function onSubmit(data) {
@@ -41,7 +40,7 @@ export default function RegisterPage() {
     }
 
     return (
-        <main className={`${isLightMode && 'bg-white'} `}>
+        <main className={`bg-white dark:bg-black`}>
             <Helmet>
                 <title>DSS | Registration</title>
             </Helmet>
@@ -50,8 +49,8 @@ export default function RegisterPage() {
 
             <div className="h-screen bg-opacity-0 bg-transparent">
 
-            <section className={`${isLightMode ? 'bg-blue-50' : 'bg-[#202427]'} my-[55px] md:rounded-[12px] max-w-4xl mx-auto px-[16px] md:px-[105px] py-[60px]`}>
-                <h1 className={`${isLightMode ? 'text-[#202427]' : 'text-white'} text-[24px] leading-[29px] font-medium mb-[43px]`}>Sign up your Project Group</h1>
+                <section className={`bg-neutral-100 dark:bg-[#202427] my-[55px] md:rounded-[12px] max-w-4xl mx-auto px-[16px] md:px-[105px] py-[60px]`}>
+                    <h1 className={`text-[#202427] dark:text-white text-[24px] leading-[29px] font-medium mb-[43px]`}>Sign up your Project Group</h1>
 
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="grid grid-cols-2 gap-x-[32px] gap-y-[19px] mb-[31px]">

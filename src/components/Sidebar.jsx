@@ -13,7 +13,6 @@ import { searchAPI } from "../api/search";
 
 
 export function SearchSection() {
-    const { isLightMode } = useTheme();
     const authHeader = useAuthHeader();
     const [searchValue, setSearchValue] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -54,7 +53,7 @@ export function SearchSection() {
     };
 
     const handleOnEnterSearch = (e) => {
-        if(e.key == 'Enter'){
+        if (e.key == 'Enter') {
             handleSearch();
         }
     }
@@ -102,7 +101,6 @@ export function SearchSection() {
 }
 
 export function ListOfContentSection() {
-    const { isLightMode } = useTheme();
     const [userPosts, setUserPosts] = useState([]);
     const [isPostsLoading, setIsPostsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -148,11 +146,11 @@ export function ListOfContentSection() {
             ) : userPosts.map((category) => (
                 <Disclosure key={category.id}>
                     {({ open = true }) => (
-                        <section className={`px-[25px] py-[16px] rounded-[12px] ${isLightMode ? 'bg-white text-[#111315]' : 'bg-[#41474D] text-white'}`}>
+                        <section className={`px-[25px] py-[16px] rounded-[12px] bg-white text-[#111315] dark:bg-[#41474D] dark:text-white`}>
                             <Disclosure.Button className="flex w-full justify-between items-center text-left text-[16px] font-medium">
                                 <span>{category.title}</span>
                                 <div className="bg-[#0071FF] rounded-full p-[14px]">
-                                    <BsChevronUp className={`${open ? 'rotate-180 transform' : 'rotate-90'} text-[16px] text-white`}/>
+                                    <BsChevronUp className={`${open ? 'rotate-180 transform' : 'rotate-90'} text-[16px] text-white`} />
                                 </div>
                             </Disclosure.Button>
                             <Transition
@@ -168,22 +166,20 @@ export function ListOfContentSection() {
                                     <div className="flex flex-col space-y-[16px]">
                                         <span
                                             key={category.id}
-                                            className={`text-[16px] leading-[24px] cursor-pointer ${
-                                                highlightedPost?.id === category.id ? 'text-[#0071FF]' : isLightMode ? 'text-[#111315]' : 'text-white'
-                                            }`}
+                                            className={`text-[16px] leading-[24px] cursor-pointer ${highlightedPost?.id === category.id ? 'text-[#0071FF]' : 'text-[#111315] dark:text-white'
+                                                }`}
                                             onClick={() => handlePostClick(category)}
-                                            >
+                                        >
                                             Introduction
                                         </span>
                                         {category.children.map((post) => (
                                             <span
-                                            key={post.id}
-                                            className={`text-[16px] leading-[24px] cursor-pointer ${
-                                              highlightedPost?.id === post.id ? 'text-[#0071FF]' : isLightMode ? 'text-[#111315]' : 'text-white'
-                                            }`}
-                                            onClick={() => handlePostClick(post)}
-                                          >
-                                            {post.title}
+                                                key={post.id}
+                                                className={`text-[16px] leading-[24px] cursor-pointer ${highlightedPost?.id === post.id ? 'text-[#0071FF]' : 'text-[#111315] dark:text-white'
+                                                    }`}
+                                                onClick={() => handlePostClick(post)}
+                                            >
+                                                {post.title}
                                             </span>
                                         ))}
                                     </div>
@@ -202,7 +198,6 @@ export function ListOfContentSection() {
 }
 
 export function BookmarkSection() {
-    const { isLightMode } = useTheme();
     const [bookmarks, setBookmarks] = useState([]);
     const [error, setError] = useState(null);
     const [isPostsLoading, setIsPostsLoading] = useState(true);
@@ -247,17 +242,14 @@ export function BookmarkSection() {
                     <CgSpinner className="text-white text-[48px] animate-spin" />
                 </div>
             ) : bookmarks?.map((bookmark) => (
-                    <a
+                <a
                     key={bookmark.id}
-                    className={`text-[16px] leading-[24px] cursor-pointer flex items-center ${
-                        highlightedBookmark?.id === bookmark.id
+                    className={`text-[16px] leading-[24px] cursor-pointer flex items-center ${highlightedBookmark?.id === bookmark.id
                         ? 'text-[#0071FF]'
-                        : isLightMode
-                        ? 'text-[#111315]'
-                        : 'text-white'
-                    }`}
+                        : 'text-[#111315] dark:text-white'
+                        }`}
                     onClick={() => handleBookmarkClick(bookmark)}
-                    >
+                >
                     <BsBookmarkFill className="mr-[10px]" />
                     <span>{bookmark.title}</span>
                 </a>
@@ -269,7 +261,6 @@ export function BookmarkSection() {
 }
 
 export function DecisionReportSection() {
-    const { isLightMode } = useTheme();
     const [decisions, setDecisions] = useState([]);
     const [error, setError] = useState(null);
     const [isPostsLoading, setIsPostsLoading] = useState(true);
@@ -308,28 +299,26 @@ export function DecisionReportSection() {
 
     return (
         <div className="flex flex-col mt-[10px]">
-            <div className={`flex flex-col space-y-[16px] mb-[48px] ${isLightMode ? 'text-[#111315]' : 'text-white'}`}>
+            <div className={`flex flex-col space-y-[16px] mb-[48px] text-[#111315] dark:text-white`}>
                 {isPostsLoading ? (
                     <div className="flex items-center justify-center py-10">
                         <CgSpinner className="text-[48px] animate-spin" />
                     </div>
                 ) : decisions.map((decision) => (
-                        <span
+                    <span
                         key={decision.id}
-                        className={`text-[16px] leading-[24px] cursor-pointer ${
-                            highlightedDecision?.id === decision.id ? 'text-[#0071FF]' : isLightMode ? 'text-[#111315]' : 'text-white'
-                        }`}
+                        className={`text-[16px] leading-[24px] cursor-pointer ${highlightedDecision?.id === decision.id ? 'text-[#0071FF]' : 'text-[#111315] dark:text-white'}`}
                         onClick={() => handleDecisionClick(decision)}
-                        >
+                    >
                         {decision.title}
-                        </span>
+                    </span>
                 ))}
             </div>
 
             {
                 (decisions && decisions.length > 0) && (
                     <span className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-[16px] leading-[18px] font-medium cursor-pointer"
-                    onClick={() => {navigate('/decision/pdf')}}>
+                        onClick={() => { navigate('/decision/pdf') }}>
                         Generate Decision Report
                     </span>
                 )
@@ -350,139 +339,138 @@ export function GraphSection() {
     const [error, setError] = useState(null);
     const authHeader = useAuthHeader();
     const navigate = useNavigate();
-  
+
     const fetchDecisions = async () => {
-      try {
-        const response = await getUserPostsApi(authHeader());
-        if (response.status === 'success' && response.response.posts) {
-          setData(response.response.posts);
-          setError(null);
-        } else {
-          setError('No valid data received from API');
+        try {
+            const response = await getUserPostsApi(authHeader());
+            if (response.status === 'success' && response.response.posts) {
+                setData(response.response.posts);
+                setError(null);
+            } else {
+                setError('No valid data received from API');
+            }
+        } catch (error) {
+            console.error(error);
+            setError('An unexpected error occurred.');
+        } finally {
+            setIsLoading(false);
         }
-      } catch (error) {
-        console.error(error);
-        setError('An unexpected error occurred.');
-      } finally {
-        setIsLoading(false);
-      }
     };
 
     const handleNodeClick = async (node) => {
         navigate(`/posts/${node.target.__data__.slug}`)
     };
-  
+
     useEffect(() => {
-      fetchDecisions();
+        fetchDecisions();
     }, []);
-  
+
     useEffect(() => {
-      if (!data || data.length === 0) {
-        return;
-      }
-  
-      const width = 800;
-      const height = 700;
-  
-      const svg = d3.select(svgRef.current);
-  
-      const flattenData = (data) => {
-        const nodes = [];
-        const links = [];
-  
-        const traverse = (node, parent) => {
-          nodes.push(node);
-          if (parent) {
-            links.push({ source: parent, target: node });
-          }
-          if (node.children) {
-            node.children.forEach((child) => traverse(child, node));
-          }
-        };
-  
-        data.forEach((rootNode) => traverse(rootNode, null));
-  
-        return { nodes, links };
-      };
-  
-      const { nodes, links } = flattenData(data);
-  
-      const simulation = d3
-        .forceSimulation(nodes)
-        .force('link', d3.forceLink(links).id((d) => d.id).distance(300).strength(1))
-        .force('charge', d3.forceManyBody().strength(-1000))
-        .force('x', d3.forceX(width / 2))
-        .force('y', d3.forceY(height / 2));
-  
-      const link = svg
-        .selectAll('line')
-        .data(links)
-        .enter()
-        .append('line')
-        .attr('stroke', 'black')
-        .attr('stroke-opacity', 0.3)
-        .attr('stroke-width', 1);
-  
-        const nodeGroup = svg
-        .selectAll('g.node')
-        .data(nodes)
-        .enter()
-        .append('g')
-        .attr('class', 'node')
-        .on('click', (d) => handleNodeClick(d));
-
-        nodeGroup
-        .append('circle')
-        .attr('r', 15)
-        .attr('fill', (d) => {
-            if (isLightMode) {
-            return d.is_decision ? '#BF625F' : '#C7A567';
-            } else {
-            return d.is_decision ? '#BF625F' : '#C7A567';
-            }
-        });
-
-        nodeGroup
-        .append('text')
-        .attr('dy', '-1.5em')
-        .attr('text-anchor', 'middle')
-        .attr('class', 'node-text') 
-        .text((d) => d.title);
-  
-    function ticked() {
-        link
-            .attr('x1', (d) => d.source.x)
-            .attr('y1', (d) => d.source.y)
-            .attr('x2', (d) => d.target.x)
-            .attr('y2', (d) => d.target.y);
-        
-        nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
+        if (!data || data.length === 0) {
+            return;
         }
-  
-      simulation.on('tick', ticked);
-  
-      return () => {
-        simulation.stop();
-      };
+
+        const width = 800;
+        const height = 700;
+
+        const svg = d3.select(svgRef.current);
+
+        const flattenData = (data) => {
+            const nodes = [];
+            const links = [];
+
+            const traverse = (node, parent) => {
+                nodes.push(node);
+                if (parent) {
+                    links.push({ source: parent, target: node });
+                }
+                if (node.children) {
+                    node.children.forEach((child) => traverse(child, node));
+                }
+            };
+
+            data.forEach((rootNode) => traverse(rootNode, null));
+
+            return { nodes, links };
+        };
+
+        const { nodes, links } = flattenData(data);
+
+        const simulation = d3
+            .forceSimulation(nodes)
+            .force('link', d3.forceLink(links).id((d) => d.id).distance(300).strength(1))
+            .force('charge', d3.forceManyBody().strength(-1000))
+            .force('x', d3.forceX(width / 2))
+            .force('y', d3.forceY(height / 2));
+
+        const link = svg
+            .selectAll('line')
+            .data(links)
+            .enter()
+            .append('line')
+            .attr('stroke', 'black')
+            .attr('stroke-opacity', 0.3)
+            .attr('stroke-width', 1);
+
+        const nodeGroup = svg
+            .selectAll('g.node')
+            .data(nodes)
+            .enter()
+            .append('g')
+            .attr('class', 'node')
+            .on('click', (d) => handleNodeClick(d));
+
+        nodeGroup
+            .append('circle')
+            .attr('r', 15)
+            .attr('fill', (d) => {
+                if (isLightMode) {
+                    return d.is_decision ? '#BF625F' : '#C7A567';
+                } else {
+                    return d.is_decision ? '#BF625F' : '#C7A567';
+                }
+            });
+
+        nodeGroup
+            .append('text')
+            .attr('dy', '-1.5em')
+            .attr('text-anchor', 'middle')
+            .attr('class', 'node-text')
+            .text((d) => d.title);
+
+        function ticked() {
+            link
+                .attr('x1', (d) => d.source.x)
+                .attr('y1', (d) => d.source.y)
+                .attr('x2', (d) => d.target.x)
+                .attr('y2', (d) => d.target.y);
+
+            nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
+        }
+
+        simulation.on('tick', ticked);
+
+        return () => {
+            simulation.stop();
+        };
     }, [data, isLightMode]);
-  
+
     if (isLoading) {
-      return <p>Loading...</p>;
+        return <p>Loading...</p>;
     }
-  
+
     if (error) {
-      return <p>Error: {error}</p>;
+        return <p>Error: {error}</p>;
     }
-  
+
     return (
         <div className="graph-bg">
-          <svg ref={svgRef} width="100%" height="730" />
+            <svg ref={svgRef} width="100%" height="730" />
         </div>
-      );
+    );
 }
 
 export default function Sidebar({ tagData, setTagData }) {
-    const { isLightMode } = useTheme();
     const navigate = useNavigate();
     const [activePage, setActivePage] = useState("dashboard");
     const isAuthenticated = useIsAuthenticated()
@@ -491,17 +479,16 @@ export default function Sidebar({ tagData, setTagData }) {
         setTagData(null);
     };
 
-
     return (
         <aside className="px-[40px] py-[32px] sticky top-0" id="sidebar-content">
             <div className="py-[24px] flex items-center justify-start space-x-[18px] text-[14px] font-normal">
-            {tagData ?
-                <div className="mx-[40px] py-[24px] space-y-4">
-                    <div className="flex items-center text-opacity-60 text-[14px] leading-[20px] cursor-pointer py-[24px]">
+                {tagData ?
+                    <div className="mx-[40px] py-[24px] space-y-4">
+                        <div className="flex items-center text-opacity-60 text-[14px] leading-[20px] cursor-pointer py-[24px]">
                             <BsChevronLeft className="mr-[12px]" />
                             <span onClick={handleGoBack}>Go back</span>
                         </div>
-                        <span className={`title-text text-[18px] font-[600] ${isLightMode ? 'text-[#111315]' : 'text-white'}`}>
+                        <span className={`title-text text-[18px] font-[600] text-[#111315] dark:text-white`}>
                             {tagData?.posts?.map((post) => (
                                 <div key={post.id}>
                                     <h1 className="text-[24px] leading-[32px] py-[10px]">{post.title}</h1>
@@ -509,47 +496,47 @@ export default function Sidebar({ tagData, setTagData }) {
                             ))}
                         </span>
                     </div>
-            :
-            <>
-            <div
-                onClick={() => setActivePage('search')}
-                className={`cursor-pointer py-[12px] ${isLightMode ? 'text-[#111315]' : 'text-white'} ${activePage == 'search' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
-                >
-                <BsSearch className="text-[18px]" />
-                </div>
+                    :
+                    <>
+                        <div
+                            onClick={() => setActivePage('search')}
+                            className={`cursor-pointer py-[12px] text-[#111315] dark:text-white ${activePage == 'search' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
+                        >
+                            <BsSearch className="text-[18px]" />
+                        </div>
 
-                <div
-                onClick={() => setActivePage('dashboard')}
-                className={`cursor-pointer py-[12px] ${isLightMode ? 'text-[#111315]' : 'text-white'} ${activePage == 'dashboard' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
-                >
-                List of Content
-                </div>
-                {isAuthenticated() && (
-                <>
-                    <div
-                    onClick={() => setActivePage('bookmark')}
-                    className={`cursor-pointer py-[12px] ${isLightMode ? 'text-[#111315]' : 'text-white'} ${activePage == 'bookmark' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
-                    >
-                    Your Bookmarks
-                    </div>
+                        <div
+                            onClick={() => setActivePage('dashboard')}
+                            className={`cursor-pointer py-[12px] text-[#111315] dark:text-white ${activePage == 'dashboard' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
+                        >
+                            List of Content
+                        </div>
+                        {isAuthenticated() && (
+                            <>
+                                <div
+                                    onClick={() => setActivePage('bookmark')}
+                                    className={`cursor-pointer py-[12px] text-[#111315] dark:text-white ${activePage == 'bookmark' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
+                                >
+                                    Your Bookmarks
+                                </div>
 
-                    <div
-                    onClick={() => setActivePage('decision-graph')}
-                    className={`cursor-pointer py-[12px] ${isLightMode ? 'text-[#111315]' : 'text-white'} ${activePage == 'decision-graph' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
-                    >
-                    Your Decision Graph
-                    </div>
+                                <div
+                                    onClick={() => setActivePage('decision-graph')}
+                                    className={`cursor-pointer py-[12px] text-[#111315] dark:text-white ${activePage == 'decision-graph' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
+                                >
+                                    Your Decision Graph
+                                </div>
 
-                    <div
-                    onClick={() => setActivePage('decision-report')}
-                    className={`cursor-pointer py-[12px] ${isLightMode ? 'text-[#111315]' : 'text-white'} ${activePage == 'decision-report' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
-                    >
-                    Your Decision Report
-                    </div>
-                </>
-                )}
-            </>}
-              </div>
+                                <div
+                                    onClick={() => setActivePage('decision-report')}
+                                    className={`cursor-pointer py-[12px] text-[#111315] dark:text-white ${activePage == 'decision-report' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
+                                >
+                                    Your Decision Report
+                                </div>
+                            </>
+                        )}
+                    </>}
+            </div>
 
             {
                 activePage == 'search' && !tagData ? <SearchSection /> : null
@@ -564,11 +551,11 @@ export default function Sidebar({ tagData, setTagData }) {
             }
 
             {
-                activePage == 'decision-report' && !tagData  ? <DecisionReportSection /> : null
+                activePage == 'decision-report' && !tagData ? <DecisionReportSection /> : null
             }
 
             {
-                activePage == 'decision-graph' && !tagData  ? <GraphSection /> : null
+                activePage == 'decision-graph' && !tagData ? <GraphSection /> : null
             }
 
         </aside>

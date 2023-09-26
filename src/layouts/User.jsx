@@ -21,7 +21,6 @@ export default function UserLayout({ children, pageTitle, tagData, setTagData })
 
 
     const auth = useAuthUser();
-    const { isLightMode } = useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false)
 
     return (
@@ -32,9 +31,9 @@ export default function UserLayout({ children, pageTitle, tagData, setTagData })
 
             <Header />
 
-            <section className={`h-full grow flex flex-col ${isLightMode ? 'bg-white' : 'bg-[#111315]'}`}>
+            <section className={`h-full grow flex flex-col bg-white dark:bg-[#111315]`}>
                 <div className="grid grid-cols-2 w-full h-full grow">
-                    <div className={`min-h-full col-span-1 ${isLightMode ? 'bg-[#d9e6f1]' : 'bg-[#202427]'}`}>
+                    <div className={`min-h-full col-span-1 bg-[#d9e6f1] dark:bg-[#202427]`}>
                         <Sidebar tagData={tagData} setTagData={setTagData} />
                     </div>
                     <div className="min-h-full col-span-1">

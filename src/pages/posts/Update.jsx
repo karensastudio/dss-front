@@ -173,7 +173,7 @@ export default function PostUpdatePage() {
       />
 
     <div className="h-screen bg-opacity-0 bg-transparent">
-      <section className={`${isLightMode ? 'bg-white text-[#111315]' : 'bg-[#202427] text-white'} my-[55px] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px]`}>
+        <section className={`bg-white text-[#111315] dark:bg-[#202427] dark:text-white my-[55px] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px]`}>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-wrap gap-x-4">
           <div className="flex-1">
             <Input

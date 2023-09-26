@@ -11,7 +11,6 @@ import { CgMathPlus } from "react-icons/cg";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function TagIndexPage() {
-  const { isLightMode } = useTheme();
   const authHeader = useAuthHeader();
   const [tags, setTags] = useState([]);
 
@@ -54,10 +53,10 @@ export default function TagIndexPage() {
         theme="dark"
       />
       <div className="h-screen bg-opacity-0 bg-transparent">
-      <section className={`my-[55px] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px] ${isLightMode ? 'bg-white text-[#202427]' : 'bg-[#202427] text-white'}`}>
+      <section className={`my-[55px] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px] bg-white text-[#202427] dark:bg-[#202427] dark:text-white`}>
         <div className="flex flex-col">
           <div className="flex items-center justify-between mb-3">
-            <h1 className={`text-[24px] font-bold ${isLightMode ? 'text-[#111315]' : 'text-[#F9FAFB]'} mb-3`}>Tags</h1>
+            <h1 className={`text-[24px] font-bold text-[#111315] dark:text-[#F9FAFB] mb-3`}>Tags</h1>
 
             <Link
               to={`/tags/create`}
