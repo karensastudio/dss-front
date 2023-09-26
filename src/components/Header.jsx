@@ -28,7 +28,7 @@ export default function Header() {
             <div className="mx-auto max-w-7xl flex items-center justify-between h-[62px] px-[16px] md:px-0">
                 <div className="space-x-10 flex items-center justify-start">
                     <Link to={'/'} >
-                        <img src="./images/logo-white.svg" className="w-[28px]" alt="DSS Logo" />
+                        <span class="font-black">DSS</span>
                     </Link>
 
                     {
