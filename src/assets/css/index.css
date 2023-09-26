@@ -79,22 +79,26 @@ body.light-mode {
     border: 1px solid #d6d6d6 !important;
 }
 
-.editor-text {
-    font-size: 14px;
+/* Start Text Editor Styles */
+
+.text-editor .consideration {
+    @apply text-white py-[16px] px-[25px] bg-[#0071FF] rounded-[12px] my-[8px] w-full;
 }
 
-.editor-text .consideration {
-    color: #fff;
-    padding: 16px 25px;
-    background-color: #0071FF;
-    border-radius: 12px;
-    margin: 8px 0;
-    width: 100%;
+.text-editor .callout {
+    @apply text-white py-[16px] px-[25px] bg-[#44484D] rounded-[12px] my-[8px] w-full;
 }
 
-.light-editor-text * {
-    color: #444 !important;
+.text-editor details {
+    @apply rounded-[12px] border-[1px] bg-neutral-50 my-[8px] px-[25px];
 }
+
+.text-editor details summary {
+    @apply rounded-[12px] bg-neutral-200 p-[16px] !-mx-[25px] ;
+}
+
+
+/* End Text Editor Styles */
 
 .comment-popup {
     max-width: 50rem !important;

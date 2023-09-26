@@ -231,7 +231,7 @@ export default function A131Page() {
                 </div>
 
                 <div className="mx-[40px] py-[16px]">
-                    <div className={`${isLightMode ? 'light-editor-text' : 'editor-text'}`}>
+                    <div className={`text-editor text-[14px] dark:text-[#444444] ${~isLightMode && 'dark'}`}>
                         {post?.description && parse(post?.description)}
                     </div>
                 </div>
