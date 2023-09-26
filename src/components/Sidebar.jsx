@@ -1,6 +1,6 @@
 import { Disclosure, Transition } from "@headlessui/react";
 import { useEffect, useRef, useState } from "react";
-import { BsSearch, BsChevronUp, BsBookmarkFill } from "react-icons/bs";
+import { BsSearch, BsChevronUp, BsBookmarkFill, BsChevronLeft } from "react-icons/bs";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import { getUserPostsApi } from "../api/userPost";
 import { getDecisionsApi } from "../api/decision";
@@ -481,16 +481,37 @@ export function GraphSection() {
       );
 }
 
-export default function Sidebar() {
+export default function Sidebar({ tagData, setTagData }) {
     const { isLightMode } = useTheme();
+    const navigate = useNavigate();
     const [activePage, setActivePage] = useState("dashboard");
     const isAuthenticated = useIsAuthenticated()
+
+    const handleGoBack = () => {
+        setTagData(null);
+    };
+
 
     return (
         <aside className="px-[40px] py-[32px] sticky top-0" id="sidebar-content">
             <div className="py-[24px] flex items-center justify-start space-x-[18px] text-[14px] font-normal">
-
-                    <div
+            {tagData ?
+                <div className="mx-[40px] py-[24px] space-y-4">
+                    <div className="flex items-center text-opacity-60 text-[14px] leading-[20px] cursor-pointer py-[24px]">
+                            <BsChevronLeft className="mr-[12px]" />
+                            <span onClick={handleGoBack}>Go back</span>
+                        </div>
+                        <span className={`title-text text-[18px] font-[600] ${isLightMode ? 'text-[#111315]' : 'text-white'}`}>
+                            {tagData?.posts?.map((post) => (
+                                <div key={post.id}>
+                                    <h1 className="text-[24px] leading-[32px] py-[10px]">{post.title}</h1>
+                                </div>
+                            ))}
+                        </span>
+                    </div>
+            :
+            <>
+            <div
                 onClick={() => setActivePage('search')}
                 className={`cursor-pointer py-[12px] ${isLightMode ? 'text-[#111315]' : 'text-white'} ${activePage == 'search' ? 'border-b-2 border-b-white' : 'text-opacity-60'}`}
                 >
@@ -527,26 +548,27 @@ export default function Sidebar() {
                     </div>
                 </>
                 )}
+            </>}
               </div>
 
             {
-                activePage == 'search' ? <SearchSection /> : null
+                activePage == 'search' && !tagData ? <SearchSection /> : null
             }
 
             {
-                activePage == 'dashboard' ? <ListOfContentSection /> : null
+                activePage == 'dashboard' && !tagData ? <ListOfContentSection /> : null
             }
 
             {
-                activePage == 'bookmark' ? <BookmarkSection /> : null
+                activePage == 'bookmark' && !tagData ? <BookmarkSection /> : null
             }
 
             {
-                activePage == 'decision-report' ? <DecisionReportSection /> : null
+                activePage == 'decision-report' && !tagData  ? <DecisionReportSection /> : null
             }
 
             {
-                activePage == 'decision-graph' ? <GraphSection /> : null
+                activePage == 'decision-graph' && !tagData  ? <GraphSection /> : null
             }
 
         </aside>

@@ -13,6 +13,7 @@ import 'react-tooltip/dist/react-tooltip.css'
 import { Tooltip } from 'react-tooltip'
 import { useTheme } from "../context/ThemeContext";
 import { CgSpinner } from "react-icons/cg";
+import { getUserTagByIdApi } from "../api/tag";
 
 
 
@@ -20,6 +21,7 @@ export default function A131Page() {
     const { isLightMode } = useTheme();
     const location = useLocation();
     const [post, setPost] = useState([]);
+    const [tag, setTag] = useState(null);
     const [loading, setLoading] = useState(true);
     const [commentType, setCommentType] = useState('propose');
     const [isChatOpen, setIsChatOpen] = useState(false);
@@ -29,6 +31,8 @@ export default function A131Page() {
     const isAuthenticated = useIsAuthenticated();
     const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
     const [isDecisionLoading, setIsDecisionLoading] = useState(false);
+    const [tagDataLoading, setTagDataLoading] = useState(false);
+    const [tagLoadingState, setTagLoadingState] = useState({});
 
     const fetchPostData = async () => {
         try {
@@ -45,6 +49,31 @@ export default function A131Page() {
             console.error(error.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchTagData = async (tagId) => {
+        try {
+            setTagLoadingState((prevState) => ({
+                ...prevState,
+                [tagId]: true,
+            }));
+            const response = await getUserTagByIdApi(authHeader(), tagId);
+
+            if (response.status === 'success') {
+                setTag(response.response.tag);
+                setTagDataLoading(false)
+            } else {
+                console.error(response.message);
+                setTagDataLoading(false)
+            }
+        } catch (error) {
+            console.error(error.message);
+        } finally {
+            setTagLoadingState((prevState) => ({
+                ...prevState,
+                [tagId]: false,
+            }));
         }
     };
 
@@ -108,7 +137,7 @@ export default function A131Page() {
     }, [slug]);
 
     return (
-        <UserLayout pageTitle={'Homepage'}>
+        <UserLayout pageTitle={'Homepage'} tagData={tag} setTagData={setTag}>
             <ToastContainer
                 position="bottom-center"
                 autoClose={5000}
@@ -183,8 +212,20 @@ export default function A131Page() {
 
                 <div className="mx-[40px] py-[24px]">
                     <div className="flex items-center justify-start space-x-[8px]">
-                        {post?.tags?.map((tag) => (
-                            <span key={tag.id} className={`px-[12px] py-[2px] text-[12px] leading-[20px] rounded-full border-[1px] ${isLightMode ? 'border-[#111315]' : 'border-white'}`}>#{tag.name}</span>
+                    {post?.tags?.map((tag) => (
+                        <div key={tag.id} className="flex items-center">
+                            <span
+                                className={`px-[12px] py-[2px] text-[12px] leading-[20px] rounded-full border-[1px] cursor-pointer ${isLightMode ? 'border-[#111315]' : 'border-white'}`}
+                                onClick={() => fetchTagData(tag.id)}
+                            >
+                                #{tag.name}
+                            </span>
+                            {tagLoadingState[tag.id] ? (
+                                <div className="flex items-center justify-center ml-2">
+                                    <CgSpinner className="text-white text-[20px] animate-spin" />
+                                </div>
+                            ) : null}
+                        </div>
                         ))}
                     </div>
                 </div>

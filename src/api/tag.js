@@ -107,7 +107,7 @@ export const getTagsApi = async (authHeader) => {
       return {
         status: 'error',
         variant: 'error',
-        message: error.response?.data?.message || 'An error occurred while updating the post.',
+        message: error.response?.data?.message || 'An error occurred while updating the tag.',
         response: error.response
       };
     }
@@ -140,7 +140,7 @@ export const getTagsApi = async (authHeader) => {
       return {
         status: 'error',
         variant: 'error',
-        message: error.response?.data?.message || 'An error occurred while deleting the post.',
+        message: error.response?.data?.message || 'An error occurred while deleting the tag.',
         response: error.response
       };
     }
@@ -173,7 +173,74 @@ export const getTagsApi = async (authHeader) => {
       return {
         status: 'error',
         variant: 'error',
-        message: error.response?.data?.message || 'An error occurred while retrieving the post.',
+        message: error.response?.data?.message || 'An error occurred while retrieving the tag.',
+        response: error.response
+      };
+    }
+  };
+  
+  export const getUserTags = async (authHeader) => {
+    try {
+      const response = await youzAxios.get('/api/v1/tags', {
+        headers: {
+          Authorization: authHeader
+        }
+      });
+  
+      if (response.data.status === 'success') {
+        return {
+          status: 'success',
+          variant: 'default',
+          message: response.data.message,
+          response: response.data
+        };
+      } else {
+        return {
+          status: 'error',
+          variant: 'error',
+          message: response.data.message,
+          response: response.data
+        };
+      }
+    } catch (error) {
+      return {
+        status: 'error',
+        variant: 'error',
+        message: error.response?.data?.message || 'An error occurred while retrieving tags.',
+        response: error.response
+      };
+    }
+  };
+
+
+  export const getUserTagByIdApi = async (authHeader, tagId) => {
+    try {
+      const response = await youzAxios.get(`/api/v1/tags/${tagId}`, {
+        headers: {
+          Authorization: authHeader
+        }
+      });
+  
+      if (response.data.status === 'success') {
+        return {
+          status: 'success',
+          variant: 'default',
+          message: response.data.message,
+          response: response.data
+        };
+      } else {
+        return {
+          status: 'error',
+          variant: 'error',
+          message: response.data.message,
+          response: response.data
+        };
+      }
+    } catch (error) {
+      return {
+        status: 'error',
+        variant: 'error',
+        message: error.response?.data?.message || 'An error occurred while retrieving the tag.',
         response: error.response
       };
     }

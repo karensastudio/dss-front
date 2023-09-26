@@ -10,7 +10,7 @@ function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
 
-export default function UserLayout({ children, pageTitle }) {
+export default function UserLayout({ children, pageTitle, tagData, setTagData }) {
 
     const navigate = useNavigate()
     const location = useLocation();
@@ -35,7 +35,7 @@ export default function UserLayout({ children, pageTitle }) {
             <section className={`h-full grow flex flex-col ${isLightMode ? 'bg-white' : 'bg-[#111315]'}`}>
                 <div className="grid grid-cols-2 w-full h-full grow">
                     <div className={`min-h-full col-span-1 ${isLightMode ? 'bg-[#d9e6f1]' : 'bg-[#202427]'}`}>
-                        <Sidebar />
+                        <Sidebar tagData={tagData} setTagData={setTagData} />
                     </div>
                     <div className="min-h-full col-span-1">
                         {children}
