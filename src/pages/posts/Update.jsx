@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { ToastContainer, toast } from "react-toastify";
 import Input from "../../utils/Input";
 import { useAuthHeader } from "react-auth-kit";
-import { getPostByIdApi, updatePostApi } from "../../api/post";
+import { getPostByIdApi, getPostsApi, updatePostApi } from "../../api/post";
 import Select from 'react-select';
 import { Editor } from "@tinymce/tinymce-react";
 import { getTagsApi } from "../../api/tag";
@@ -55,7 +55,7 @@ const example_image_upload_handler = (blobInfo, progress) => new Promise((resolv
 
 
 export default function PostUpdatePage() {
-  const {isLightMode} = useTheme();
+  const { isLightMode } = useTheme();
   const { postId } = useParams();
   const authHeader = useAuthHeader();
   const navigate = useNavigate();
@@ -65,6 +65,7 @@ export default function PostUpdatePage() {
   const [tagOptions, setTagOptions] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
   const [parentOptions, setParentOptions] = useState([]);
+  const [relatedOptions, setRelatedOptions] = useState([]);
   const [selectedParent, setSelectedParent] = useState();
   const [selectedRelated, setSelectedRelated] = useState(null);
 
@@ -83,6 +84,7 @@ export default function PostUpdatePage() {
           setEditorContent(post.description);
           setSelectedTags(post.tags.map((tag) => ({ value: tag.id.toString(), label: tag.name })));
           setSelectedParent({ value: response.response.post.parent.id, label: response.response.post.parent.title })
+          setSelectedRelated(post.related.map((related) => ({ value: related.id.toString(), label: related.title })));
         } else {
           console.error("Error fetching post data:", response);
           toast.error(response.message);
@@ -107,12 +109,21 @@ export default function PostUpdatePage() {
         }
 
         const parentResponse = await getUserPostsApi(authHeader());
+        const relatedResponse = await getPostsApi(authHeader());
         if (parentResponse.status === "success") {
-          const parentOptions = parentResponse.response.posts.map((post) => ({
+          const allParentPosts = [...parentResponse.response.posts];
+          const parentOptions = allParentPosts.map((post) => ({
             value: post.id.toString(),
             label: post.title,
           }));
           setParentOptions(parentOptions);
+
+          const allRelatedPosts = [...relatedResponse.response.posts];
+          const relatedOptions = allRelatedPosts.map((post) => ({
+            value: post.id.toString(),
+            label: post.title,
+          }));
+          setRelatedOptions(relatedOptions);
         } else {
           console.error("Error fetching parent options:", parentResponse);
           toast.error(parentResponse.message);
@@ -172,113 +183,110 @@ export default function PostUpdatePage() {
         theme="dark"
       />
 
-    <div className="h-screen bg-opacity-0 bg-transparent">
+      <div className="h-screen bg-opacity-0 bg-transparent">
         <section className={`bg-white text-[#111315] dark:bg-[#202427] dark:text-white my-[55px] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px]`}>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-wrap gap-x-4">
-          <div className="flex-1">
-            <Input
-              name={'title'}
-              title={"Title"}
-              type={'text'}
-              register={register}
-              defaultValue={postData?.title}
-            />
-          </div>
-
-          <div className="flex-1">
-            <Input
-              name={'priority'}
-              title={"Priority"}
-              type={'text'}
-              register={register}
-              defaultValue={postData?.priority}
-            />
-          </div>
-
-          <div className="w-full mt-4">
-            <Editor
-              apiKey="wbb8vh1ley0gypycs4vg2itj4ithfn8yq1ovtizf9zo97pvm"
-              initialValue={editorContent}
-              onInit={(evt, editor) => editorRef.current = editor}
-              init={{
-                height: 500,
-                menubar: false,
-                content_css: 'dark',
-                skin: 'oxide-dark',
-                relative_urls: true,
-                document_base_url: 'https://dss-beta.netlify.app/',
-                branding: false,
-                plugins: [
-                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                  'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount', 'accordion'
-                ],
-                toolbar: 'undo redo | blocks |' +
-                  'bold italic forecolor link | alignleft aligncenter ' +
-                  'alignright alignjustify | bullist numlist outdent indent | ' +
-                  'removeformat | image | table code accordion',
-                content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px }',
-                images_replace_blob_uris: true,
-                paste_data_images: false,
-                images_upload_url: 'https://api.dssproject.me/api/v1/files/upload',
-                images_upload_handler: example_image_upload_handler
-              }}
-            />
-          </div>
-
-          <div className="flex w-full space-x-5">
-
-            <div className="flex-1 mt-4">
-              <Select
-                defaultValue={selectedTags}
-                value={selectedTags}
-                onChange={setSelectedTags}
-                options={tagOptions}
-                isClearable={true}
-                isMulti
-                className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
-                classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
-                placeholder={<div>Tags</div>}
-                styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-wrap gap-x-4">
+            <div className="flex-1">
+              <Input
+                name={'title'}
+                title={"Title"}
+                type={'text'}
+                register={register}
+                defaultValue={postData?.title}
               />
             </div>
 
-            <div className="flex-1 mt-4">
-              <Select
-                defaultValue={selectedParent}
-                value={selectedParent}
-                onChange={(selectedOption) => setSelectedParent(selectedOption)}
-                options={parentOptions}
-                className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
-                classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
-                placeholder={<div>Parent</div>}
-                styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
+            <div className="flex-1">
+              <Input
+                name={'priority'}
+                title={"Priority"}
+                type={'text'}
+                register={register}
+                defaultValue={postData?.priority}
               />
             </div>
-            <div className="flex-1 mt-4">
-            <Select
-              defaultValue={selectedRelated}
-              value={selectedRelated}
-              onChange={setSelectedRelated}
-              options={parentOptions}
-              isClearable={true}
-              isMulti
-              className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
-              classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
-              placeholder={<div>Related</div>}
-              styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
-            />
-          </div>
-          </div>
 
-          <button
-            type="submit"
-            className="bg-blue-700 hover:bg-blue-800 text-white text-sm py-3 px-5 rounded-full mt-4"
-          >
-            Edit Post
-          </button>
-        </form>
-      </section>
+            <div className="w-full mt-4">
+              <Editor
+                apiKey="wbb8vh1ley0gypycs4vg2itj4ithfn8yq1ovtizf9zo97pvm"
+                initialValue={editorContent}
+                onInit={(evt, editor) => editorRef.current = editor}
+                init={{
+                  height: 500,
+                  menubar: false,
+                  content_css: 'dark',
+                  skin: 'oxide-dark',
+                  relative_urls: true,
+                  document_base_url: 'https://dss-beta.netlify.app/',
+                  branding: false,
+                  plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount', 'accordion'
+                  ],
+                  toolbar: 'undo redo | blocks |' +
+                    'bold italic forecolor link | alignleft aligncenter ' +
+                    'alignright alignjustify | bullist numlist outdent indent | ' +
+                    'removeformat | image | table code accordion',
+                  content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px }',
+                  images_replace_blob_uris: true,
+                  paste_data_images: false,
+                  images_upload_url: 'https://api.dssproject.me/api/v1/files/upload',
+                  images_upload_handler: example_image_upload_handler
+                }}
+              />
+            </div>
+
+            <div className="flex w-full space-x-5">
+
+              <div className="flex-1 mt-4">
+                <Select
+                  defaultValue={selectedTags}
+                  value={selectedTags}
+                  onChange={setSelectedTags}
+                  options={tagOptions}
+                  isClearable={true}
+                  isMulti
+                  className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
+                  classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
+                  placeholder={<div>Tags</div>}
+                />
+              </div>
+
+              <div className="flex-1 mt-4">
+                <Select
+                  defaultValue={selectedParent}
+                  value={selectedParent}
+                  onChange={(selectedOption) => setSelectedParent(selectedOption)}
+                  options={parentOptions}
+                  className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
+                  classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
+                  placeholder={<div>Parent</div>}
+                />
+              </div>
+              <div className="flex-1 mt-4">
+                <Select
+                  defaultValue={selectedRelated}
+                  value={selectedRelated}
+                  onChange={setSelectedRelated}
+                  options={relatedOptions}
+                  isClearable={true}
+                  isMulti
+                  className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
+                  classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
+                  placeholder={<div>Related</div>}
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="bg-blue-700 hover:bg-blue-800 text-white text-sm py-3 px-5 rounded-full mt-4"
+            >
+              Edit Post
+            </button>
+          </form>
+        </section>
       </div>
     </>
   );

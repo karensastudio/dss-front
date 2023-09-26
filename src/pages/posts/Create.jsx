@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { ToastContainer, toast } from "react-toastify";
 import Input from "../../utils/Input";
 import { useAuthHeader } from "react-auth-kit";
-import { createPostApi, updatePostApi, getPostByIdApi } from "../../api/post";
+import { createPostApi, updatePostApi, getPostByIdApi, getPostsApi } from "../../api/post";
 import Select from 'react-select';
 import { getTagsApi } from "../../api/tag";
 
@@ -64,6 +64,7 @@ export default function PostCreatePage() {
   const [tagOptions, setTagOptions] = useState([]);
   const [selectedTag, setSelectedTag] = useState([]);
   const [parentOptions, setParentOptions] = useState([]);
+  const [relatedOptions, setRelatedOptions] = useState([]);
   const [selectedParent, setSelectedParent] = useState(null);
   const [selectedRelated, setSelectedRelated] = useState(null);
 
@@ -90,13 +91,21 @@ export default function PostCreatePage() {
         }
 
         const parentResponse = await getUserPostsApi(authHeader());
+        const relatedResponse = await getPostsApi(authHeader());
         if (parentResponse.status === "success") {
-          const allPosts = [...parentResponse.response.posts];
-          const parentOptions = allPosts.map((post) => ({
+          const allParentPosts = [...parentResponse.response.posts];
+          const parentOptions = allParentPosts.map((post) => ({
             value: post.id.toString(),
             label: post.title,
           }));
           setParentOptions(parentOptions);
+          
+          const allRelatedPosts = [...relatedResponse.response.posts];
+          const relatedOptions = allRelatedPosts.map((post) => ({
+            value: post.id.toString(),
+            label: post.title,
+          }));
+          setRelatedOptions(relatedOptions);
         } else {
           console.error("Error fetching parent options:", parentResponse);
           toast.error(parentResponse.message);
@@ -219,7 +228,6 @@ export default function PostCreatePage() {
             className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
             classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
             placeholder={<div>Tags</div>}
-            styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
             />
           </div>
 
@@ -231,7 +239,6 @@ export default function PostCreatePage() {
               className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
               classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
               placeholder={<div>Parent</div>}
-              styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
             />
           </div>
 
@@ -239,13 +246,12 @@ export default function PostCreatePage() {
             <Select
               defaultValue={selectedRelated}
               onChange={setSelectedRelated}
-              options={parentOptions}
+              options={relatedOptions}
               isClearable={true}
               isMulti
               className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
               classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
               placeholder={<div>Related</div>}
-              styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
             />
           </div>
 
