@@ -66,6 +66,7 @@ export default function PostUpdatePage() {
   const [selectedTags, setSelectedTags] = useState([]);
   const [parentOptions, setParentOptions] = useState([]);
   const [selectedParent, setSelectedParent] = useState();
+  const [selectedRelated, setSelectedRelated] = useState(null);
 
   const editorRef = useRef(null);
 
@@ -126,11 +127,14 @@ export default function PostUpdatePage() {
   }, [postId]);
 
   const onSubmit = async (data) => {
+    const selectedRelatedValues = selectedRelated?.map((related) => related.value);
     try {
       const postData = {
         title: data.title,
         priority: data.priority,
         description: editorRef.current.getContent(),
+        parent_id: selectedParent ? selectedParent.value : null,
+        related: selectedRelatedValues,
         tags: selectedTags.map((tag) => tag.value),
       };
       console.log(postData);
@@ -251,6 +255,20 @@ export default function PostUpdatePage() {
                 styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
               />
             </div>
+            <div className="flex-1 mt-4">
+            <Select
+              defaultValue={selectedRelated}
+              value={selectedRelated}
+              onChange={setSelectedRelated}
+              options={parentOptions}
+              isClearable={true}
+              isMulti
+              className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
+              classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
+              placeholder={<div>Related</div>}
+              styles={{ menu: (provided) => ({ ...provided, zIndex: 9999, position: 'relative' }) }}
+            />
+          </div>
           </div>
 
           <button
