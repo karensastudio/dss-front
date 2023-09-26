@@ -20,13 +20,11 @@ export function ThemeProvider({ children }) {
     setIsLightMode(newMode);
 
     localStorage.setItem('theme-mode', newMode ? 'light' : 'dark');
-    const body = document.body;
+    const html = document;
     if (newMode) {
-      body.classList.add('light-mode');
-      body.classList.remove('dark-mode');
+      document.querySelector('html').classList.remove('dark');
     } else {
-      body.classList.add('dark-mode');
-      body.classList.remove('light-mode');
+      document.querySelector('html').classList.add('dark');
     }
   };
 

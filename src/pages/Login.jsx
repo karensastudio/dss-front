@@ -64,7 +64,7 @@ export default function LoginPage() {
     }
 
     return (
-        <>
+        <main className={`${isLightMode && 'bg-white'} `}>
             <Helmet>
                 <title>DSS | Registration</title>
             </Helmet>
@@ -85,7 +85,7 @@ export default function LoginPage() {
 
             <div className="h-screen bg-opacity-0 bg-transparent">
 
-            <section className={`${isLightMode ? 'bg-white' : 'bg-[#202427]'} my-[55px] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px]`}>
+            <section className={`${isLightMode ? 'bg-blue-50' : 'bg-[#202427]'} my-[55px] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px]`}>
                 <h1 className={`${isLightMode ? 'text-[#202427]' : 'text-white'} text-[24px] leading-[29px] font-medium mb-[43px]`}>Sign in</h1>
 
                 <form onSubmit={handleSubmit(onSubmit)}>
@@ -123,7 +123,7 @@ export default function LoginPage() {
             </section>
             </div>
 
-        </>
+        </main>
     )
 
 }

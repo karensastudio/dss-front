@@ -25,7 +25,7 @@ export default function UserLayout({ children, pageTitle }) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
 
     return (
-        <main className={`min-h-screen flex flex-col items-stretch justify-stretch ${isLightMode ? 'light-mode' : ''}`}>
+        <main className={`min-h-screen flex flex-col items-stretch justify-stretch`}>
             <Helmet>
                 <title>DSS | {pageTitle}</title>
             </Helmet>

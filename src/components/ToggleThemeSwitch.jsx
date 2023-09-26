@@ -1,16 +1,18 @@
 // ToggleSwitch.js
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
+import { BsFillSunFill, BsFillMoonFill } from "react-icons/bs";
 
 function ToggleThemeSwitch() {
   const { isLightMode, toggleTheme } = useTheme();
 
-  return (
-    <label className="switch">
-      <input type="checkbox" checked={isLightMode} onChange={toggleTheme} />
-      <span className="slider round"></span>
-    </label>
-  );
+  if (isLightMode) {
+    return (
+      <BsFillMoonFill className='cursor-pointer' onClick={toggleTheme} />
+    )
+  } else return (
+    <BsFillSunFill className='cursor-pointer' onClick={toggleTheme} />
+  )
 }
 
 export default ToggleThemeSwitch;
