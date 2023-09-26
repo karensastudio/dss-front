@@ -33,8 +33,8 @@ export default function UserLayout({ children, pageTitle }) {
             <Header />
 
             <section className={`h-full grow flex flex-col ${isLightMode ? 'bg-white' : 'bg-[#111315]'}`}>
-                <div className="grid grid-cols-2 w-full h-full grow relative">
-                    <div className={`min-h-full col-span-1 sticky ${isLightMode ? 'bg-[#d9e6f1]' : 'bg-[#202427]'}`}>
+                <div className="grid grid-cols-2 w-full h-full grow">
+                    <div className={`min-h-full col-span-1 ${isLightMode ? 'bg-[#d9e6f1]' : 'bg-[#202427]'}`}>
                         <Sidebar />
                     </div>
                     <div className="min-h-full col-span-1">

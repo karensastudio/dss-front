@@ -487,7 +487,7 @@ export default function Sidebar() {
     const isAuthenticated = useIsAuthenticated()
 
     return (
-        <aside className="px-[40px] py-[32px] min-h-full" id="sidebar-content">
+        <aside className="px-[40px] py-[32px] sticky top-0" id="sidebar-content">
             <div className="py-[24px] flex items-center justify-start space-x-[18px] text-[14px] font-normal">
 
                     <div
