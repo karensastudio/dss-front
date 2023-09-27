@@ -30,9 +30,9 @@ export default function DecisionPdfPage() {
 
         fetchDecisions();
 
-        // window.onafterprint = () => {
-        //     navigate('/');
-        // };
+        window.onafterprint = () => {
+            navigate('/');
+        };
 
         return () => {
             window.onafterprint = null;
@@ -41,7 +41,7 @@ export default function DecisionPdfPage() {
 
     useEffect(() => {
         if (decisions.length > 0) {
-            // window.print();
+            window.print();
         }
 
         const details = document.querySelectorAll('details');
