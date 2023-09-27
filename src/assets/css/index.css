@@ -163,7 +163,9 @@ input:checked+.slider:before {
 }
 
 .node-text {
-    font-size: 12px;
+    font-size: 10px;
+    display: block;
+    max-width: 30px;
 }
 
 

@@ -12,6 +12,9 @@ module.exports = {
       fontFamily: {
         sans: ['Inter', ...fontFamily.sans],
       },
+      aspectRatio: {
+        '1/1.4': '1 / 1.4',
+      },
     }
   },
   darkMode: 'class',

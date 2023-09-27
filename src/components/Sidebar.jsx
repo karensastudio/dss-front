@@ -390,6 +390,9 @@ export function GraphSection() {
                         if (links.find((link) => link.source === node.id && link.target === child.id)) {
                             return;
                         }
+                        if (links.find((link) => link.source === child.id && link.target === node.id)) {
+                            return;
+                        }
                         links.push({ source: node.id, target: child.id });
                     });
                 }
@@ -442,7 +445,7 @@ export function GraphSection() {
 
         nodeGroup
             .append('text')
-            .attr('dy', '-1.5em')
+            .attr('dy', '-2em')
             .attr('text-anchor', 'middle')
             .attr('fill', (isLightMode ? 'black' : 'white'))
             .attr('class', 'node-text')
