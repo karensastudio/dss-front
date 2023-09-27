@@ -2,7 +2,7 @@ import { Disclosure, Transition } from "@headlessui/react";
 import { useEffect, useRef, useState } from "react";
 import { BsSearch, BsChevronUp, BsBookmarkFill, BsChevronLeft } from "react-icons/bs";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
-import { getUserPostsApi } from "../api/userPost";
+import { getUserGraphApi, getUserPostsApi } from "../api/userPost";
 import { getDecisionsApi } from "../api/decision";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
@@ -342,7 +342,7 @@ export function GraphSection() {
 
     const fetchDecisions = async () => {
         try {
-            const response = await getUserPostsApi(authHeader());
+            const response = await getUserGraphApi(authHeader());
             if (response.status === 'success' && response.response.posts) {
                 setData(response.response.posts);
                 setError(null);
@@ -379,17 +379,26 @@ export function GraphSection() {
             const nodes = [];
             const links = [];
 
-            const traverse = (node, parent) => {
-                nodes.push(node);
-                if (parent) {
-                    links.push({ source: parent, target: node });
-                }
-                if (node.children) {
-                    node.children.forEach((child) => traverse(child, node));
+            const nodePather = (node) => {
+                if (node.children.length == 0)
+                    nodes.push(node);
+            };
+
+            const linksPather = (node) => {
+                if (node.related) {
+                    node.related.forEach((child) => {
+                        if (links.find((link) => link.source === node.id && link.target === child.id)) {
+                            return;
+                        }
+                        links.push({ source: node.id, target: child.id });
+                    });
                 }
             };
 
-            data.forEach((rootNode) => traverse(rootNode, null));
+            data.forEach((rootNode) => nodePather(rootNode));
+            data.forEach((rootNode) => linksPather(rootNode));
+
+            console.log(links);
 
             return { nodes, links };
         };
@@ -408,7 +417,7 @@ export function GraphSection() {
             .data(links)
             .enter()
             .append('line')
-            .attr('stroke', 'black')
+            .attr('stroke', (isLightMode ? 'black' : 'white'))
             .attr('stroke-opacity', 0.3)
             .attr('stroke-width', 1);
 
@@ -422,12 +431,12 @@ export function GraphSection() {
 
         nodeGroup
             .append('circle')
-            .attr('r', 15)
+            .attr('r', 10)
             .attr('fill', (d) => {
                 if (isLightMode) {
-                    return d.is_decision ? '#BF625F' : '#C7A567';
+                    return d.is_decision ? '#4070FB' : '#9ca3af';
                 } else {
-                    return d.is_decision ? '#BF625F' : '#C7A567';
+                    return d.is_decision ? '#4070FB' : '#9ca3af';
                 }
             });
 
@@ -435,6 +444,7 @@ export function GraphSection() {
             .append('text')
             .attr('dy', '-1.5em')
             .attr('text-anchor', 'middle')
+            .attr('fill', (isLightMode ? 'black' : 'white'))
             .attr('class', 'node-text')
             .text((d) => d.title);
 
@@ -464,7 +474,7 @@ export function GraphSection() {
     }
 
     return (
-        <div className="graph-bg">
+        <div className="rounded-[12px] bg-white dark:bg-transparent">
             <svg ref={svgRef} width="100%" height="730" />
         </div>
     );
@@ -484,7 +494,7 @@ export default function Sidebar({ tagData, setTagData }) {
             <div className="py-[24px] flex items-center justify-start space-x-[18px] text-[14px] font-normal">
                 {tagData ?
                     <div className="mx-[40px] py-[24px] space-y-4">
-                        <div className="flex items-center text-opacity-60 text-[14px] leading-[20px] cursor-pointer py-[24px]">
+                        <div className="flex items-center text-opacity-60 text-[#444444] dark:text-neutral-300 text-[14px] leading-[20px] cursor-pointer py-[24px]">
                             <BsChevronLeft className="mr-[12px]" />
                             <span onClick={handleGoBack}>Go back</span>
                         </div>

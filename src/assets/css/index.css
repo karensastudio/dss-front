@@ -97,6 +97,10 @@ body.light-mode {
     @apply rounded-[12px] bg-neutral-200 dark:bg-neutral-900 dark:text-white p-[16px] !-mx-[25px];
 }
 
+.text-editor ul, .text-editor ol {
+    @apply list-disc list-inside;
+}
+
 
 /* End Text Editor Styles */
 
@@ -157,11 +161,6 @@ input:checked+.slider:before {
 
 .slider.round:before {
     border-radius: 50%;
-}
-
-.graph-bg {
-    background-color: white;
-    border-radius: 5px;
 }
 
 .node-text {

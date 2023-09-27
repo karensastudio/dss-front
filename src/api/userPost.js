@@ -48,6 +48,38 @@ export const getUserPostsApi = async (authHeader) => {
     })
 };
 
+export const getUserGraphApi = async (authHeader) => {
+    return youzAxios.get('/api/v1/graph', {
+        headers: {
+            Authorization: authHeader
+        }
+    }).then((response) => {
+        if (response.data.status == 'success') {
+            return {
+                status: 'success',
+                variant: 'default',
+                message: response.data.message,
+                response: response?.data
+            }
+        }
+        else {
+            return {
+                status: 'error',
+                variant: 'error',
+                message: response?.data?.message,
+                response: response
+            }
+        }
+    }).catch((response) => {
+        return {
+            status: 'error',
+            variant: 'error',
+            message: response?.response?.data?.message,
+            response: response?.response?.data
+        }
+    })
+};
+
   export const getPostBySlugApi = async (authHeader, slug) => {
     try {
       const response = await youzAxios.get(`/api/v1/posts/${slug}`, {
