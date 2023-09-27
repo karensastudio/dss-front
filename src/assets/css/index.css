@@ -97,10 +97,9 @@ body.light-mode {
     @apply rounded-[12px] bg-neutral-200 dark:bg-neutral-900 dark:text-white p-[16px] !-mx-[25px];
 }
 
-.text-editor ul, .text-editor ol {
+/* .text-editor ul, .text-editor ol {
     @apply list-disc list-inside;
-}
-
+} */
 
 /* End Text Editor Styles */
 
