@@ -41,13 +41,13 @@ export default function DecisionPdfPage() {
 
     useEffect(() => {
         if (decisions.length > 0) {
+            const details = document.querySelectorAll('details');
+            details.forEach((targetDetail) => {
+                targetDetail.setAttribute('open', '');
+            });
             window.print();
         }
 
-        const details = document.querySelectorAll('details');
-        details.forEach((targetDetail) => {
-            targetDetail.setAttribute('open', '');
-        });
     }, [decisions]);
 
     return (
