@@ -10,7 +10,7 @@ import { CgSpinner } from "react-icons/cg";
 import * as d3 from 'd3';
 import { getBookmarksApi } from "../api/bookmark";
 import { searchAPI } from "../api/search";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { SinglePostLoadingState, SinglePostState } from "../states";
 
 export function SearchSection() {
@@ -138,10 +138,10 @@ export function ListOfContentSection() {
         setSinglePostLoading(true);
         try {
             const response = await getPostBySlugApi(authHeader(), slug);
-            
+
             if (response.status === 'success') {
                 setSinglePost(response.response.post);
-                
+
                 // change url to /posts/:slug
                 navigate(`/posts/${slug}`);
                 setSinglePostLoading(false);
@@ -184,7 +184,7 @@ export function ListOfContentSection() {
                                 </div>
                             </Disclosure.Button>
                             <Transition
-                                show={(open || isCategoryOrChildrensActive(category)  )}
+                                show={(open || isCategoryOrChildrensActive(category))}
                                 enter="transition duration-100 ease-out"
                                 enterFrom="transform scale-95 opacity-0"
                                 enterTo="transform scale-100 opacity-100"
@@ -514,9 +514,33 @@ export function GraphSection() {
 }
 
 export default function Sidebar({ tagData, setTagData }) {
+    const authHeader = useAuthHeader();
     const navigate = useNavigate();
     const [activePage, setActivePage] = useState("dashboard");
     const isAuthenticated = useIsAuthenticated()
+
+    const [singlePost, setSinglePost] = useRecoilState(SinglePostState);
+    const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
+    async function PostChanger(slug) {
+        setSinglePostLoading(true);
+        try {
+            const response = await getPostBySlugApi(authHeader(), slug);
+
+            if (response.status === 'success') {
+                setSinglePost(response.response.post);
+
+                // change url to /posts/:slug
+                navigate(`/posts/${slug}`);
+                setSinglePostLoading(false);
+            } else {
+                console.error(response.message);
+            }
+        } catch (error) {
+            console.error(error.message);
+        } finally {
+            setSinglePostLoading(false);
+        }
+    }
 
     const handleGoBack = () => {
         setTagData(null);
@@ -531,13 +555,18 @@ export default function Sidebar({ tagData, setTagData }) {
                             <BsChevronLeft className="mr-[12px]" />
                             <span onClick={handleGoBack}>Go back</span>
                         </div>
-                        <span className={`title-text text-[18px] font-[600] text-[#111315] dark:text-white`}>
+
+                        <div className={`flex flex-col space-y-[16px] mb-[48px] text-[#111315] dark:text-white`}>
                             {tagData?.posts?.map((post) => (
-                                <div key={post.id}>
-                                    <h1 className="text-[24px] leading-[32px] py-[10px]">{post.title}</h1>
-                                </div>
+                                <span
+                                    key={post.id}
+                                    className={`text-[16px] leading-[24px] cursor-pointer ${singlePost?.id === post.id ? 'text-[#0071FF]' : 'text-[#111315] dark:text-white'}`}
+                                    onClick={() => PostChanger(post.slug)}
+                                >
+                                    {post.title}
+                                </span>
                             ))}
-                        </span>
+                        </div>
                     </div>
                     :
                     <>
