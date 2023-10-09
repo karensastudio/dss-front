@@ -2,7 +2,7 @@ import { Disclosure, Transition } from "@headlessui/react";
 import { useEffect, useRef, useState } from "react";
 import { BsSearch, BsChevronUp, BsBookmarkFill, BsChevronLeft } from "react-icons/bs";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
-import { getUserGraphApi, getUserPostsApi } from "../api/userPost";
+import { getPostBySlugApi, getUserGraphApi, getUserPostsApi } from "../api/userPost";
 import { getDecisionsApi } from "../api/decision";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
@@ -10,7 +10,8 @@ import { CgSpinner } from "react-icons/cg";
 import * as d3 from 'd3';
 import { getBookmarksApi } from "../api/bookmark";
 import { searchAPI } from "../api/search";
-
+import { useRecoilState } from "recoil";
+import { SinglePostLoadingState, SinglePostState } from "../states";
 
 export function SearchSection() {
     const authHeader = useAuthHeader();
@@ -104,7 +105,6 @@ export function ListOfContentSection() {
     const [userPosts, setUserPosts] = useState([]);
     const [isPostsLoading, setIsPostsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [highlightedPost, setHighlightedPost] = useState(null);
     const authHeader = useAuthHeader();
     const navigate = useNavigate();
 
@@ -132,10 +132,40 @@ export function ListOfContentSection() {
         fetchUserPosts();
     }, []);
 
-    const handlePostClick = (clickedPost) => {
-        setHighlightedPost(clickedPost);
-        navigate(`/posts/${clickedPost.slug}`);
-    };
+    const [singlePost, setSinglePost] = useRecoilState(SinglePostState);
+    const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
+    async function PostChanger(slug) {
+        setSinglePostLoading(true);
+        try {
+            const response = await getPostBySlugApi(authHeader(), slug);
+            
+            if (response.status === 'success') {
+                setSinglePost(response.response.post);
+                
+                // change url to /posts/:slug
+                navigate(`/posts/${slug}`);
+                setSinglePostLoading(false);
+            } else {
+                console.error(response.message);
+            }
+        } catch (error) {
+            console.error(error.message);
+        } finally {
+            setSinglePostLoading(false);
+        }
+    }
+
+    function isCategoryOrChildrensActive(category) {
+        if (singlePost?.id === category.id) {
+            return true;
+        }
+
+        if (category.children.length > 0) {
+            return category.children.some((post) => post.id === singlePost?.id);
+        }
+
+        return false;
+    }
 
     return (
         <div className="flex flex-col space-y-[16px] mt-[10px]">
@@ -154,7 +184,7 @@ export function ListOfContentSection() {
                                 </div>
                             </Disclosure.Button>
                             <Transition
-                                show={open}
+                                show={(open || isCategoryOrChildrensActive(category)  )}
                                 enter="transition duration-100 ease-out"
                                 enterFrom="transform scale-95 opacity-0"
                                 enterTo="transform scale-100 opacity-100"
@@ -166,18 +196,18 @@ export function ListOfContentSection() {
                                     <div className="flex flex-col space-y-[16px]">
                                         <span
                                             key={category.id}
-                                            className={`text-[16px] leading-[24px] cursor-pointer ${highlightedPost?.id === category.id ? 'text-[#0071FF]' : 'text-[#111315] dark:text-white'
+                                            className={`text-[16px] leading-[24px] cursor-pointer ${singlePost?.id === category.id ? 'text-[#0071FF]' : 'text-[#111315] dark:text-white'
                                                 }`}
-                                            onClick={() => handlePostClick(category)}
+                                            onClick={() => PostChanger(category.slug)}
                                         >
                                             Introduction
                                         </span>
                                         {category.children.map((post) => (
                                             <span
                                                 key={post.id}
-                                                className={`text-[16px] leading-[24px] cursor-pointer ${highlightedPost?.id === post.id ? 'text-[#0071FF]' : 'text-[#111315] dark:text-white'
+                                                className={`text-[16px] leading-[24px] cursor-pointer ${singlePost?.id === post.id ? 'text-[#0071FF]' : 'text-[#111315] dark:text-white'
                                                     }`}
-                                                onClick={() => handlePostClick(post)}
+                                                onClick={() => PostChanger(post.slug)}
                                             >
                                                 {post.title}
                                             </span>

@@ -14,7 +14,7 @@ export function ThemeProvider({ children }) {
       else document.querySelector('html').classList.add('dark');
 
     } else {
-      setIsLightMode(!prefersDarkMode);
+      setIsLightMode(true);
     }
   }, []);
 

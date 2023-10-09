@@ -15,6 +15,9 @@ import { getUserPostsApi } from "../../api/userPost";
 import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router";
 
+import { createReactEditorJS } from "react-editor-js";
+import Image from '@editorjs/image';
+
 const example_image_upload_handler = (blobInfo, progress) => new Promise((resolve, reject) => {
   const xhr = new XMLHttpRequest();
   xhr.open('POST', 'https://api.dssproject.me/api/v1/files/upload');
@@ -67,6 +70,9 @@ export default function PostCreatePage() {
   const [relatedOptions, setRelatedOptions] = useState([]);
   const [selectedParent, setSelectedParent] = useState(null);
   const [selectedRelated, setSelectedRelated] = useState(null);
+
+  const ReactEditorJS = createReactEditorJS();
+  const [editorData, setEditorData] = useState(null);
 
   const editorRef = useRef(null);
   const log = () => {
@@ -189,35 +195,10 @@ export default function PostCreatePage() {
             />
           </div>
 
-          <div className="w-full mt-4">
-            <Editor
-              apiKey='wbb8vh1ley0gypycs4vg2itj4ithfn8yq1ovtizf9zo97pvm'
-              onInit={(evt, editor) => editorRef.current = editor}
-              init={{
-                height: 500,
-                menubar: false,
-                content_css: 'dark',
-                skin: 'oxide-dark',
-                relative_urls: true,
-                document_base_url: 'https://dss-beta.netlify.app/',
-                branding: false,
-                plugins: [
-                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                  'insertdatetime', 'media', 'table', 'help', 'wordcount', 'accordion'
-                ],
-                toolbar: 'undo redo | blocks |' +
-                  'bold italic forecolor link | alignleft aligncenter ' +
-                  'alignright alignjustify | bullist numlist outdent indent | ' +
-                  'removeformat | image | table code accordion',
-                content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px }',
-                images_replace_blob_uris: true,
-                paste_data_images: false,
-                images_upload_url: 'https://api.dssproject.me/api/v1/files/upload',
-                images_upload_handler: example_image_upload_handler
-              }}
-            />
+          <div className="w-full mt-4 bg-white rounded text-black">
+              <ReactEditorJS value={editorData} tools={{ Image: Image }} />
           </div>
+
           <div className="flex-1 mt-4">
             <Select
             defaultValue={selectedTag}

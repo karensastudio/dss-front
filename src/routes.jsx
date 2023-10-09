@@ -4,11 +4,6 @@ import RegisterPage from "./pages/Register";
 import OnboardingPage from "./pages/Onboarding";
 import LoginPage from "./pages/Login";
 import HomePage from "./pages/Home";
-import A1Page from "./pages/A1";
-import A13Page from "./pages/A13";
-import A131Page from "./pages/A131";
-import A1IntroPage from "./pages/A1Intro";
-import A1Case from "./pages/A1Case";
 import TagCreatePage from "./pages/tags/Create";
 import PostCreatePage from "./pages/posts/Create";
 import TagIndexPage from "./pages/tags/Index";
@@ -19,7 +14,7 @@ import NoteIndexPage from "./pages/notes/Index";
 import NoteUpdatePage from "./pages/notes/Update";
 import NoteCreatePage from "./pages/notes/Create";
 import DecisionPdfPage from "./pages/DecisionPdf";
-// import ErrorPage from "./error-page";
+import SinglePostPage from "./pages/Single";
 
 export const router = createBrowserRouter([
     {
@@ -43,28 +38,8 @@ export const router = createBrowserRouter([
         // errorElement: <ErrorPage />
     },
     {
-        path: "/A1",
-        element: <A1Page />,
-        // errorElement: <ErrorPage />
-    },
-    {
-        path: "/A13",
-        element: <A13Page />,
-        // errorElement: <ErrorPage />
-    },
-    {
-        path: "/A1intro",
-        element: <A1IntroPage />,
-        // errorElement: <ErrorPage />
-    },
-    {
-        path: "/A1Case",
-        element: <A1Case />,
-        // errorElement: <ErrorPage />
-    },
-    {
         path: "/posts/:slug",
-        element: <A131Page />,
+        element: <SinglePostPage />,
         // errorElement: <ErrorPage />
     },
     {
