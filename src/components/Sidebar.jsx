@@ -259,11 +259,29 @@ export function BookmarkSection() {
         fetchBookmarks();
     }, []);
 
-    const handleBookmarkClick = async (bookmark) => {
-        setHighlightedBookmark(bookmark);
-        navigate(`/posts/${bookmark.slug}`)
+    const [singlePost, setSinglePost] = useRecoilState(SinglePostState);
+    const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
+    async function PostChanger(slug) {
+        setSinglePostLoading(true);
+        try {
+            const response = await getPostBySlugApi(authHeader(), slug);
 
-    };
+            if (response.status === 'success') {
+                setSinglePost(response.response.post);
+
+                // change url to /posts/:slug
+                navigate(`/posts/${slug}`);
+                setSinglePostLoading(false);
+            } else {
+                console.error(response.message);
+            }
+        } catch (error) {
+            console.error(error.message);
+        } finally {
+            setSinglePostLoading(false);
+        }
+    }
+
 
     return (
         <div className="flex flex-col space-y-[8px] mt-[10px]">
@@ -274,11 +292,11 @@ export function BookmarkSection() {
             ) : bookmarks?.map((bookmark) => (
                 <a
                     key={bookmark.id}
-                    className={`text-[16px] leading-[24px] cursor-pointer flex items-center ${highlightedBookmark?.id === bookmark.id
+                    className={`text-[16px] leading-[24px] cursor-pointer flex items-center ${singlePost?.id === bookmark.id
                         ? 'text-[#0071FF]'
                         : 'text-[#111315] dark:text-white'
                         }`}
-                    onClick={() => handleBookmarkClick(bookmark)}
+                    onClick={() => PostChanger(bookmark.slug)}
                 >
                     <BsBookmarkFill className="mr-[10px]" />
                     <span>{bookmark.title}</span>
@@ -294,14 +312,31 @@ export function DecisionReportSection() {
     const [decisions, setDecisions] = useState([]);
     const [error, setError] = useState(null);
     const [isPostsLoading, setIsPostsLoading] = useState(true);
-    const [highlightedDecision, setHighlightedDecision] = useState(null);
     const navigate = useNavigate();
     const authHeader = useAuthHeader();
 
-    const handleDecisionClick = async (clickedDecision) => {
-        setHighlightedDecision(clickedDecision);
-        navigate(`/posts/${clickedDecision.slug}`)
-    };
+    const [singlePost, setSinglePost] = useRecoilState(SinglePostState);
+    const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
+    async function PostChanger(slug) {
+        setSinglePostLoading(true);
+        try {
+            const response = await getPostBySlugApi(authHeader(), slug);
+
+            if (response.status === 'success') {
+                setSinglePost(response.response.post);
+
+                // change url to /posts/:slug
+                navigate(`/posts/${slug}`);
+                setSinglePostLoading(false);
+            } else {
+                console.error(response.message);
+            }
+        } catch (error) {
+            console.error(error.message);
+        } finally {
+            setSinglePostLoading(false);
+        }
+    }
 
     useEffect(() => {
         const fetchDecisions = async () => {
@@ -337,8 +372,8 @@ export function DecisionReportSection() {
                 ) : decisions.map((decision) => (
                     <span
                         key={decision.id}
-                        className={`text-[16px] leading-[24px] cursor-pointer ${highlightedDecision?.id === decision.id ? 'text-[#0071FF]' : 'text-[#111315] dark:text-white'}`}
-                        onClick={() => handleDecisionClick(decision)}
+                        className={`text-[16px] leading-[24px] cursor-pointer ${singlePost?.id === decision.id ? 'text-[#0071FF]' : 'text-[#111315] dark:text-white'}`}
+                        onClick={() => PostChanger(decision.slug)}
                     >
                         {decision.title}
                     </span>
