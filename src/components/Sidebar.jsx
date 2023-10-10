@@ -615,8 +615,6 @@ export default function Sidebar({ tagData, setTagData }) {
 
             if (response.status === 'success') {
                 setSinglePost(response.response.post);
-
-                // change url to /posts/:slug
                 navigate(`/posts/${slug}`);
                 setSinglePostLoading(false);
             } else {
