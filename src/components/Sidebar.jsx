@@ -400,6 +400,8 @@ export function GraphSection() {
     const { isLightMode } = useTheme();
     const svgRef = useRef(null);
     const [data, setData] = useState([]);
+    const simulationRef = useRef(null); 
+    const [isDragging, setIsDragging] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const authHeader = useAuthHeader();
@@ -422,27 +424,27 @@ export function GraphSection() {
         }
     };
 
-    const [singlePost, setSinglePost] = useRecoilState(SinglePostState);
-    const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
-    async function PostChanger(node) {
-        setSinglePostLoading(true);
-        try {
-            const response = await getPostBySlugApi(authHeader(), node.target.__data__.slug);
+    const handleNodeClick = async (node) => {
+        navigate(`/posts/${node.target.__data__.slug}`)
+    };
 
-            if (response.status === 'success') {
-                setSinglePost(response.response.post);
+    const dragstarted = (event, d) => {
+        if (!event.active) simulationRef.current.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+        setIsDragging(true);
+    }
 
-                // change url to /posts/:slug
-                navigate(`/posts/${node.target.__data__.slug}`);
-                setSinglePostLoading(false);
-            } else {
-                console.error(response.message);
-            }
-        } catch (error) {
-            console.error(error.message);
-        } finally {
-            setSinglePostLoading(false);
-        }
+    const dragged = (event, d) => {
+        d.fx = event.x;
+        d.fy = event.y;
+    }
+
+    const dragended = (event, d) => {
+        if (!event.active) simulationRef.current.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+        setIsDragging(false);
     }
 
     useEffect(() => {
@@ -456,6 +458,7 @@ export function GraphSection() {
 
         const width = 800;
         const height = 700;
+        const radius = Math.min(width, height) / 2;
 
         const svg = d3.select(svgRef.current);
 
@@ -492,12 +495,35 @@ export function GraphSection() {
 
         const { nodes, links } = flattenData(data);
 
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        const angleToCoordinate = (angle, radius) => ({
+            x: centerX + radius * Math.cos(angle),
+            y: centerY + radius * Math.sin(angle),
+        });
+
+        const numNodes = nodes.length;
+
+        const anglePerNode = (2 * Math.PI) / numNodes;
+
+        nodes.forEach((node, index) => {
+        const angle = index * anglePerNode;
+
+        const { x, y } = angleToCoordinate(angle, radius);
+
+        node.x = x;
+        node.y = y;
+         });
+
         const simulation = d3
             .forceSimulation(nodes)
-            .force('link', d3.forceLink(links).id((d) => d.id).distance(300).strength(1))
+            .force('link', d3.forceLink(links).id((d) => d.id).distance(10).strength(1))
             .force('charge', d3.forceManyBody().strength(-1000))
             .force('x', d3.forceX(width / 2))
             .force('y', d3.forceY(height / 2));
+
+            simulationRef.current = simulation;
 
         const link = svg
             .selectAll('line')
@@ -513,8 +539,13 @@ export function GraphSection() {
             .data(nodes)
             .enter()
             .append('g')
-            .attr('class', 'node cursor-pointer')
-            .on('click', (d) => PostChanger(d));
+            .attr('class', 'node')
+            .on('click', (d) => handleNodeClick(d))
+            .call(d3.drag()
+            .on('start', dragstarted)
+            .on('drag', dragged)
+            .on('end', dragended)
+        );
 
         nodeGroup
             .append('circle')
@@ -536,13 +567,15 @@ export function GraphSection() {
             .text((d) => d.title);
 
         function ticked() {
-            link
-                .attr('x1', (d) => d.source.x)
-                .attr('y1', (d) => d.source.y)
-                .attr('x2', (d) => d.target.x)
-                .attr('y2', (d) => d.target.y);
-
-            nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
+            if (!isDragging) {
+                link
+                    .attr('x1', (d) => d.source.x)
+                    .attr('y1', (d) => d.source.y)
+                    .attr('x2', (d) => d.target.x)
+                    .attr('y2', (d) => d.target.y);
+        
+                nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
+            }
         }
 
         simulation.on('tick', ticked);
