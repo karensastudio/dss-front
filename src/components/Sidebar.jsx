@@ -404,6 +404,8 @@ export function GraphSection() {
     const [isDragging, setIsDragging] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [singlePost, setSinglePost] = useRecoilState(SinglePostState);
+    const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
     const authHeader = useAuthHeader();
     const navigate = useNavigate();
 
@@ -424,9 +426,24 @@ export function GraphSection() {
         }
     };
 
-    const handleNodeClick = async (node) => {
-        navigate(`/posts/${node.target.__data__.slug}`)
-    };
+    async function PostChanger(node) {
+        setSinglePostLoading(true);
+        try {
+            const response = await getPostBySlugApi(authHeader(), node.target.__data__.slug);
+
+            if (response.status === 'success') {
+                setSinglePost(response.response.post);
+                navigate(`/posts/${node.target.__data__.slug}`);
+                setSinglePostLoading(false);
+            } else {
+                console.error(response.message);
+            }
+        } catch (error) {
+            console.error(error.message);
+        } finally {
+            setSinglePostLoading(false);
+        }
+    }
 
     const dragstarted = (event, d) => {
         if (!event.active) simulationRef.current.alphaTarget(0.3).restart();
@@ -488,8 +505,6 @@ export function GraphSection() {
             data.forEach((rootNode) => nodePather(rootNode));
             data.forEach((rootNode) => linksPather(rootNode));
 
-            console.log(links);
-
             return { nodes, links };
         };
 
@@ -539,8 +554,8 @@ export function GraphSection() {
             .data(nodes)
             .enter()
             .append('g')
-            .attr('class', 'node')
-            .on('click', (d) => handleNodeClick(d))
+            .attr('class', 'node cursor-pointer')
+            .on('click', (d) => PostChanger(d))
             .call(d3.drag()
             .on('start', dragstarted)
             .on('drag', dragged)
