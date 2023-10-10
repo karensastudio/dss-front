@@ -422,9 +422,28 @@ export function GraphSection() {
         }
     };
 
-    const handleNodeClick = async (node) => {
-        navigate(`/posts/${node.target.__data__.slug}`)
-    };
+    const [singlePost, setSinglePost] = useRecoilState(SinglePostState);
+    const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
+    async function PostChanger(node) {
+        setSinglePostLoading(true);
+        try {
+            const response = await getPostBySlugApi(authHeader(), node.target.__data__.slug);
+
+            if (response.status === 'success') {
+                setSinglePost(response.response.post);
+
+                // change url to /posts/:slug
+                navigate(`/posts/${node.target.__data__.slug}`);
+                setSinglePostLoading(false);
+            } else {
+                console.error(response.message);
+            }
+        } catch (error) {
+            console.error(error.message);
+        } finally {
+            setSinglePostLoading(false);
+        }
+    }
 
     useEffect(() => {
         fetchDecisions();
@@ -494,8 +513,8 @@ export function GraphSection() {
             .data(nodes)
             .enter()
             .append('g')
-            .attr('class', 'node')
-            .on('click', (d) => handleNodeClick(d));
+            .attr('class', 'node cursor-pointer')
+            .on('click', (d) => PostChanger(d));
 
         nodeGroup
             .append('circle')
