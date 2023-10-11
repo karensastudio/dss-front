@@ -1,3 +1,16 @@
+// @ts-ignore: Workaround for CJS
+import { createReactEditorJS } from 'react-editor-js/dist/react-editor-js.cjs';
+import Image from '@editorjs/image';
+import Embed from '@editorjs/embed';
+import List from '@editorjs/list';
+import Warning from '@editorjs/warning';
+import Table from '@editorjs/table';
+import DragDrop from 'editorjs-drag-drop';
+import ToggleBlock from 'editorjs-toggle-block';
+import Paragraph from "@editorjs/paragraph";
+import TextVariantTune from "@editorjs/text-variant-tune";
+import Raw from "@editorjs/raw";
+
 import React, { useRef, useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import Header from "../../components/Header";
@@ -14,18 +27,6 @@ import { APIUploadFile } from "../../api/uploader";
 import { getUserPostsApi } from "../../api/userPost";
 import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router";
-
-import { createReactEditorJS } from "react-editor-js";
-import Image from '@editorjs/image';
-import Embed from '@editorjs/embed';
-import List from '@editorjs/list';
-import Warning from '@editorjs/warning';
-import Table from '@editorjs/table';
-import DragDrop from 'editorjs-drag-drop';
-import ToggleBlock from 'editorjs-toggle-block';
-import Paragraph from "@editorjs/paragraph";
-import TextVariantTune from "@editorjs/text-variant-tune";
-import Raw from "@editorjs/raw";
 
 let column_tools = {
   Paragraph: Paragraph,
