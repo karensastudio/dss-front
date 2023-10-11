@@ -116,6 +116,7 @@ export default function SinglePostPage() {
                 setIsBookmarked(true);
                 toast.success("Bookmark added");
             }
+            setIsBookmarkLoading(false);
         } catch (error) {
             console.error(error);
             setIsBookmarkLoading(false);
@@ -128,13 +129,14 @@ export default function SinglePostPage() {
             if (singlePost.is_decision) {
                 await detachDecisionApi(authHeader(), singlePost.id).then(() => { PostChanger(singlePost.slug); });
                 setIsDecision(false);
+                setIsDecisionLoading(false);
                 toast.success("Decision removed");
             } else {
                 await attachDecisionApi(authHeader(), singlePost.id).then(() => { PostChanger(singlePost.slug); });
                 setIsDecision(true);
+                setIsDecisionLoading(false);
                 toast.success("Decision added");;
             }
-            setIsDecisionLoading(false);
         } catch (error) {
             console.error(error);
             setIsDecisionLoading(false);
@@ -260,7 +262,7 @@ export default function SinglePostPage() {
                                         <div className="flex space-x-[16px] text-[18px] items-center">
                                             {isDecisionLoading ? (
                                                 <div className={`flex items-center justify-center`}>
-                                                    <CgSpinner className="text-white text-[20px] animate-spin" />
+                                                    <CgSpinner className="text-black dark:text-white text-[20px] animate-spin" />
                                                 </div>
                                             ) : (
                                                 <label className="text-[16px] cursor-pointer flex items-center">

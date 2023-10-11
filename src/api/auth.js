@@ -130,8 +130,8 @@ export const logoutAPI = async (authHeader) => {
             return {
                 status: 'error',
                 variant: 'error',
-                message: error?.response?.data?.message || 'An error occurred',
-                response: error?.response?.data || null
+                message: response?.response?.data?.message || 'An error occurred',
+                response: response?.response?.data || null
             }
         });
 };

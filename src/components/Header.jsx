@@ -19,6 +19,7 @@ export default function Header() {
             signOut();
             navigate('/login');
         } else {
+            signOut();
             console.error('Logout failed:', response.message);
         }
     };
