@@ -5,7 +5,6 @@ import Embed from '@editorjs/embed';
 import List from '@editorjs/list';
 import Warning from '@editorjs/warning';
 import Table from '@editorjs/table';
-import Heading from '@editorjs/heading';
 import DragDrop from 'editorjs-drag-drop';
 import ToggleBlock from 'editorjs-toggle-block';
 import Paragraph from "@editorjs/paragraph";
