@@ -400,7 +400,7 @@ export function GraphSection() {
     const { isLightMode } = useTheme();
     const svgRef = useRef(null);
     const [data, setData] = useState([]);
-    const simulationRef = useRef(null); 
+    const simulationRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -523,13 +523,15 @@ export function GraphSection() {
         const anglePerNode = (2 * Math.PI) / numNodes;
 
         nodes.forEach((node, index) => {
-        const angle = index * anglePerNode;
+            const angle = index * anglePerNode;
 
-        const { x, y } = angleToCoordinate(angle, radius);
+            const { x, y } = angleToCoordinate(angle, radius);
 
-        node.x = x;
-        node.y = y;
-         });
+            node.x = x;
+            node.y = y;
+        });
+
+        console.log(links);
 
         const simulation = d3
             .forceSimulation(nodes)
@@ -538,7 +540,7 @@ export function GraphSection() {
             .force('x', d3.forceX(width / 2))
             .force('y', d3.forceY(height / 2));
 
-            simulationRef.current = simulation;
+        simulationRef.current = simulation;
 
         const link = svg
             .selectAll('line')
@@ -557,10 +559,10 @@ export function GraphSection() {
             .attr('class', 'node cursor-pointer')
             .on('click', (d) => PostChanger(d))
             .call(d3.drag()
-            .on('start', dragstarted)
-            .on('drag', dragged)
-            .on('end', dragended)
-        );
+                .on('start', dragstarted)
+                .on('drag', dragged)
+                .on('end', dragended)
+            );
 
         nodeGroup
             .append('circle')
@@ -588,7 +590,7 @@ export function GraphSection() {
                     .attr('y1', (d) => d.source.y)
                     .attr('x2', (d) => d.target.x)
                     .attr('y2', (d) => d.target.y);
-        
+
                 nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
             }
         }
