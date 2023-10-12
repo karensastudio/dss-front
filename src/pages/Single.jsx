@@ -331,7 +331,7 @@ export default function SinglePostPage() {
                                                     </Link>;
                                                 }
                                                 if (block.type == "warning")
-                                                    return <div key={block.id} className="w-full rounded-[12px] bg-gray-500 bg-opacity-10 text-gray-700 p-4 mb-3">
+                                                    return <div key={block.id} className="w-full rounded-[12px] bg-gray-500 bg-opacity-10 text-gray-700 dark:text-white p-4 mb-3">
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex items-center space-x-2">
                                                                 <div>
