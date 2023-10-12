@@ -19,7 +19,9 @@ import { getUserTagByIdApi } from "../api/tag";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { SinglePostLoadingState, SinglePostState } from "../states";
 import { Disclosure, Transition } from "@headlessui/react";
-import HeadingComponent from "../components/editor/headingComponent";
+import HeadingComponent from "../components/editor/HeadingComponent";
+import ImageComponent from "../components/editor/ImageComponent";
+import LinkComponent from "../components/editor/LinkComponent";
 
 export default function SinglePostPage() {
     const location = useLocation();
@@ -46,6 +48,9 @@ export default function SinglePostPage() {
     const [singlePostDataJSON, setSinglePostDataJSON] = useState(null);
 
     async function PostChanger(slug) {
+        setSinglePost(null);
+        setSinglePostLoading(true);
+        setSinglePostDataJSON(null);
         try {
             const response = await getPostBySlugApi(authHeader(), slug);
 
@@ -177,12 +182,18 @@ export default function SinglePostPage() {
     useEffect(() => {
         // fetchPostData();
         if (slug) {
+            console.log(slug);
             PostChanger(slug);
+        }
+        else {
+            console.log(slug);
+            setSinglePostLoading(false);
+            setSinglePost(null);
         }
     }, [slug]);
 
     return (
-        <UserLayout pageTitle={singlePost ? singlePost.title : ''} tagData={tag} setTagData={setTag}>
+        <UserLayout pageTitle={singlePost ? singlePost.title : 'Home Page'} tagData={tag} setTagData={setTag}>
             <ToastContainer
                 position="bottom-center"
                 autoClose={5000}
@@ -323,17 +334,11 @@ export default function SinglePostPage() {
                                                         <HeadingComponent element={block} />
                                                     </div>;
                                                 if (block.type == "Image")
-                                                    return <div key={block.id}><img src={block.data.file.url} alt={block.data.caption} className="max-w-full rounded-[12px] mb-3" /></div>;
+                                                    return <ImageComponent element={block} />;
                                                 if (block.type == "raw")
                                                     return <div key={block.id} className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
                                                 if (block.type == "linkTool") {
-                                                    if (block.data.meta.type == "internal")
-                                                        console.log(block.data.meta.title)
-                                                    return <Link key={block.id} to={`/posts/${block.data.meta.title}`} className="block cursor-pinter w-full rounded-[12px] px-3 py-5 bg-blue-500 text-white mb-3">
-                                                        <div className="text-white ">
-                                                            {block.data.meta.title}
-                                                        </div>
-                                                    </Link>;
+                                                    return <LinkComponent block={block} />;
                                                 }
                                                 if (block.type == "warning")
                                                     return <div key={block.id} className="w-full rounded-[12px] bg-gray-500 bg-opacity-10 text-gray-700 dark:text-white p-4 mb-3">
@@ -377,11 +382,9 @@ export default function SinglePostPage() {
                                                                             if (block.type == "paragraph")
                                                                                 return <div key={block.id}><p className="mb-3">{parse(block.data.text)}</p></div>;
                                                                             if (block.type == "header")
-                                                                                return <div key={block.id}>
-                                                                                    <HeadingComponent attributes={block.attributes} element={block} children={block.children} />
-                                                                                </div>;
+                                                                                return <HeadingComponent attributes={block.attributes} element={block} children={block.children} />;
                                                                             if (block.type == "Image")
-                                                                                return <div key={block.id}><img src={block.data.file.url} alt={block.data.caption} className="max-w-full rounded-[12px] mb-3" /></div>;
+                                                                                return <ImageComponent element={block} />;
                                                                             if (block.type == "raw")
                                                                                 return <div key={block.id} className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
                                                                             if (block.type == "list")
@@ -410,10 +413,9 @@ export default function SinglePostPage() {
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>;
-                                                                            if (block.type == "linkTool")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                                                    <a href={block.data.link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{block.data.link}</a>
-                                                                                </div>;
+                                                                            if (block.type == "linkTool") {
+                                                                                return <LinkComponent block={block} />;
+                                                                            }
                                                                             if (block.type == "list")
                                                                                 return <div key={block.id} className="w-full rounded-[12px] mb-3">
                                                                                     <ul className="list-disc list-inside">
