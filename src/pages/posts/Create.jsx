@@ -11,6 +11,7 @@ import Paragraph from "@editorjs/paragraph";
 import TextVariantTune from "@editorjs/text-variant-tune";
 import Raw from "@editorjs/raw";
 import LinkTool from '@editorjs/link';
+import header from '@editorjs/header';
 
 import React, { useRef, useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
@@ -181,6 +182,15 @@ export default function PostCreatePage() {
                     class: Paragraph,
                     inlineToolbar: true,
                     tunes: ['textVariant']
+                  },
+                  header: {
+                    class: header,
+                    inlineToolbar: true,
+                    config: {
+                      placeholder: 'Enter a header',
+                      levels: [2, 3, 4],
+                      defaultLevel: 3
+                    }
                   },
                   Image: {
                     class: Image,

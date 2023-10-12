@@ -19,6 +19,7 @@ import { getUserTagByIdApi } from "../api/tag";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { SinglePostLoadingState, SinglePostState } from "../states";
 import { Disclosure, Transition } from "@headlessui/react";
+import HeadingComponent from "../components/editor/headingComponent";
 
 export default function SinglePostPage() {
     const location = useLocation();
@@ -317,8 +318,12 @@ export default function SinglePostPage() {
                                                         return null;
                                                     else
                                                         return <div key={block.id}><p className="mb-3">{parse(block.data.text)}</p></div>;
+                                                if (block.type == "header")
+                                                    return <div key={block.id} className="mb-3">
+                                                        <HeadingComponent element={block} />
+                                                    </div>;
                                                 if (block.type == "Image")
-                                                    return <div key={block.id}><img src={block.data.file.url} alt={block.data.caption} className="w-full rounded-[12px] mb-3" /></div>;
+                                                    return <div key={block.id}><img src={block.data.file.url} alt={block.data.caption} className="max-w-full rounded-[12px] mb-3" /></div>;
                                                 if (block.type == "raw")
                                                     return <div key={block.id} className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
                                                 if (block.type == "linkTool") {
@@ -371,8 +376,12 @@ export default function SinglePostPage() {
                                                                         {singlePostDataJSON?.blocks.slice(singlePostDataJSON.blocks.indexOf(block) + 1, singlePostDataJSON.blocks.indexOf(block) + 1 + block.data.items).map((block) => {
                                                                             if (block.type == "paragraph")
                                                                                 return <div key={block.id}><p className="mb-3">{parse(block.data.text)}</p></div>;
+                                                                            if (block.type == "header")
+                                                                                return <div key={block.id}>
+                                                                                    <HeadingComponent attributes={block.attributes} element={block} children={block.children} />
+                                                                                </div>;
                                                                             if (block.type == "Image")
-                                                                                return <div key={block.id}><img src={block.data.file.url} alt={block.data.caption} className="w-full rounded-[12px] mb-3" /></div>;
+                                                                                return <div key={block.id}><img src={block.data.file.url} alt={block.data.caption} className="max-w-full rounded-[12px] mb-3" /></div>;
                                                                             if (block.type == "raw")
                                                                                 return <div key={block.id} className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
                                                                             if (block.type == "list")
