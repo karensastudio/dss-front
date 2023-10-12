@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { BsChevronLeft } from "react-icons/bs";
+import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import { MdMessage, MdContactMail, MdOutlineBookmarkBorder, MdOutlineBookmark, MdOutlineShare } from "react-icons/md";
+import { PiWarningFill } from "react-icons/pi";
 import UserLayout from "../layouts/User";
 import { attachDecisionApi, detachDecisionApi } from "../api/decision";
 import { attachBookmarkApi, detachBookmarkApi } from "../api/bookmark";
@@ -40,6 +41,7 @@ export default function SinglePostPage() {
 
     const [singlePost, setSinglePost] = useRecoilState(SinglePostState);
     const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
+    const [singlePostDataJSON, setSinglePostDataJSON] = useState(null);
 
     async function PostChanger(slug) {
         try {
@@ -47,6 +49,8 @@ export default function SinglePostPage() {
 
             if (response.status === 'success') {
                 setSinglePost(response.response.post);
+                console.log(JSON.parse(response.response.post.description))
+                setSinglePostDataJSON(JSON.parse(response.response.post.description));
 
                 // change url to /posts/:slug
                 navigate(`/posts/${slug}`);
@@ -102,7 +106,6 @@ export default function SinglePostPage() {
             }));
         }
     };
-
 
     const handleBookmarkChange = async () => {
         try {
@@ -304,8 +307,35 @@ export default function SinglePostPage() {
                                 </div>
 
                                 <div className="mx-[40px] py-[16px]">
-                                    <div className={`text-editor text-[14px] text-[#444444] dark:text-neutral-200`}>
-                                        {singlePost?.description && parse(singlePost?.description)}
+                                    <div className={`text-editor text-[16px] leading-[24px] text-[#444444] dark:text-neutral-200`}>
+                                        {singlePostDataJSON &&
+                                            singlePostDataJSON.blocks.map((block) => {
+                                                if (block.type == "paragraph")
+                                                    return <p className="mb-3">{parse(block.data.text)}</p>;
+                                                if (block.type == "Image")
+                                                    return <img src={block.data.file.url} alt={block.data.caption} className="w-full rounded-[12px] mb-3" />;
+                                                if (block.type == "raw")
+                                                    return <div className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
+                                                if (block.type == "warning")
+                                                    return <div className="w-full rounded-[12px] bg-orange-500 bg-opacity-10 text-orange-500 p-4 mb-3">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center space-x-2">
+                                                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-500 text-white dark:text-orange-200">
+                                                                    <PiWarningFill className="text-[16px]" />
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-[16px] leading-[20px] font-semibold">
+                                                                        {block.data.title}
+                                                                    </span>
+                                                                    <p className="text-[14px]">
+                                                                        {block.data.message}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>;
+                                            })
+                                        }
                                     </div>
                                 </div>
                             </div>

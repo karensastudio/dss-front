@@ -1,3 +1,17 @@
+// @ts-ignore: Workaround for CJS
+import { createReactEditorJS } from 'react-editor-js/dist/react-editor-js.cjs';
+import Image from '@editorjs/image';
+import Embed from '@editorjs/embed';
+import List from '@editorjs/list';
+import Warning from '@editorjs/warning';
+import Table from '@editorjs/table';
+import DragDrop from 'editorjs-drag-drop';
+import ToggleBlock from 'editorjs-toggle-block';
+import Paragraph from "@editorjs/paragraph";
+import TextVariantTune from "@editorjs/text-variant-tune";
+import Raw from "@editorjs/raw";
+import LinkTool from '@editorjs/link';
+
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
@@ -8,51 +22,9 @@ import Input from "../../utils/Input";
 import { useAuthHeader } from "react-auth-kit";
 import { getPostByIdApi, getPostsApi, updatePostApi } from "../../api/post";
 import Select from 'react-select';
-import { Editor } from "@tinymce/tinymce-react";
 import { getTagsApi } from "../../api/tag";
 import { getUserPostsApi } from "../../api/userPost";
 import { useTheme } from "../../context/ThemeContext";
-
-const example_image_upload_handler = (blobInfo, progress) => new Promise((resolve, reject) => {
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', 'https://api.dssproject.me/api/v1/files/upload');
-
-  xhr.upload.onprogress = (e) => {
-    progress(e.loaded / e.total * 100);
-  };
-
-  xhr.onload = () => {
-    if (xhr.status === 403) {
-      reject({ message: 'HTTP Error: ' + xhr.status, remove: true });
-      return;
-    }
-
-    if (xhr.status < 200 || xhr.status >= 300) {
-      reject('HTTP Error: ' + xhr.status);
-      return;
-    }
-
-    const json = JSON.parse(xhr.responseText);
-    const fileJson = json.file;
-
-    if (!fileJson || typeof fileJson.url != 'string') {
-      reject('Invalid JSON: ' + xhr.responseText);
-      return;
-    }
-
-    resolve(fileJson.url);
-  };
-
-  xhr.onerror = () => {
-    reject('Image upload failed due to a XHR Transport error. Code: ' + xhr.status);
-  };
-
-  const formData = new FormData();
-  formData.append('file', blobInfo.blob(), blobInfo.filename());
-
-  xhr.send(formData);
-});
-
 
 export default function PostUpdatePage() {
   const { isLightMode } = useTheme();
@@ -69,8 +41,8 @@ export default function PostUpdatePage() {
   const [selectedParent, setSelectedParent] = useState();
   const [selectedRelated, setSelectedRelated] = useState(null);
 
-  const editorRef = useRef(null);
-
+  const ReactEditorJS = createReactEditorJS();
+  const [editorData, setEditorData] = useState(null);
 
   useEffect(() => {
     const fetchPostData = async () => {
@@ -81,7 +53,8 @@ export default function PostUpdatePage() {
           setPostData(post);
           setValue("title", post.title);
           setValue("priority", post.priority);
-          setEditorContent(post.description);
+          setEditorContent(JSON.parse(post.description));
+          setEditorData(JSON.parse(post.description));
           setSelectedTags(post.tags.map((tag) => ({ value: tag.id.toString(), label: tag.name })));
           setSelectedParent({ value: response.response.post.parent.id, label: response.response.post.parent.title })
           setSelectedRelated(post.related.map((related) => ({ value: related.id.toString(), label: related.title })));
@@ -137,13 +110,26 @@ export default function PostUpdatePage() {
     fetchData();
   }, [postId]);
 
+  const editorCore = useRef(null)
+
+  const handleInitialize = React.useCallback((instance) => {
+    editorCore.current = instance
+  }, [])
+
+  const handleReady = () => {
+    const editor = editorCore.current._editorJS;
+    new DragDrop(editor);
+  };
+
   const onSubmit = async (data) => {
     const selectedRelatedValues = selectedRelated?.map((related) => related.value);
+    const description = await editorCore.current.save();
+
     try {
       const postData = {
         title: data.title,
         priority: data.priority,
-        description: editorRef.current.getContent(),
+        description: JSON.stringify(description),
         parent_id: selectedParent ? selectedParent.value : null,
         related: selectedRelatedValues,
         tags: selectedTags.map((tag) => tag.value),
@@ -206,33 +192,65 @@ export default function PostUpdatePage() {
               />
             </div>
 
-            <div className="w-full mt-4">
-              <Editor
-                apiKey="wbb8vh1ley0gypycs4vg2itj4ithfn8yq1ovtizf9zo97pvm"
-                initialValue={editorContent}
-                onInit={(evt, editor) => editorRef.current = editor}
-                init={{
-                  height: 500,
-                  menubar: false,
-                  content_css: 'dark',
-                  skin: 'oxide-dark',
-                  relative_urls: true,
-                  document_base_url: 'https://dss-beta.netlify.app/',
-                  branding: false,
-                  plugins: [
-                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount', 'accordion'
-                  ],
-                  toolbar: 'undo redo | blocks |' +
-                    'bold italic forecolor link | alignleft aligncenter ' +
-                    'alignright alignjustify | bullist numlist outdent indent | ' +
-                    'removeformat | image | table code accordion',
-                  content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px }',
-                  images_replace_blob_uris: true,
-                  paste_data_images: false,
-                  images_upload_url: 'https://api.dssproject.me/api/v1/files/upload',
-                  images_upload_handler: example_image_upload_handler
+            <div className="w-full mt-4 bg-white rounded text-black">
+              <ReactEditorJS
+                onInitialize={handleInitialize}
+                onReady={handleReady}
+                defaultValue={editorContent}
+                value={editorData}
+                tunes={TextVariantTune}
+                tools={{
+                  textVariant: TextVariantTune,
+                  raw: Raw,
+                  paragraph: {
+                    class: Paragraph,
+                    inlineToolbar: true,
+                    tunes: ['textVariant']
+                  },
+                  Image: {
+                    class: Image,
+                    inlineToolbar: true,
+                    config: {
+                      uploader: {
+                        uploadByFile(file) {
+                          return new Promise(async (resolve, reject) => {
+                            try {
+                              const response = await APIUploadFile(file);
+                              if (response.status === "success") {
+                                resolve({
+                                  success: 1,
+                                  file: {
+                                    url: response.response.url,
+                                  }
+                                });
+                              } else {
+                                reject(response.message);
+                              }
+                            } catch (error) {
+                              reject(error);
+                            }
+                          });
+                        }
+                      }
+                    }
+                  },
+                  embed: Embed,
+                  table: Table,
+                  warning: Warning,
+                  list: {
+                    class: List,
+                    inlineToolbar: true,
+                  },
+                  toggle: {
+                    class: ToggleBlock,
+                    inlineToolbar: true,
+                  },
+                  linkTool: {
+                    class: LinkTool,
+                    config: {
+                      endpoint: 'http://51.15.192.255:8080/api/v1/meta-data', // Your backend endpoint for url data fetching
+                    }
+                  }
                 }}
               />
             </div>

@@ -10,6 +10,7 @@ import ToggleBlock from 'editorjs-toggle-block';
 import Paragraph from "@editorjs/paragraph";
 import TextVariantTune from "@editorjs/text-variant-tune";
 import Raw from "@editorjs/raw";
+import LinkTool from '@editorjs/link'
 
 import React, { useRef, useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
@@ -22,26 +23,10 @@ import { createPostApi, updatePostApi, getPostByIdApi, getPostsApi } from "../..
 import Select from 'react-select';
 import { getTagsApi } from "../../api/tag";
 
-import { Editor } from "@tinymce/tinymce-react";
 import { APIUploadFile } from "../../api/uploader";
 import { getUserPostsApi } from "../../api/userPost";
 import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router";
-
-let column_tools = {
-  Paragraph: Paragraph,
-  embed: Embed,
-  table: Table,
-  warning: Warning,
-  list: {
-    class: List,
-    inlineToolbar: true,
-  },
-  toggle: {
-    class: ToggleBlock,
-    inlineToolbar: true,
-  }
-}
 
 export default function PostCreatePage() {
   const { isLightMode } = useTheme();
@@ -120,11 +105,12 @@ export default function PostCreatePage() {
     const postData = {
       title: data.title,
       priority: data.priority,
-      description: description,
+      description: JSON.stringify(description),
       parent_id: selectedParent ? selectedParent.value : null,
       related: selectedRelatedValues,
       tags: selectedTagValues,
     };
+
     try {
       const response = await createPostApi(authHeader(), postData);
       if (response.status === "success") {
@@ -233,6 +219,12 @@ export default function PostCreatePage() {
                   toggle: {
                     class: ToggleBlock,
                     inlineToolbar: true,
+                  },
+                  linkTool: {
+                    class: LinkTool,
+                    config: {
+                      endpoint: 'http://51.15.192.255:8080/api/v1/meta-data', // Your backend endpoint for url data fetching
+                    }
                   }
                 }}
               />
