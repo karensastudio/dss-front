@@ -484,8 +484,7 @@ export function GraphSection() {
             const links = [];
 
             const nodePather = (node) => {
-                if (node.children.length == 0)
-                    nodes.push(node);
+                nodes.push(node);
             };
 
             const linksPather = (node) => {
@@ -499,6 +498,17 @@ export function GraphSection() {
                         }
                         links.push({ source: node.id, target: child.id });
                     });
+                }
+                if (node.children) {
+                    node.children.forEach((child) => {
+                        if (links.find((link) => link.source === node.id && link.target === child.id)) {
+                            return;
+                        }
+                        if (links.find((link) => link.source === child.id && link.target === node.id)) {
+                            return;
+                        }
+                        links.push({ source: node.id, target: child.id });
+                    })
                 }
             };
 

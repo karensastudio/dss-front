@@ -18,6 +18,7 @@ import { CgSpinner } from "react-icons/cg";
 import { getUserTagByIdApi } from "../api/tag";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { SinglePostLoadingState, SinglePostState } from "../states";
+import { Disclosure, Transition } from "@headlessui/react";
 
 export default function SinglePostPage() {
     const location = useLocation();
@@ -311,13 +312,17 @@ export default function SinglePostPage() {
                                         {singlePostDataJSON &&
                                             singlePostDataJSON.blocks.map((block) => {
                                                 if (block.type == "paragraph")
-                                                    return <p className="mb-3">{parse(block.data.text)}</p>;
+                                                    // dont show if previous block is toggle
+                                                    if (singlePostDataJSON?.blocks[singlePostDataJSON.blocks.indexOf(block) - 1]?.type == "toggle")
+                                                        return null;
+                                                    else
+                                                        return <div key={block.id}><p className="mb-3">{parse(block.data.text)}</p></div>;
                                                 if (block.type == "Image")
-                                                    return <img src={block.data.file.url} alt={block.data.caption} className="w-full rounded-[12px] mb-3" />;
+                                                    return <div key={block.id}><img src={block.data.file.url} alt={block.data.caption} className="w-full rounded-[12px] mb-3" /></div>;
                                                 if (block.type == "raw")
-                                                    return <div className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
+                                                    return <div key={block.id} className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
                                                 if (block.type == "warning")
-                                                    return <div className="w-full rounded-[12px] bg-orange-500 bg-opacity-10 text-orange-500 p-4 mb-3">
+                                                    return <div key={block.id} className="w-full rounded-[12px] bg-orange-500 bg-opacity-10 text-orange-500 p-4 mb-3">
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex items-center space-x-2">
                                                                 <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-500 text-white dark:text-orange-200">
@@ -334,6 +339,34 @@ export default function SinglePostPage() {
                                                             </div>
                                                         </div>
                                                     </div>;
+                                                if (block.type == "toggle")
+                                                    return <Disclosure>
+                                                        {({ open }) => (
+                                                            /* Use the `open` state to conditionally change the direction of an icon. */
+                                                            <div className="border border-white border-opacity-25 rounded-[12px] mb-3">
+                                                                <Disclosure.Button className="flex items-center justify-between text-black dark:text-white bg-black bg-opacity-10 dark:bg-white dark:bg-opacity-10 text-start px-3 py-5 rounded-[12px] w-full">
+                                                                    {block.data.text}
+
+                                                                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-500 text-white dark:text-gray-200">
+                                                                        <BsChevronRight className={`text-[16px] ${open ? 'rotate-90' : 'rotate-0'}`} />
+                                                                    </div>
+                                                                </Disclosure.Button>
+                                                                <Transition
+                                                                    enter="transition duration-100 ease-out"
+                                                                    enterFrom="transform scale-95 opacity-0"
+                                                                    enterTo="transform scale-100 opacity-100"
+                                                                    leave="transition duration-75 ease-out"
+                                                                    leaveFrom="transform scale-100 opacity-100"
+                                                                    leaveTo="transform scale-95 opacity-0"
+                                                                >
+                                                                    <Disclosure.Panel className="text-black dark:text-white text-opacity-70 px-3 py-5">
+                                                                        {/* parse next block as child of this block and then remove it from blocks to ignore show dual time */}
+                                                                        {parse(singlePostDataJSON.blocks[singlePostDataJSON.blocks.indexOf(block) + 1].data.text)}
+                                                                    </Disclosure.Panel>
+                                                                </Transition>
+                                                            </div>
+                                                        )}
+                                                    </Disclosure>
                                             })
                                         }
                                     </div>
