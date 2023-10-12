@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import { MdMessage, MdContactMail, MdOutlineBookmarkBorder, MdOutlineBookmark, MdOutlineShare } from "react-icons/md";
@@ -321,13 +321,19 @@ export default function SinglePostPage() {
                                                     return <div key={block.id}><img src={block.data.file.url} alt={block.data.caption} className="w-full rounded-[12px] mb-3" /></div>;
                                                 if (block.type == "raw")
                                                     return <div key={block.id} className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
+                                                if (block.type == "linkTool") {
+                                                    if (block.data.meta.type == "internal")
+                                                        console.log(block.data.meta.title)
+                                                    return <Link key={block.id} to={`/posts/${block.data.meta.title}`} className="block cursor-pinter w-full rounded-[12px] px-3 py-5 bg-blue-500 text-white mb-3">
+                                                        <div className="text-white ">
+                                                            {block.data.meta.title}
+                                                        </div>
+                                                    </Link>;
+                                                }
                                                 if (block.type == "warning")
-                                                    return <div key={block.id} className="w-full rounded-[12px] bg-orange-500 bg-opacity-10 text-orange-500 p-4 mb-3">
+                                                    return <div key={block.id} className="w-full rounded-[12px] bg-gray-500 bg-opacity-10 text-gray-700 p-4 mb-3">
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex items-center space-x-2">
-                                                                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-500 text-white dark:text-orange-200">
-                                                                    <PiWarningFill className="text-[16px]" />
-                                                                </div>
                                                                 <div>
                                                                     <span className="text-[16px] leading-[20px] font-semibold">
                                                                         {block.data.title}
@@ -360,8 +366,81 @@ export default function SinglePostPage() {
                                                                     leaveTo="transform scale-95 opacity-0"
                                                                 >
                                                                     <Disclosure.Panel className="text-black dark:text-white text-opacity-70 px-3 py-5">
-                                                                        {/* parse next block as child of this block and then remove it from blocks to ignore show dual time */}
-                                                                        {parse(singlePostDataJSON.blocks[singlePostDataJSON.blocks.indexOf(block) + 1].data.text)}
+                                                                        {/* parse next blocks by block.data.items count as child of this block */}
+
+                                                                        {singlePostDataJSON?.blocks.slice(singlePostDataJSON.blocks.indexOf(block) + 1, singlePostDataJSON.blocks.indexOf(block) + 1 + block.data.items).map((block) => {
+                                                                            if (block.type == "paragraph")
+                                                                                return <div key={block.id}><p className="mb-3">{parse(block.data.text)}</p></div>;
+                                                                            if (block.type == "Image")
+                                                                                return <div key={block.id}><img src={block.data.file.url} alt={block.data.caption} className="w-full rounded-[12px] mb-3" /></div>;
+                                                                            if (block.type == "raw")
+                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
+                                                                            if (block.type == "warning")
+                                                                                return <div key={block.id} className="w-full rounded-[12px] bg-orange-500 bg-opacity-10 text-orange-500 p-4 mb-3">
+                                                                                    <div className="flex items-center justify-between">
+                                                                                        <div className="flex items-center space-x-2">
+                                                                                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-500 text-white dark:text-orange-200">
+                                                                                                <PiWarningFill className="text-[16px]" />
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                <span className="text-[16px] leading-[20px] font-semibold">
+                                                                                                    {block.data.title}
+                                                                                                </span>
+                                                                                                <p className="text-[14px]">
+                                                                                                    {block.data.message}
+                                                                                                </p>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>;
+                                                                            if (block.type == "linkTool")
+                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
+                                                                                    <a href={block.data.link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{block.data.link}</a>
+                                                                                </div>;
+                                                                            if (block.type == "list")
+                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
+                                                                                    <ul className="list-disc list-inside">
+                                                                                        {block.data.items.map((item) => {
+                                                                                            return <li key={item}>{item}</li>
+                                                                                        })}
+                                                                                    </ul>
+                                                                                </div>;
+                                                                            if (block.type == "quote")
+                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
+                                                                                    <blockquote className="text-[14px] text-opacity-60">
+                                                                                        {block.data.text}
+                                                                                    </blockquote>
+                                                                                </div>;
+                                                                            if (block.type == "table")
+                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
+                                                                                    <table className="w-full">
+                                                                                        <thead>
+                                                                                            <tr>
+                                                                                                {block.data.content[0].map((item) => {
+                                                                                                    return <th key={item}>{item}</th>
+                                                                                                })}
+                                                                                            </tr>
+                                                                                        </thead>
+                                                                                        <tbody>
+                                                                                            {block.data.content.slice(1).map((row) => {
+                                                                                                return <tr key={row[0]}>
+                                                                                                    {row.map((item) => {
+                                                                                                        return <td key={item}>{item}</td>
+                                                                                                    })}
+                                                                                                </tr>
+                                                                                            })}
+                                                                                        </tbody>
+                                                                                    </table>
+                                                                                </div>;
+                                                                            if (block.type == "code")
+                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
+                                                                                    <pre className="bg-black bg-opacity-10 dark:bg-white dark:bg-opacity-10 rounded-[12px] p-4">
+                                                                                        <code className="text-[14px] text-opacity-60">
+                                                                                            {block.data.code}
+                                                                                        </code>
+                                                                                    </pre>
+                                                                                </div>;
+                                                                        })}
                                                                     </Disclosure.Panel>
                                                                 </Transition>
                                                             </div>
