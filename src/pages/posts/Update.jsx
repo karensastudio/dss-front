@@ -12,6 +12,7 @@ import Paragraph from "@editorjs/paragraph";
 import TextVariantTune from "@editorjs/text-variant-tune";
 import Raw from "@editorjs/raw";
 import LinkTool from '@editorjs/link';
+import { Header as EdtiorHeader } from '@editorjs/header';
 
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -26,6 +27,7 @@ import Select from 'react-select';
 import { getTagsApi } from "../../api/tag";
 import { getUserPostsApi } from "../../api/userPost";
 import { useTheme } from "../../context/ThemeContext";
+import { APIUploadFile } from '../../api/uploader';
 
 export default function PostUpdatePage() {
   const { isLightMode } = useTheme();
@@ -208,8 +210,8 @@ export default function PostUpdatePage() {
                     inlineToolbar: true,
                     tunes: ['textVariant']
                   },
-                  heading: {
-                    class: Heading,
+                  header: {
+                    class: EdtiorHeader,
                     inlineToolbar: true,
                   },
                   Image: {
