@@ -11,7 +11,6 @@ import Paragraph from "@editorjs/paragraph";
 import TextVariantTune from "@editorjs/text-variant-tune";
 import Raw from "@editorjs/raw";
 import LinkTool from '@editorjs/link';
-import { Header as EdtiorHeader } from '@editorjs/header';
 
 import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -208,10 +207,6 @@ export default function PostUpdatePage() {
                     class: Paragraph,
                     inlineToolbar: true,
                     tunes: ['textVariant']
-                  },
-                  header: {
-                    class: EdtiorHeader,
-                    inlineToolbar: true,
                   },
                   Image: {
                     class: Image,
