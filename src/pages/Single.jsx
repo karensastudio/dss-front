@@ -375,6 +375,14 @@ export default function SinglePostPage() {
                                                                                 return <div key={block.id}><img src={block.data.file.url} alt={block.data.caption} className="w-full rounded-[12px] mb-3" /></div>;
                                                                             if (block.type == "raw")
                                                                                 return <div key={block.id} className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
+                                                                            if (block.type == "list")
+                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
+                                                                                    <ul className="list-disc list-inside">
+                                                                                        {block.data.items.map((item) => {
+                                                                                            return <li key={item}>{item}</li>
+                                                                                        })}
+                                                                                    </ul>
+                                                                                </div>;
                                                                             if (block.type == "warning")
                                                                                 return <div key={block.id} className="w-full rounded-[12px] bg-orange-500 bg-opacity-10 text-orange-500 p-4 mb-3">
                                                                                     <div className="flex items-center justify-between">
