@@ -32,7 +32,7 @@
     "d3": "^7.8.5",
     "d3-force": "^3.0.0",
     "editorjs-drag-drop": "^1.1.13",
-    "editorjs-toggle-block": "^0.3.12",
+    "editorjs-toggle-block": "https://github.com/ifarazir/editorjs-toggle-block.git",
     "html-react-parser": "^4.2.2",
     "localforage": "^1.10.0",
     "match-sorter": "^6.3.1",
