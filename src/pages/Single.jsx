@@ -353,10 +353,10 @@ export default function SinglePostPage() {
                                                             </div>
                                                         </div>
                                                     </div>;
-                                                if (subBlock.type == "list")
-                                                    return <div key={subBlock.id} className="w-full rounded-[12px] mb-3">
+                                                if (block.type == "list")
+                                                    return <div key={block.id} className="w-full rounded-[12px] mb-3">
                                                         <ul className="list-disc list-inside">
-                                                            {subBlock.data.items.map((item) => {
+                                                            {block.data.items.map((item) => {
                                                                 return <li key={item}>{item}</li>
                                                             })}
                                                         </ul>
