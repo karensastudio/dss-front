@@ -541,8 +541,6 @@ export function GraphSection() {
             node.y = y;
         });
 
-        console.log(links);
-
         const simulation = d3
             .forceSimulation(nodes)
             .force('link', d3.forceLink(links).id((d) => d.id).distance(10).strength(1))

@@ -9,20 +9,7 @@ import { PiWarningFill } from "react-icons/pi";
 import ParagraphComponent from './ParagraphComponent';
 
 export default function ToggleComponent(props) {
-    const { block, setSinglePostDataJSON, singlePostDataJSON } = props;
-
-    const [toggleChilds, setToggleChilds] = useState(false);
-
-    useEffect(() => {
-        setToggleChilds(singlePostDataJSON?.blocks.slice(singlePostDataJSON.blocks.indexOf(block) + 1, singlePostDataJSON.blocks.indexOf(block) + 1 + block.data.items));
-        // remove toggleChilds from singlePostDataJSON by block index
-        setSinglePostDataJSON({
-            ...singlePostDataJSON,
-            blocks: singlePostDataJSON.blocks.filter((item) => {
-                return !singlePostDataJSON?.blocks.slice(singlePostDataJSON.blocks.indexOf(block) + 1, singlePostDataJSON.blocks.indexOf(block) + 1 + block.data.items).includes(item);
-            })
-        });
-    }, [])
+    const { block } = props;
 
     return (<Disclosure>
         {({ open }) => (
@@ -46,7 +33,7 @@ export default function ToggleComponent(props) {
                     <Disclosure.Panel className="text-black dark:text-white text-opacity-70 px-3 py-5">
                         {/* parse next blocks by block.data.items count as child of this block */}
 
-                        {toggleChilds && toggleChilds.map((subBlock) => {
+                        {block.data.children && block.data.children.map((subBlock) => {
                             if (subBlock.type == "paragraph")
                                 return <ParagraphComponent block={subBlock} />;
                             if (subBlock.type == "header")

@@ -58,7 +58,25 @@ export default function SinglePostPage() {
 
             if (response.status === 'success') {
                 setSinglePost(response.response.post);
-                setSinglePostDataJSON(JSON.parse(response.response.post.description));
+                let tmpSinglePostDataJSON = JSON.parse(response.response.post.description);
+                console.log(tmpSinglePostDataJSON);
+
+                // set toggle blocks childrens from by item value from next block to children
+                tmpSinglePostDataJSON.blocks.map((block) => {
+                    if (block.type == "toggle") {
+                        const TMPToggleChilds = tmpSinglePostDataJSON?.blocks.slice(tmpSinglePostDataJSON.blocks.indexOf(block) + 1, tmpSinglePostDataJSON.blocks.indexOf(block) + 1 + block.data.items);
+                        block.data.children = TMPToggleChilds;
+
+                        // remove childrens from main blocks
+                        TMPToggleChilds?.map((subBlock) => {
+                            tmpSinglePostDataJSON.blocks.splice(tmpSinglePostDataJSON.blocks.indexOf(subBlock), 1);
+                        })
+                    }
+                })
+
+                setSinglePostDataJSON(tmpSinglePostDataJSON);
+
+                // setSinglePostDataJSON(JSON.parse(response.response.post.description));
 
                 // change url to /posts/:slug
                 navigate(`/posts/${slug}`);
@@ -382,8 +400,6 @@ export default function SinglePostPage() {
                                                 if (block.type == "toggle") {
                                                     return <ToggleComponent
                                                         block={block}
-                                                        singlePostDataJSON={singlePostDataJSON}
-                                                        setSinglePostDataJSON={setSinglePostDataJSON}
                                                     />;
                                                 }
                                             })
