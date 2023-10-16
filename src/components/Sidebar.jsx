@@ -12,6 +12,8 @@ import { getBookmarksApi } from "../api/bookmark";
 import { searchAPI } from "../api/search";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { SinglePostLoadingState, SinglePostState } from "../states";
+import { ChevronRightIcon } from '@heroicons/react/20/solid'
+import clsx from "clsx";
 
 export function SearchSection() {
     const authHeader = useAuthHeader();
@@ -168,57 +170,131 @@ export function ListOfContentSection() {
     }
 
     return (
-        <div className="flex flex-col space-y-[16px] mt-[10px]">
+        <div className="flex flex-col space-y-[16px]">
             {isPostsLoading ? (
                 <div className="flex items-center justify-center py-10">
                     <CgSpinner className="text-white text-[48px] animate-spin" />
                 </div>
-            ) : userPosts.map((category) => (
-                <Disclosure key={category.id}>
-                    {({ open = true }) => (
-                        <section className={`px-[25px] py-[16px] rounded-[12px] bg-white text-[#111315] dark:bg-[#41474D] dark:text-white`}>
-                            <Disclosure.Button className="flex w-full justify-between items-center text-left text-[16px] font-medium">
-                                <span>{category.title}</span>
-                                <div className="bg-[#0071FF] rounded-full p-[14px]">
-                                    <BsChevronUp className={`${open ? 'rotate-180 transform' : 'rotate-90'} text-[16px] text-white`} />
-                                </div>
-                            </Disclosure.Button>
-                            <Transition
-                                show={(open || isCategoryOrChildrensActive(category))}
-                                enter="transition duration-100 ease-out"
-                                enterFrom="transform scale-95 opacity-0"
-                                enterTo="transform scale-100 opacity-100"
-                                leave="transition duration-75 ease-out"
-                                leaveFrom="transform scale-100 opacity-100"
-                                leaveTo="transform scale-95 opacity-0"
-                            >
-                                <Disclosure.Panel className="px-[27px] mt-[10px]">
-                                    <div className="flex flex-col space-y-[16px]">
-                                        <span
-                                            key={category.id}
-                                            className={`text-[16px] leading-[24px] cursor-pointer ${singlePost?.id === category.id ? 'text-[#0071FF]' : 'text-[#111315] dark:text-white'
-                                                }`}
-                                            onClick={() => PostChanger(category.slug)}
-                                        >
-                                            Introduction
-                                        </span>
-                                        {category.children.map((post) => (
-                                            <span
-                                                key={post.id}
-                                                className={`text-[16px] leading-[24px] cursor-pointer ${singlePost?.id === post.id ? 'text-[#0071FF]' : 'text-[#111315] dark:text-white'
-                                                    }`}
-                                                onClick={() => PostChanger(post.slug)}
+            ) :
+                <ul
+                    role="list"
+                    className="divide-y divide-gray-100 overflow-hidden bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl"
+                >
+                    {userPosts.map((category) => {
+                        return (
+                            <li key={category.id}>
+                                <Disclosure>
+                                    {({ open }) => (
+                                        /* Use the `open` state to conditionally change the direction of an icon. */
+                                        <>
+                                            <Disclosure.Button
+                                                className="group transition-all w-full text-start relative flex justify-between items-center gap-x-6 px-4 py-5 sm:px-6"
                                             >
-                                                {post.title}
-                                            </span>
-                                        ))}
+                                                <div className="flex min-w-0 gap-x-4">
+                                                    <div className="min-w-0 flex-auto">
+                                                        <p className="text-sm font-semibold leading-6 text-gray-900">
+                                                            <span className="absolute inset-x-0 -top-px bottom-0" />
+                                                            {category.title}
+                                                        </p>
+                                                        <p className="mt-1 flex text-xs leading-5 text-gray-500">
+                                                            <span className="relative truncate hover:underline">
+                                                                {category.children.length + 1} Post
+                                                            </span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex shrink-0 items-center gap-x-4">
+                                                    <div className={clsx("group-hover:bg-gray-100 rounded-full transition-all w-7 h-7 flex justify-center items-center", (open ? 'rotate-90 transform' : ''))}>
+                                                        <ChevronRightIcon className={"h-5 w-5 flex-none text-gray-400"} aria-hidden="true" />
+                                                    </div>
+                                                </div>
+                                            </Disclosure.Button>
+                                            <Transition
+                                                enter="transition duration-100 ease-out"
+                                                enterFrom="transform opacity-0"
+                                                enterTo="transform opacity-100"
+                                                leave="transition duration-75 ease-out"
+                                                leaveFrom="transform opacity-100"
+                                                leaveTo="transform opacity-0"
+                                            >
+                                                <Disclosure.Panel static className="relative flex justify-between gap-x-6 bg-gray-50 border-y w-full">
+                                                    <ul
+                                                        role="list"
+                                                        className="divide-y overflow-hidden w-full"
+                                                    >
+                                                        <li
+                                                            className="cursor-pointer py-3 px-5 w-full text-start relative flex justify-between gap-x-6 hover:bg-gray-50"
+                                                            onClick={() => PostChanger(category.slug)}
+                                                        >
+                                                            <div className="flex min-w-0 gap-x-4">
+                                                                <div className="min-w-0 flex-auto">
+                                                                    <p className="text-sm font-semibold leading-6 text-gray-900">
+                                                                        <span className="absolute inset-x-0 -top-px bottom-0" />
+                                                                        Introduction
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex shrink-0 items-center gap-x-4">
+                                                                <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
+                                                            </div>
+                                                        </li>
+                                                        {
+                                                            category.children.length > 0 && category.children.map((post) => (
+                                                                <li
+                                                                    className="cursor-pointer py-3 px-5 w-full text-start relative flex justify-between gap-x-6 hover:bg-gray-50"
+                                                                    onClick={() => PostChanger(post.slug)}
+                                                                >
+                                                                    <div className="flex min-w-0 gap-x-4">
+                                                                        <div className="min-w-0 flex-auto">
+                                                                            <p
+                                                                                className={clsx(
+                                                                                    "text-sm font-semibold leading-6 text-gray-900",
+                                                                                    singlePost?.id == post.id && 'text-blue-500'
+                                                                                )}>
+                                                                                {post.title}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex shrink-0 items-center gap-x-4">
+                                                                        <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
+                                                                    </div>
+                                                                </li>
+                                                            ))
+                                                        }
+                                                    </ul>
+                                                </Disclosure.Panel>
+                                            </Transition>
+                                        </>
+                                    )}
+                                </Disclosure>
+                            </li>
+                        )
+                        return (
+                            <li key={category.id} className="relative flex justify-between gap-x-6 px-4 py-5 hover:bg-gray-50 sm:px-6">
+                                <div className="flex min-w-0 gap-x-4">
+                                    <div className="min-w-0 flex-auto">
+                                        <p className="text-sm font-semibold leading-6 text-gray-900">
+                                            <a href={'#'}>
+                                                <span className="absolute inset-x-0 -top-px bottom-0" />
+                                                {category.title}
+                                            </a>
+                                        </p>
+                                        <p className="mt-1 flex text-xs leading-5 text-gray-500">
+                                            <a href={`#`} className="relative truncate hover:underline">
+                                                {category.children.length + 1} Post
+                                            </a>
+                                        </p>
                                     </div>
-                                </Disclosure.Panel>
-                            </Transition>
-                        </section>
+                                </div>
+                                <div className="flex shrink-0 items-center gap-x-4">
+                                    <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
+                                </div>
+                            </li>
+                        )
+                    }
                     )}
-                </Disclosure>
-            ))}
+                </ul>
+            }
 
             {error && (
                 <div className="text-red-500">{error}</div>
@@ -659,8 +735,9 @@ export default function Sidebar({ tagData, setTagData }) {
     };
 
     return (
-        <aside className="px-[40px] py-[32px] sticky top-0" id="sidebar-content">
-            <div className="py-[24px] flex items-center justify-start space-x-[18px] text-[14px] font-normal">
+        <aside className="sticky top-0" id="sidebar-content">
+            {/* <div className="py-[24px] flex items-center justify-start space-x-[18px] text-[14px] font-normal">
+                
                 {tagData ?
                     <div className="mx-[40px] py-[24px] space-y-4">
                         <div className="flex items-center text-opacity-60 text-[#444444] dark:text-neutral-300 text-[14px] leading-[20px] cursor-pointer py-[24px]">
@@ -720,7 +797,7 @@ export default function Sidebar({ tagData, setTagData }) {
                             </>
                         )}
                     </>}
-            </div>
+            </div> */}
 
             {
                 activePage == 'search' && !tagData ? <SearchSection /> : null

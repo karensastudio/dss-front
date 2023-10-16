@@ -17,12 +17,12 @@ export default function LoginPage() {
     const { getValues, register, handleSubmit, formState: { errors } } = useForm()
 
     const [submitButtonStatus, setSubmitButtonStatus] = useState(null)
-    
+
     const navigate = useNavigate();
     const signIn = useSignIn();
     const { setUser } = usePermify();
 
-    
+
     async function onSubmit(data) {
         setSubmitButtonStatus('loading');
 
@@ -63,7 +63,7 @@ export default function LoginPage() {
     }
 
     return (
-        <main className={`bg-white dark:bg-black`}>
+        <main>
             <Helmet>
                 <title>DSS | Registration</title>
             </Helmet>
@@ -84,45 +84,48 @@ export default function LoginPage() {
 
             <div className="h-screen bg-opacity-0 bg-transparent">
 
-            <section className={`bg-neutral-100 dark:bg-[#202427] my-[55px] md:rounded-[12px] max-w-xl mx-auto px-[16px] md:px-[105px] py-[60px]`}>
-                <h1 className={`text-[#202427] dark:text-white text-[24px] leading-[29px] font-medium mb-[43px]`}>Sign in</h1>
+                <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
 
-                <form onSubmit={handleSubmit(onSubmit)}>
-                    <div className="flex flex-col gap-y-[19px] mb-[31px]">
+                    <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
+                        <h1 className={`text-[#202427] dark:text-white text-[24px] leading-[29px] font-medium mb-[43px]`}>Sign in</h1>
 
-                        <Input
-                            name={'email'}
-                            title={"Email"}
-                            type={'email'}
-                            register={register}
-                            getValues={getValues}
-                            validations={{ required: true, pattern: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/ }}
-                            error={errors['email']}
-                            rootClasses={'col-span-2 md:col-span-1'} />
+                        <form onSubmit={handleSubmit(onSubmit)}>
+                            <div className="flex flex-col gap-y-[19px] mb-[31px]">
 
-                        <Input
-                            name={'password'}
-                            title={"Password"}
-                            type={'password'}
-                            register={register}
-                            getValues={getValues}
-                            validations={{ required: true }}
-                            error={errors['password']}
-                            rootClasses={'col-span-2 md:col-span-1'} />
+                                <Input
+                                    name={'email'}
+                                    title={"Email"}
+                                    type={'email'}
+                                    register={register}
+                                    getValues={getValues}
+                                    validations={{ required: true, pattern: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/ }}
+                                    error={errors['email']}
+                                    rootClasses={'col-span-2 md:col-span-1'} />
+
+                                <Input
+                                    name={'password'}
+                                    title={"Password"}
+                                    type={'password'}
+                                    register={register}
+                                    getValues={getValues}
+                                    validations={{ required: true }}
+                                    error={errors['password']}
+                                    rootClasses={'col-span-2 md:col-span-1'} />
+                            </div>
+
+                            <button type="submit" className="ml-auto flex bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium">
+                                {
+                                    submitButtonStatus === 'loading' ? (
+                                        <CgSpinner className="animate-spin" />
+                                    ) : 'Login'
+                                }
+                            </button>
+                        </form>
                     </div>
-
-                    <button type="submit" className="ml-auto flex bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium">
-                        {
-                            submitButtonStatus === 'loading' ? (
-                                <CgSpinner className="animate-spin" />
-                            ) : 'Login'
-                        }
-                    </button>
-                </form>
-            </section>
+                </div>
             </div>
 
-        </main>
+        </main >
     )
 
 }
