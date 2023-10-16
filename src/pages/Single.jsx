@@ -364,7 +364,7 @@ export default function SinglePostPage() {
                                                             <thead>
                                                                 <tr>
                                                                     {block.data.content[0].map((item) => {
-                                                                        return <th key={item}>{item}</th>
+                                                                        return <th key={item}>{parse(item)}</th>
                                                                     })}
                                                                 </tr>
                                                             </thead>
@@ -372,7 +372,7 @@ export default function SinglePostPage() {
                                                                 {block.data.content.slice(1).map((row) => {
                                                                     return <tr key={row[0]}>
                                                                         {row.map((item) => {
-                                                                            return <td key={item}>{item}</td>
+                                                                            return <td key={item}>{parse(item)}</td>
                                                                         })}
                                                                     </tr>
                                                                 })}
