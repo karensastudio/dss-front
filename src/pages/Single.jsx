@@ -22,6 +22,8 @@ import { Disclosure, Transition } from "@headlessui/react";
 import HeadingComponent from "../components/editor/headingComponent";
 import ImageComponent from "../components/editor/ImageComponent";
 import LinkComponent from "../components/editor/LinkComponent";
+import ParagraphComponent from "../components/editor/ParagraphComponent";
+import ToggleComponent from "../components/editor/ToggleComponent";
 
 export default function SinglePostPage() {
     const location = useLocation();
@@ -324,11 +326,7 @@ export default function SinglePostPage() {
                                         {singlePostDataJSON &&
                                             singlePostDataJSON.blocks.map((block) => {
                                                 if (block.type == "paragraph")
-                                                    // dont show if previous block is toggle
-                                                    if (singlePostDataJSON?.blocks[singlePostDataJSON.blocks.indexOf(block) - 1]?.type == "toggle")
-                                                        return null;
-                                                    else
-                                                        return <div key={block.id}><p className="mb-3">{parse(block.data.text)}</p></div>;
+                                                    return <ParagraphComponent block={block} />;
                                                 if (block.type == "header")
                                                     return <div key={block.id} className="mb-3">
                                                         <HeadingComponent element={block} />
@@ -355,116 +353,19 @@ export default function SinglePostPage() {
                                                             </div>
                                                         </div>
                                                     </div>;
-                                                if (block.type == "toggle")
-                                                    return <Disclosure>
-                                                        {({ open }) => (
-                                                            /* Use the `open` state to conditionally change the direction of an icon. */
-                                                            <div className="border border-white border-opacity-25 rounded-[12px] mb-3">
-                                                                <Disclosure.Button className="flex items-center justify-between text-black dark:text-white bg-black bg-opacity-10 dark:bg-white dark:bg-opacity-10 text-start px-3 py-5 rounded-[12px] w-full">
-                                                                    {block.data.text}
-
-                                                                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-500 text-white dark:text-gray-200">
-                                                                        <BsChevronRight className={`text-[16px] ${open ? 'rotate-90' : 'rotate-0'}`} />
-                                                                    </div>
-                                                                </Disclosure.Button>
-                                                                <Transition
-                                                                    enter="transition duration-100 ease-out"
-                                                                    enterFrom="transform scale-95 opacity-0"
-                                                                    enterTo="transform scale-100 opacity-100"
-                                                                    leave="transition duration-75 ease-out"
-                                                                    leaveFrom="transform scale-100 opacity-100"
-                                                                    leaveTo="transform scale-95 opacity-0"
-                                                                >
-                                                                    <Disclosure.Panel className="text-black dark:text-white text-opacity-70 px-3 py-5">
-                                                                        {/* parse next blocks by block.data.items count as child of this block */}
-
-                                                                        {singlePostDataJSON?.blocks.slice(singlePostDataJSON.blocks.indexOf(block) + 1, singlePostDataJSON.blocks.indexOf(block) + 1 + block.data.items).map((block) => {
-                                                                            if (block.type == "paragraph")
-                                                                                return <div key={block.id}><p className="mb-3">{parse(block.data.text)}</p></div>;
-                                                                            if (block.type == "header")
-                                                                                return <HeadingComponent attributes={block.attributes} element={block} children={block.children} />;
-                                                                            if (block.type == "Image")
-                                                                                return <ImageComponent element={block} />;
-                                                                            if (block.type == "raw")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
-                                                                            if (block.type == "list")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                                                    <ul className="list-disc list-inside">
-                                                                                        {block.data.items.map((item) => {
-                                                                                            return <li key={item}>{item}</li>
-                                                                                        })}
-                                                                                    </ul>
-                                                                                </div>;
-                                                                            if (block.type == "warning")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] bg-orange-500 bg-opacity-10 text-orange-500 p-4 mb-3">
-                                                                                    <div className="flex items-center justify-between">
-                                                                                        <div className="flex items-center space-x-2">
-                                                                                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-500 text-white dark:text-orange-200">
-                                                                                                <PiWarningFill className="text-[16px]" />
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                <span className="text-[16px] leading-[20px] font-semibold">
-                                                                                                    {block.data.title}
-                                                                                                </span>
-                                                                                                <p className="text-[14px]">
-                                                                                                    {block.data.message}
-                                                                                                </p>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>;
-                                                                            if (block.type == "linkTool") {
-                                                                                return <LinkComponent block={block} />;
-                                                                            }
-                                                                            if (block.type == "list")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                                                    <ul className="list-disc list-inside">
-                                                                                        {block.data.items.map((item) => {
-                                                                                            return <li key={item}>{item}</li>
-                                                                                        })}
-                                                                                    </ul>
-                                                                                </div>;
-                                                                            if (block.type == "quote")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                                                    <blockquote className="text-[14px] text-opacity-60">
-                                                                                        {block.data.text}
-                                                                                    </blockquote>
-                                                                                </div>;
-                                                                            if (block.type == "table")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                                                    <table className="w-full">
-                                                                                        <thead>
-                                                                                            <tr>
-                                                                                                {block.data.content[0].map((item) => {
-                                                                                                    return <th key={item}>{item}</th>
-                                                                                                })}
-                                                                                            </tr>
-                                                                                        </thead>
-                                                                                        <tbody>
-                                                                                            {block.data.content.slice(1).map((row) => {
-                                                                                                return <tr key={row[0]}>
-                                                                                                    {row.map((item) => {
-                                                                                                        return <td key={item}>{item}</td>
-                                                                                                    })}
-                                                                                                </tr>
-                                                                                            })}
-                                                                                        </tbody>
-                                                                                    </table>
-                                                                                </div>;
-                                                                            if (block.type == "code")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                                                    <pre className="bg-black bg-opacity-10 dark:bg-white dark:bg-opacity-10 rounded-[12px] p-4">
-                                                                                        <code className="text-[14px] text-opacity-60">
-                                                                                            {block.data.code}
-                                                                                        </code>
-                                                                                    </pre>
-                                                                                </div>;
-                                                                        })}
-                                                                    </Disclosure.Panel>
-                                                                </Transition>
-                                                            </div>
-                                                        )}
-                                                    </Disclosure>
+                                                if (block.type == "toggle") {
+                                                    return <ToggleComponent
+                                                        block={block}
+                                                        singlePostDataJSON={singlePostDataJSON}
+                                                        setSinglePostDataJSON={setSinglePostDataJSON}
+                                                    />;
+                                                    // setSinglePostDataJSON((prevState) => ({
+                                                    //     ...prevState,
+                                                    //     blocks: prevState.blocks.filter((item) => {
+                                                    //         return singlePostDataJSON.blocks.indexOf(item) < singlePostDataJSON.blocks.indexOf(block) + 1 || singlePostDataJSON.blocks.indexOf(item) > singlePostDataJSON.blocks.indexOf(block) + 1 + block.data.items
+                                                    //     })
+                                                    // });
+                                                }
                                             })
                                         }
                                     </div>
