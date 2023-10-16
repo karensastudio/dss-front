@@ -58,7 +58,6 @@ export default function SinglePostPage() {
 
             if (response.status === 'success') {
                 setSinglePost(response.response.post);
-                console.log(JSON.parse(response.response.post.description))
                 setSinglePostDataJSON(JSON.parse(response.response.post.description));
 
                 // change url to /posts/:slug
@@ -184,11 +183,9 @@ export default function SinglePostPage() {
     useEffect(() => {
         // fetchPostData();
         if (slug) {
-            console.log(slug);
             PostChanger(slug);
         }
         else {
-            console.log(slug);
             setSinglePostLoading(false);
             setSinglePost(null);
         }
@@ -360,6 +357,27 @@ export default function SinglePostPage() {
                                                                 return <li key={item}>{item}</li>
                                                             })}
                                                         </ul>
+                                                    </div>;
+                                                if (block.type == "table")
+                                                    return <div key={block.id} className="w-full rounded-[12px] mb-3">
+                                                        <table className="w-full">
+                                                            <thead>
+                                                                <tr>
+                                                                    {block.data.content[0].map((item) => {
+                                                                        return <th key={item}>{item}</th>
+                                                                    })}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {block.data.content.slice(1).map((row) => {
+                                                                    return <tr key={row[0]}>
+                                                                        {row.map((item) => {
+                                                                            return <td key={item}>{item}</td>
+                                                                        })}
+                                                                    </tr>
+                                                                })}
+                                                            </tbody>
+                                                        </table>
                                                     </div>;
                                                 if (block.type == "toggle") {
                                                     return <ToggleComponent
