@@ -353,18 +353,20 @@ export default function SinglePostPage() {
                                                             </div>
                                                         </div>
                                                     </div>;
+                                                if (subBlock.type == "list")
+                                                    return <div key={subBlock.id} className="w-full rounded-[12px] mb-3">
+                                                        <ul className="list-disc list-inside">
+                                                            {subBlock.data.items.map((item) => {
+                                                                return <li key={item}>{item}</li>
+                                                            })}
+                                                        </ul>
+                                                    </div>;
                                                 if (block.type == "toggle") {
                                                     return <ToggleComponent
                                                         block={block}
                                                         singlePostDataJSON={singlePostDataJSON}
                                                         setSinglePostDataJSON={setSinglePostDataJSON}
                                                     />;
-                                                    // setSinglePostDataJSON((prevState) => ({
-                                                    //     ...prevState,
-                                                    //     blocks: prevState.blocks.filter((item) => {
-                                                    //         return singlePostDataJSON.blocks.indexOf(item) < singlePostDataJSON.blocks.indexOf(block) + 1 || singlePostDataJSON.blocks.indexOf(item) > singlePostDataJSON.blocks.indexOf(block) + 1 + block.data.items
-                                                    //     })
-                                                    // });
                                                 }
                                             })
                                         }
