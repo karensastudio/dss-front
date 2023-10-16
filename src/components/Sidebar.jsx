@@ -1,17 +1,21 @@
-import { Disclosure, Transition } from "@headlessui/react";
+import { Disclosure, Switch, Transition } from "@headlessui/react";
 import { useEffect, useRef, useState } from "react";
-import { BsSearch, BsChevronUp, BsBookmarkFill, BsChevronLeft } from "react-icons/bs";
+import { BsSearch, BsChevronUp, BsBookmarkFill, BsChevronLeft, BsPlus } from "react-icons/bs";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import { getPostBySlugApi, getUserGraphApi, getUserPostsApi } from "../api/userPost";
 import { getDecisionsApi } from "../api/decision";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { CgSpinner } from "react-icons/cg";
+import { CgMathMinus, CgMathPlus, CgSpinner } from "react-icons/cg";
 import * as d3 from 'd3';
 import { getBookmarksApi } from "../api/bookmark";
 import { searchAPI } from "../api/search";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { SinglePostLoadingState, SinglePostState } from "../states";
+
+function classNames(...classes) {
+    return classes.filter(Boolean).join(' ')
+}
 
 export function SearchSection() {
     const authHeader = useAuthHeader();
@@ -619,9 +623,38 @@ export function GraphSection() {
     }
 
     return (
-        <div className="rounded-[12px] bg-white dark:bg-transparent">
-            <svg ref={svgRef} width="100%" height="730" />
-        </div>
+        <>
+            <div className="flex gap-x-3 mb-2">
+                <button
+                    type="button"
+                    className="capitalize rounded-md bg-white px-3 py-2 text-sm font-semibold text-blue-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                >
+                    Only show my decision
+                </button>
+                <button
+                    type="button"
+                    className="capitalize rounded-md bg-white px-3 py-2 text-sm font-semibold text-blue-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                >
+                    Show tags relation
+                </button>
+                <button
+                    type="button"
+                    className="ml-auto capitalize aspect-square rounded-md bg-white px-4 py-2 text-base font-bold text-blue-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                >
+                <CgMathMinus />
+                </button>
+                <button
+                    type="button"
+                    className="capitalize rounded-md aspect-square bg-white px-4 py-2 text-base font-bold text-blue-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                >
+                    <CgMathPlus />
+                </button>
+
+            </div>
+            <div className="rounded-[12px] bg-white dark:bg-transparent">
+                <svg ref={svgRef} width="100%" height="730" />
+            </div>
+        </>
     );
 }
 
