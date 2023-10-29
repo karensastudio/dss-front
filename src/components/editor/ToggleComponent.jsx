@@ -3,7 +3,7 @@ import parse from 'html-react-parser';
 import { BsChevronRight } from 'react-icons/bs';
 import LinkComponent from './LinkComponent';
 import { useEffect, useState } from 'react';
-import HeadingComponent from './HeadingComponent';
+import HeadingComponentV2 from './HeadingComponentV2';
 import ImageComponent from './ImageComponent';
 import { PiWarningFill } from "react-icons/pi";
 import ParagraphComponent from './ParagraphComponent';
@@ -41,7 +41,7 @@ export default function ToggleComponent(props) {
                             if (subBlock.type == "paragraph")
                                 return <ParagraphComponent block={subBlock} />;
                             if (subBlock.type == "header")
-                                return <HeadingComponent attributes={subBlock.attributes} element={subBlock} children={subBlock.children} />;
+                                return <HeadingComponentV2 attributes={subBlock.attributes} element={subBlock} children={subBlock.children} />;
                             if (subBlock.type == "Image")
                                 return <ImageComponent element={subBlock} />;
                             if (subBlock.type == "raw")

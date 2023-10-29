@@ -1,6 +1,6 @@
 import parse from 'html-react-parser';
 
-export default function HeadingComponent(props) {
+export default function HeadingComponentV2(props) {
     const { element } = props;
 
     if (element.data.level === 1) {

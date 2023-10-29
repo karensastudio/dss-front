@@ -21,7 +21,7 @@ import { getUserTagByIdApi } from "../api/tag";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { SinglePostLoadingState, SinglePostState } from "../states";
 import { Disclosure, Transition } from "@headlessui/react";
-import HeadingComponent from "../components/editor/HeadingComponent";
+import HeadingComponentV2 from "../components/editor/HeadingComponentV2";
 import ImageComponent from "../components/editor/ImageComponent";
 import LinkComponent from "../components/editor/LinkComponent";
 import { BookmarkSlashIcon, ChevronRightIcon, EnvelopeIcon, FolderMinusIcon, FolderPlusIcon, HomeIcon, PhoneIcon } from '@heroicons/react/20/solid'
@@ -479,7 +479,7 @@ export default function SinglePostPage() {
                                                     return <ParagraphComponent block={block} />;
                                                 if (block.type == "header")
                                                     return <div key={block.id} className="mb-3">
-                                                        <HeadingComponent element={block} />
+                                                        <HeadingComponentV2 element={block} />
                                                     </div>;
                                                 if (block.type == "Image")
                                                     return <ImageComponent element={block} />;

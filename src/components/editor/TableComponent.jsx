@@ -3,7 +3,6 @@ import parse from 'html-react-parser';
 import { BsChevronRight } from 'react-icons/bs';
 import LinkComponent from './LinkComponent';
 import { useEffect, useState } from 'react';
-import HeadingComponent from './HeadingComponent';
 import ImageComponent from './ImageComponent';
 import { PiWarningFill } from "react-icons/pi";
 import ParagraphComponent from './ParagraphComponent';
