@@ -21,7 +21,7 @@ import { getUserTagByIdApi } from "../api/tag";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { SinglePostLoadingState, SinglePostState } from "../states";
 import { Disclosure, Transition } from "@headlessui/react";
-import HeadingComponent from "../components/editor/headingComponent";
+import HeadingComponent from "../components/editor/HeadingComponent";
 import ImageComponent from "../components/editor/ImageComponent";
 import LinkComponent from "../components/editor/LinkComponent";
 import { BookmarkSlashIcon, ChevronRightIcon, EnvelopeIcon, FolderMinusIcon, FolderPlusIcon, HomeIcon, PhoneIcon } from '@heroicons/react/20/solid'
