@@ -24,8 +24,13 @@ import { Disclosure, Transition } from "@headlessui/react";
 import HeadingComponent from "../components/editor/headingComponent";
 import ImageComponent from "../components/editor/ImageComponent";
 import LinkComponent from "../components/editor/LinkComponent";
-import { EnvelopeIcon, HomeIcon, PhoneIcon } from '@heroicons/react/20/solid'
+import { BookmarkSlashIcon, ChevronRightIcon, EnvelopeIcon, FolderMinusIcon, FolderPlusIcon, HomeIcon, PhoneIcon } from '@heroicons/react/20/solid'
 import clsx from "clsx";
+import ToggleComponent from "../components/editor/ToggleComponent";
+import ParagraphComponent from "../components/editor/ParagraphComponent";
+import { BookmarkIcon } from "@heroicons/react/24/outline";
+import TableComponent from "../components/editor/TableComponent";
+import { set } from "react-hook-form";
 
 const pages = [
     { name: 'Projects', href: '#', current: false },
@@ -65,8 +70,25 @@ export default function SinglePostPage() {
 
             if (response.status === 'success') {
                 setSinglePost(response.response.post);
-                console.log(JSON.parse(response.response.post.description))
-                setSinglePostDataJSON(JSON.parse(response.response.post.description));
+                let tmpSinglePostDataJSON = JSON.parse(response.response.post.description);
+                console.log(tmpSinglePostDataJSON);
+
+                // set toggle blocks childrens from by item value from next block to children
+                tmpSinglePostDataJSON.blocks.map((block) => {
+                    if (block.type == "toggle") {
+                        const TMPToggleChilds = tmpSinglePostDataJSON?.blocks.slice(tmpSinglePostDataJSON.blocks.indexOf(block) + 1, tmpSinglePostDataJSON.blocks.indexOf(block) + 1 + block.data.items);
+                        block.data.children = TMPToggleChilds;
+
+                        // remove childrens from main blocks
+                        TMPToggleChilds?.map((subBlock) => {
+                            tmpSinglePostDataJSON.blocks.splice(tmpSinglePostDataJSON.blocks.indexOf(subBlock), 1);
+                        })
+                    }
+                })
+
+                setSinglePostDataJSON(tmpSinglePostDataJSON);
+
+                // setSinglePostDataJSON(JSON.parse(response.response.post.description));
 
                 // change url to /posts/:slug
                 navigate(`/posts/${slug}`);
@@ -127,11 +149,15 @@ export default function SinglePostPage() {
         try {
             setIsBookmarkLoading(true);
             if (singlePost.is_bookmark) {
-                await detachBookmarkApi(authHeader(), singlePost.id).then(() => { PostChanger(singlePost.slug); });
+                await detachBookmarkApi(authHeader(), singlePost.id).then(() => {
+                    setSinglePost({ ...singlePost, is_bookmark: false });
+                });
                 setIsBookmarked(false);
                 toast.success("Bookmark removed");
             } else {
-                await attachBookmarkApi(authHeader(), singlePost.id).then(() => { PostChanger(singlePost.slug); });
+                await attachBookmarkApi(authHeader(), singlePost.id).then(() => {
+                    setSinglePost({ ...singlePost, is_bookmark: true });
+                });
                 setIsBookmarked(true);
                 toast.success("Bookmark added");
             }
@@ -146,12 +172,16 @@ export default function SinglePostPage() {
         try {
             setIsDecisionLoading(true)
             if (singlePost.is_decision) {
-                await detachDecisionApi(authHeader(), singlePost.id).then(() => { PostChanger(singlePost.slug); });
+                await detachDecisionApi(authHeader(), singlePost.id).then(() => {
+                    setSinglePost({ ...singlePost, is_decision: false });
+                });
                 setIsDecision(false);
                 setIsDecisionLoading(false);
                 toast.success("Decision removed");
             } else {
-                await attachDecisionApi(authHeader(), singlePost.id).then(() => { PostChanger(singlePost.slug); });
+                await attachDecisionApi(authHeader(), singlePost.id).then(() => {
+                    setSinglePost({ ...singlePost, is_decision: true });
+                });
                 setIsDecision(true);
                 setIsDecisionLoading(false);
                 toast.success("Decision added");;
@@ -191,11 +221,9 @@ export default function SinglePostPage() {
     useEffect(() => {
         // fetchPostData();
         if (slug) {
-            console.log(slug);
             PostChanger(slug);
         }
         else {
-            console.log(slug);
             setSinglePostLoading(false);
             setSinglePost(null);
         }
@@ -219,9 +247,81 @@ export default function SinglePostPage() {
 
             {
                 singlePostLoading ? (
-                    <div className="flex items-center justify-center h-[calc(100vh-72px)]">
-                        <CgSpinner className="text-black dark:text-white text-[36px] animate-spin" />
-                    </div>
+                    <>
+                        {/* skeleton */}
+                        <nav className="flex mb-3" aria-label="Breadcrumb">
+                            <ol role="list" className="flex space-x-4 rounded-lg w-full bg-white px-6 shadow">
+                                <li className="flex">
+                                    <div className="flex items-center">
+                                        <Link to={'/'} className="text-gray-400 hover:text-gray-500">
+                                            <HomeIcon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                                            <span className="sr-only">Home</span>
+                                        </Link>
+                                    </div>
+                                </li>
+                                <li className="flex">
+                                    <div className="flex items-center">
+                                        <svg
+                                            className="h-full w-6 flex-shrink-0 text-gray-200"
+                                            viewBox="0 0 24 44"
+                                            preserveAspectRatio="none"
+                                            fill="currentColor"
+                                            aria-hidden="true"
+                                        >
+                                            <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
+                                        </svg>
+                                        <button
+                                            className="ml-4 text-start py-2 text-sm font-medium text-gray-500 hover:text-gray-700"
+                                        >
+                                            <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                                        </button>
+                                    </div>
+                                </li>
+                                <li className="flex">
+                                    <div className="flex items-center">
+                                        <svg
+                                            className="h-full w-6 flex-shrink-0 text-gray-200"
+                                            viewBox="0 0 24 44"
+                                            preserveAspectRatio="none"
+                                            fill="currentColor"
+                                            aria-hidden="true"
+                                        >
+                                            <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
+                                        </svg>
+                                        <button
+                                            className="ml-4 text-start py-2 text-sm font-medium text-gray-500 hover:text-gray-700"
+                                        >
+                                            <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                                        </button>
+                                    </div>
+                                </li>
+                            </ol>
+                        </nav>
+
+                        <div className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow mb-5">
+                            <div className="px-4 py-5 sm:px-6 flex items-center">
+                                <div className="w-full flex items-center justify-between">
+                                    <div className="flex flex-col items-start gap-3">
+                                        <div className="w-60 h-6 rounded-md bg-gray-200 animate-pulse"></div>
+                                        <div className="w-12 h-5 rounded-md bg-gray-100 animate-pulse"></div>
+                                    </div>
+                                    <div className="flex flex-shrink-0 gap-x-3">
+                                        <div className="w-12 h-10 rounded-md bg-gray-200 animate-pulse"></div>
+                                        <div className="w-12 h-10 rounded-md bg-gray-200 animate-pulse"></div>
+                                        <div className="w-12 h-10 rounded-md bg-gray-200 animate-pulse"></div>
+                                        <div className="w-12 h-10 rounded-md bg-gray-200 animate-pulse"></div>
+                                        <div className="w-12 h-10 rounded-md bg-gray-200 animate-pulse"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="px-4 py-5 sm:p-6 flex flex-col gap-3">
+                                <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
+                                <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
+                                <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
+                                <div className="h-4 bg-gray-200 rounded animate-pulse w-2/3"></div>
+                            </div>
+                        </div>
+                    </>
                 ) :
                     (slug &&
                         <>
@@ -252,7 +352,7 @@ export default function SinglePostPage() {
                                                     className="ml-4 text-start py-2 text-sm font-medium text-gray-500 hover:text-gray-700"
                                                     aria-current={page.id == singlePost.id ? 'page' : undefined}
                                                 >
-                                                    {page.title.slice(0,20)}
+                                                    {page.title.slice(0, 20)}
                                                 </button>
                                             </div>
                                         </li>
@@ -290,14 +390,18 @@ export default function SinglePostPage() {
                                                 <button
                                                     type="button"
                                                     className={clsx("relative inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset",
-                                                        isDecision ? "bg-blue-500 ring-blue-600 text-white hover:bg-blue-600" : "bg-white text-gray-900 ring-gray-300 hover:bg-gray-50"
+                                                        isDecision ? "bg-blue-500 ring-blue-600 text-white hover:bg-blue-600" : "bg-white text-gray-600 ring-gray-300 hover:bg-gray-50"
                                                     )}
                                                     onClick={handleDecisionChange}
                                                 >
                                                     {
                                                         isDecisionLoading ?
                                                             <ImSpinner8 className="animate-spin h-4 w-4" aria-hidden="true" /> :
-                                                            <HiFolderPlus className="h-5 w-5 text-gray-600" aria-hidden="true" />
+                                                            (
+                                                                isDecision ?
+                                                                    <FolderMinusIcon className="h-5 w-5" /> :
+                                                                    <FolderPlusIcon className="h-5 w-5" />
+                                                            )
                                                     }
                                                 </button>
                                             )}
@@ -331,19 +435,29 @@ export default function SinglePostPage() {
 
                                             {
                                                 isAuthenticated() && (
-                                                    <button
-                                                        type="button"
-                                                        className={clsx("relative inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset",
-                                                            isBookmarked ? "bg-blue-500 ring-blue-600 text-white hover:bg-blue-600" : "bg-whitering-gray-300 hover:bg-gray-50 text-gray-600"
-                                                        )}
-                                                        onClick={handleBookmarkChange}
-                                                    >
-                                                        {
-                                                            isBookmarkLoading ?
-                                                                <ImSpinner8 className="animate-spin h-4 w-4" aria-hidden="true" /> :
-                                                                <HiBookmark className="h-5 w-5" aria-hidden="true" />
-                                                        }
-                                                    </button>
+                                                    <>
+                                                        <button
+                                                            data-tooltip-id="setBookmarkButton"
+                                                            data-tooltip-content="Bookmark"
+                                                            data-tooltip-place="top"
+                                                            type="button"
+                                                            className={clsx("relative inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset",
+                                                                isBookmarked ? "bg-blue-500 ring-blue-500 text-white hover:bg-blue-600" : "bg-white ring-gray-300 hover:bg-gray-50 text-gray-600"
+                                                            )}
+                                                            onClick={handleBookmarkChange}
+                                                        >
+                                                            {
+                                                                isBookmarkLoading ?
+                                                                    <ImSpinner8 className="animate-spin h-4 w-4" aria-hidden="true" /> :
+                                                                    (
+                                                                        isBookmarked ?
+                                                                            <BookmarkSlashIcon className="h-6 w-6" /> :
+                                                                            <BookmarkIcon className="h-6 w-6" />
+                                                                    )
+                                                            }
+                                                        </button>
+                                                        <Tooltip id="setBookmarkButton" />
+                                                    </>
                                                 )
                                             }
 
@@ -362,11 +476,7 @@ export default function SinglePostPage() {
                                         {singlePostDataJSON &&
                                             singlePostDataJSON.blocks.map((block) => {
                                                 if (block.type == "paragraph")
-                                                    // dont show if previous block is toggle
-                                                    if (singlePostDataJSON?.blocks[singlePostDataJSON.blocks.indexOf(block) - 1]?.type == "toggle")
-                                                        return null;
-                                                    else
-                                                        return <div key={block.id}><p className="mb-3">{parse(block.data.text)}</p></div>;
+                                                    return <ParagraphComponent block={block} />;
                                                 if (block.type == "header")
                                                     return <div key={block.id} className="mb-3">
                                                         <HeadingComponent element={block} />
@@ -393,121 +503,62 @@ export default function SinglePostPage() {
                                                             </div>
                                                         </div>
                                                     </div>;
-                                                if (block.type == "toggle")
-                                                    return <Disclosure>
-                                                        {({ open }) => (
-                                                            /* Use the `open` state to conditionally change the direction of an icon. */
-                                                            <div className="border border-white border-opacity-25 rounded-[12px] mb-3">
-                                                                <Disclosure.Button className="flex items-center justify-between text-black dark:text-white bg-black bg-opacity-10 dark:bg-white dark:bg-opacity-10 text-start px-3 py-5 rounded-[12px] w-full">
-                                                                    {block.data.text}
-
-                                                                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-500 text-white dark:text-gray-200">
-                                                                        <BsChevronRight className={`text-[16px] ${open ? 'rotate-90' : 'rotate-0'}`} />
-                                                                    </div>
-                                                                </Disclosure.Button>
-                                                                <Transition
-                                                                    enter="transition duration-100 ease-out"
-                                                                    enterFrom="transform scale-95 opacity-0"
-                                                                    enterTo="transform scale-100 opacity-100"
-                                                                    leave="transition duration-75 ease-out"
-                                                                    leaveFrom="transform scale-100 opacity-100"
-                                                                    leaveTo="transform scale-95 opacity-0"
-                                                                >
-                                                                    <Disclosure.Panel className="text-black dark:text-white text-opacity-70 px-3 py-5">
-                                                                        {/* parse next blocks by block.data.items count as child of this block */}
-
-                                                                        {singlePostDataJSON?.blocks.slice(singlePostDataJSON.blocks.indexOf(block) + 1, singlePostDataJSON.blocks.indexOf(block) + 1 + block.data.items).map((block) => {
-                                                                            if (block.type == "paragraph")
-                                                                                return <div key={block.id}><p className="mb-3">{parse(block.data.text)}</p></div>;
-                                                                            if (block.type == "header")
-                                                                                return <HeadingComponent attributes={block.attributes} element={block} children={block.children} />;
-                                                                            if (block.type == "Image")
-                                                                                return <ImageComponent element={block} />;
-                                                                            if (block.type == "raw")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
-                                                                            if (block.type == "list")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                                                    <ul className="list-disc list-inside">
-                                                                                        {block.data.items.map((item) => {
-                                                                                            return <li key={item}>{item}</li>
-                                                                                        })}
-                                                                                    </ul>
-                                                                                </div>;
-                                                                            if (block.type == "warning")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] bg-orange-500 bg-opacity-10 text-orange-500 p-4 mb-3">
-                                                                                    <div className="flex items-center justify-between">
-                                                                                        <div className="flex items-center space-x-2">
-                                                                                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-orange-500 text-white dark:text-orange-200">
-                                                                                                <PiWarningFill className="text-[16px]" />
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                <span className="text-[16px] leading-[20px] font-semibold">
-                                                                                                    {block.data.title}
-                                                                                                </span>
-                                                                                                <p className="text-[14px]">
-                                                                                                    {block.data.message}
-                                                                                                </p>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>;
-                                                                            if (block.type == "linkTool") {
-                                                                                return <LinkComponent block={block} />;
-                                                                            }
-                                                                            if (block.type == "list")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                                                    <ul className="list-disc list-inside">
-                                                                                        {block.data.items.map((item) => {
-                                                                                            return <li key={item}>{item}</li>
-                                                                                        })}
-                                                                                    </ul>
-                                                                                </div>;
-                                                                            if (block.type == "quote")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                                                    <blockquote className="text-[14px] text-opacity-60">
-                                                                                        {block.data.text}
-                                                                                    </blockquote>
-                                                                                </div>;
-                                                                            if (block.type == "table")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                                                    <table className="w-full">
-                                                                                        <thead>
-                                                                                            <tr>
-                                                                                                {block.data.content[0].map((item) => {
-                                                                                                    return <th key={item}>{item}</th>
-                                                                                                })}
-                                                                                            </tr>
-                                                                                        </thead>
-                                                                                        <tbody>
-                                                                                            {block.data.content.slice(1).map((row) => {
-                                                                                                return <tr key={row[0]}>
-                                                                                                    {row.map((item) => {
-                                                                                                        return <td key={item}>{item}</td>
-                                                                                                    })}
-                                                                                                </tr>
-                                                                                            })}
-                                                                                        </tbody>
-                                                                                    </table>
-                                                                                </div>;
-                                                                            if (block.type == "code")
-                                                                                return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                                                    <pre className="bg-black bg-opacity-10 dark:bg-white dark:bg-opacity-10 rounded-[12px] p-4">
-                                                                                        <code className="text-[14px] text-opacity-60">
-                                                                                            {block.data.code}
-                                                                                        </code>
-                                                                                    </pre>
-                                                                                </div>;
-                                                                        })}
-                                                                    </Disclosure.Panel>
-                                                                </Transition>
-                                                            </div>
-                                                        )}
-                                                    </Disclosure>
+                                                if (block.type == "list")
+                                                    return <div key={block.id} className="w-full rounded-[12px] mb-3">
+                                                        <ul className="list-disc list-inside">
+                                                            {block.data.items.map((item) => {
+                                                                return <li key={item}>{item}</li>
+                                                            })}
+                                                        </ul>
+                                                    </div>;
+                                                if (block.type == "table")
+                                                    return <TableComponent block={block} />;
+                                                if (block.type == "toggle") {
+                                                    return <ToggleComponent
+                                                        block={block}
+                                                    />;
+                                                }
                                             })
                                         }
                                     </div>
                                 </div>
                             </div>
+
+                            {
+                                singlePost?.related && singlePost?.related.length > 0 &&
+                                (
+                                    <div className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
+                                        <div className="border-b border-gray-200 bg-white px-4 py-5 sm:px-6">
+                                            <h3 className="text-base font-semibold leading-6 text-gray-900">Related Posts</h3>
+                                        </div>
+
+                                        <div className="flex flex-col divide-y">
+                                            {
+                                                singlePost?.related?.map((post) => (
+                                                    <Link
+                                                        key={post.id}
+                                                        to={`/posts/${post.slug}`}
+                                                        className="px-4 py-5 sm:p-6 flex w-full items-center justify-between space-x-6 hover:bg-gray-50 transition-all">
+                                                        <div className="flex-1 truncate">
+                                                            <div className="flex items-center space-x-3">
+                                                                <h3 className="truncate text-base font-semibold text-gray-900">{post.title}</h3>
+                                                            </div>
+                                                            <div className="flex items-center justify-start gap-1">
+                                                                {
+                                                                    console.log(post)
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                        <div className="h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-gray-200 transition-all">
+                                                            <ChevronRightIcon className="h-6 w-6 text-gray-500" aria-hidden="true" />
+                                                        </div>
+                                                    </Link>
+                                                ))
+                                            }
+                                        </div>
+                                    </div>
+                                )
+                            }
 
                             {isChatOpen && <CommentPopUp type={commentType} postId={singlePost.id} onClose={closeChat} />}
                         </>

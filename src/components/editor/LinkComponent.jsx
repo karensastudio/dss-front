@@ -17,7 +17,7 @@ export default function LinkComponent(props) {
             </div>
         </Link>;
     }
-    if(block.data.meta.type == "external") {
+    if (block.data.meta.type == "external") {
         return <a key={block.id} href={block.data.link} target='_blank' className="block cursor-pinter w-full rounded-[12px] px-3 py-5 bg-gray-600 text-white mb-3">
             <div className="text-white ">
                 {block.data.meta.title}

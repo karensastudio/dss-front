@@ -4,14 +4,32 @@ import { logoutAPI } from "../api/auth";
 import { HasAccess } from "@permify/react-role";
 import ToggleThemeSwitch from "./ToggleThemeSwitch";
 import { useTheme } from "../context/ThemeContext";
-import { Disclosure, Menu, Transition } from '@headlessui/react'
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import { Disclosure, Menu, Popover, Transition } from '@headlessui/react'
+import { ChevronDownIcon, DocumentTextIcon, MagnifyingGlassIcon, TagIcon } from '@heroicons/react/20/solid'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { HiOutlineLogout } from "react-icons/hi";
+import clsx from "clsx";
+import { Fragment } from "react";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
+
+const solutions = [
+    {
+        name: 'Posts',
+        description: 'Create and manage your posts',
+        href: '/posts',
+        icon: DocumentTextIcon,
+    },
+    {
+        name: 'Tags',
+        description: 'Create and manage your tags',
+        href: '/tags',
+        icon: TagIcon,
+    },
+]
+
 
 export default function Header() {
     const navigate = useNavigate();
@@ -32,6 +50,9 @@ export default function Header() {
         }
     };
 
+    // check current page
+    const currentPath = window.location.pathname;
+
     return (
         <Disclosure as="nav" className="bg-white shadow">
             {({ open }) => (
@@ -39,29 +60,96 @@ export default function Header() {
                     <div className="mx-auto max-w-7xl">
                         <div className="flex h-16 justify-between">
                             <div className="flex px-2 lg:px-0">
-                                <div className="flex flex-shrink-0 items-center">
+                                <Link className="flex flex-shrink-0 items-center" to={'/'}>
                                     <h1 className={`font-extrabold text-xl text-black dark:text-white`}>DSS</h1>
-                                </div>
+                                </Link>
                                 <div className="hidden lg:ml-6 lg:flex lg:space-x-8">
                                     {/* Current: "border-blue-500 text-gray-900", Default: "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700" */}
-                                    <a
-                                        href="#"
-                                        className="inline-flex items-center border-b-2 border-blue-500 px-1 pt-1 text-sm font-medium text-gray-900"
+                                    <Link
+                                        to="/"
+                                        className={clsx(
+                                            "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium",
+                                            currentPath === "/" && "border-b-blue-500 text-gray-900",
+                                            currentPath != "/" && "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                                        )}
                                     >
                                         Home
-                                    </a>
-                                    <a
-                                        href="#"
-                                        className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                                    </Link>
+                                    <Link
+                                        to="/graph"
+                                        className={clsx(
+                                            "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium",
+                                            currentPath === "/graph" && "border-b-blue-500 text-gray-900",
+                                            currentPath != "/graph" && "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                                        )}
                                     >
                                         Graph
-                                    </a>
-                                    <a
-                                        href="#"
-                                        className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                                    </Link>
+                                    <Link
+                                        to="/bookmarks"
+                                        className={clsx(
+                                            "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium",
+                                            currentPath === "/bookmarks" && "border-b-blue-500 text-gray-900",
+                                            currentPath != "/bookmarks" && "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                                        )}
                                     >
                                         Bookmarks
-                                    </a>
+                                    </Link>
+                                    <Popover className="relative">
+                                        {({ open }) => (
+                                            <>
+                                                <Popover.Button
+                                                    className={clsx(
+                                                        "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium",
+                                                        "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                                                    )}
+                                                >
+                                                    <span className="py-5">Admin Panel</span>
+                                                    <ChevronDownIcon
+                                                        className={`${open ? 'text-blue-300' : 'text-blue-300/70'}
+                  ml-2 h-5 w-5 transition duration-150 ease-in-out group-hover:text-blue-300/80`}
+                                                        aria-hidden="true"
+                                                    />
+                                                </Popover.Button>
+                                                <Transition
+                                                    as={Fragment}
+                                                    enter="transition ease-out duration-200"
+                                                    enterFrom="opacity-0 translate-y-1"
+                                                    enterTo="opacity-100 translate-y-0"
+                                                    leave="transition ease-in duration-150"
+                                                    leaveFrom="opacity-100 translate-y-0"
+                                                    leaveTo="opacity-0 translate-y-1"
+                                                >
+                                                    <Popover.Panel className="absolute left-1/2 z-10 mt-3 w-screen max-w-sm -translate-x-1/2 transform px-4 sm:px-0">
+                                                        <div className="overflow-hidden rounded-lg shadow-lg ring-1 ring-black/5">
+                                                            <div className="relative flex flex-col gap-8 bg-white p-7">
+                                                                {solutions.map((item) => (
+                                                                    <a
+                                                                        key={item.name}
+                                                                        href={item.href}
+                                                                        className="-m-3 flex items-center rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50"
+                                                                    >
+                                                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center text-blue-600 text-opacity-50 sm:h-12 sm:w-12">
+                                                                            <item.icon aria-hidden="true" />
+                                                                        </div>
+                                                                        <div className="ml-4">
+                                                                            <p className="text-sm font-medium text-gray-900">
+                                                                                {item.name}
+                                                                            </p>
+                                                                            <p className="text-sm text-gray-500">
+                                                                                {item.description}
+                                                                            </p>
+                                                                        </div>
+                                                                    </a>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </Popover.Panel>
+                                                </Transition>
+                                            </>
+                                        )}
+                                    </Popover>
+
                                 </div>
                             </div>
                             <div className="flex flex-1 items-center justify-center px-2 lg:ml-6 gap-3 lg:justify-end">
@@ -107,7 +195,7 @@ export default function Header() {
                                                     type="button"
                                                     onClick={() => navigate('/register')}
                                                     className="relative inline-flex items-center rounded-l-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
-                                                    >
+                                                >
                                                     Register
                                                 </button>
                                                 <button
@@ -140,27 +228,36 @@ export default function Header() {
                     <Disclosure.Panel className="lg:hidden">
                         <div className="space-y-1 pb-3 pt-2">
                             {/* Current: "bg-blue-50 border-blue-500 text-blue-700", Default: "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800" */}
-                            <Disclosure.Button
-                                as="a"
-                                href="#"
-                                className="block border-l-4 border-blue-500 bg-blue-50 py-2 pl-3 pr-4 text-base font-medium text-blue-700"
+                            <Link
+                                to="/"
+                                className={clsx(
+                                    "block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium",
+                                    currentPath === "/" && "bg-blue-50 border-l-blue-500 text-blue-700",
+                                    currentPath != "/" && "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800",
+                                )}
                             >
                                 Home
-                            </Disclosure.Button>
-                            <Disclosure.Button
-                                as="a"
-                                href="#"
-                                className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800"
+                            </Link>
+                            <Link
+                                to="/graph"
+                                className={clsx(
+                                    "block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium",
+                                    currentPath === "/graph" && "bg-blue-50 border-l-blue-500 text-blue-700",
+                                    currentPath != "/graph" && "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800",
+                                )}
                             >
                                 Graph
-                            </Disclosure.Button>
-                            <Disclosure.Button
-                                as="a"
-                                href="#"
-                                className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800"
+                            </Link>
+                            <Link
+                                to="/bookmarks"
+                                className={clsx(
+                                    "block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium",
+                                    currentPath === "/bookmarks" && "bg-blue-50 border-l-blue-500 text-blue-700",
+                                    currentPath != "/bookmarks" && "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800",
+                                )}
                             >
                                 Bookmarks
-                            </Disclosure.Button>
+                            </Link>
                         </div>
                     </Disclosure.Panel>
                 </>

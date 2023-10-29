@@ -15,6 +15,8 @@ import NoteUpdatePage from "./pages/notes/Update";
 import NoteCreatePage from "./pages/notes/Create";
 import DecisionPdfPage from "./pages/DecisionPdf";
 import SinglePostPage from "./pages/Single";
+import GraphPage from "./pages/Graph";
+import BookmarksPage from "./pages/Bookmarks";
 
 export const router = createBrowserRouter([
     {
@@ -79,6 +81,20 @@ export const router = createBrowserRouter([
     {
         path: "/tags/create",
         element: <TagCreatePage />,
+        // errorElement: <ErrorPage />
+    },
+
+    // Graph
+    {
+        path: "/graph",
+        element: <GraphPage />,
+        // errorElement: <ErrorPage />
+    },
+
+    // Bookmarks
+    {
+        path: "/bookmarks",
+        element: <BookmarksPage />,
         // errorElement: <ErrorPage />
     },
 

@@ -5,12 +5,13 @@ import { Helmet } from "react-helmet";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { useTheme } from "../context/ThemeContext";
+import clsx from "clsx";
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
 
-export default function UserLayout({ children, pageTitle, tagData, setTagData, hideSidebar = false }) {
+export default function UserLayout({ children, pageTitle, tagData, setTagData, hideSidebar = false, fullWidth = false }) {
 
     const navigate = useNavigate()
     const location = useLocation();
@@ -31,10 +32,10 @@ export default function UserLayout({ children, pageTitle, tagData, setTagData, h
 
             <Header />
 
-            <section className={`max-w-7xl mx-auto w-full py-5`}>
+            <section className={clsx(!fullWidth && 'max-w-7xl py-5' ,'mx-auto w-full min-h-full flex flex-auto flex-col')}>
                 {
                     hideSidebar ?
-                        <div className="w-full">
+                        <div className="w-full flex flex-auto min-h-full flex-col shrink">
                             {children}
                         </div> :
                         <div className="grid md:grid-cols-5 gap-5 w-full h-full grow">

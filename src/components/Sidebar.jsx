@@ -172,9 +172,30 @@ export function ListOfContentSection() {
     return (
         <div className="flex flex-col space-y-[16px]">
             {isPostsLoading ? (
-                <div className="flex items-center justify-center py-10">
-                    <CgSpinner className="text-white text-[48px] animate-spin" />
-                </div>
+                // skeleton
+                <ul
+                    role="list"
+                    className="divide-y divide-gray-100 overflow-hidden bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl"
+                >
+                    {
+                        [1, 2, 3, 4, 5].map((i) => (
+                            <li className="group cursor-pointer col-span-1 divide-y divide-gray-200 bg-white shadow">
+                                <div className="flex w-full items-center justify-between space-x-6 p-6">
+                                    <div className="flex-1 truncate">
+                                        <div className="flex items-center space-x-3">
+                                            <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+                                        </div>
+                                        <div className="mt-1 flex items-center space-x-1">
+                                            <div className="h-4 bg-gray-100 rounded animate-pulse w-1/4"></div>
+                                        </div>
+                                    </div>
+                                    <div className="h-10 w-10 bg-gray-50 rounded-full flex items-center justify-center group-hover:bg-gray-200 transition-all animate-pulse">
+                                    </div>
+                                </div>
+                            </li>
+                        ))
+                    }
+                </ul>
             ) :
                 <ul
                     role="list"
@@ -183,89 +204,91 @@ export function ListOfContentSection() {
                     {userPosts.map((category) => {
                         return (
                             <li key={category.id}>
-                                <Disclosure>
-                                    {({ open }) => (
-                                        /* Use the `open` state to conditionally change the direction of an icon. */
-                                        <>
-                                            <Disclosure.Button
-                                                className="group transition-all w-full text-start relative flex justify-between items-center gap-x-6 px-4 py-5 sm:px-6"
-                                            >
-                                                <div className="flex min-w-0 gap-x-4">
-                                                    <div className="min-w-0 flex-auto">
-                                                        <p className="text-sm font-semibold leading-6 text-gray-900">
-                                                            <span className="absolute inset-x-0 -top-px bottom-0" />
-                                                            {category.title}
-                                                        </p>
-                                                        <p className="mt-1 flex text-xs leading-5 text-gray-500">
-                                                            <span className="relative truncate hover:underline">
-                                                                {category.children.length + 1} Post
-                                                            </span>
-                                                        </p>
+                                <Disclosure defaultOpen={isCategoryOrChildrensActive(category)}>
+                                    {({ open }) => {
+                                        return (
+                                            <>
+                                                <Disclosure.Button
+                                                    className="group transition-all w-full text-start relative flex justify-between items-center gap-x-6 px-4 py-5 sm:px-6"
+                                                >
+                                                    <div className="flex min-w-0 gap-x-4">
+                                                        <div className="min-w-0 flex-auto">
+                                                            <p className="text-sm font-semibold leading-6 text-gray-900">
+                                                                <span className="absolute inset-x-0 -top-px bottom-0" />
+                                                                {category.title}
+                                                            </p>
+                                                            <p className="mt-1 flex text-xs leading-5 text-gray-500">
+                                                                <span className="relative truncate hover:underline">
+                                                                    {category.children.length + 1} Post
+                                                                </span>
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div className="flex shrink-0 items-center gap-x-4">
-                                                    <div className={clsx("group-hover:bg-gray-100 rounded-full transition-all w-7 h-7 flex justify-center items-center", (open ? 'rotate-90 transform' : ''))}>
-                                                        <ChevronRightIcon className={"h-5 w-5 flex-none text-gray-400"} aria-hidden="true" />
+                                                    <div className="flex shrink-0 items-center gap-x-4">
+                                                        <div className={clsx("group-hover:bg-gray-100 rounded-full transition-all w-7 h-7 flex justify-center items-center", (open ? 'rotate-90 transform' : ''))}>
+                                                            <ChevronRightIcon className={"h-5 w-5 flex-none text-gray-400"} aria-hidden="true" />
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </Disclosure.Button>
-                                            <Transition
-                                                enter="transition duration-100 ease-out"
-                                                enterFrom="transform opacity-0"
-                                                enterTo="transform opacity-100"
-                                                leave="transition duration-75 ease-out"
-                                                leaveFrom="transform opacity-100"
-                                                leaveTo="transform opacity-0"
-                                            >
-                                                <Disclosure.Panel static className="relative flex justify-between gap-x-6 bg-gray-50 border-y w-full">
-                                                    <ul
-                                                        role="list"
-                                                        className="divide-y overflow-hidden w-full"
-                                                    >
-                                                        <li
-                                                            className="cursor-pointer py-3 px-5 w-full text-start relative flex justify-between gap-x-6 hover:bg-gray-50"
-                                                            onClick={() => PostChanger(category.slug)}
+                                                </Disclosure.Button>
+                                                <Transition
+                                                    enter="transition duration-100 ease-out"
+                                                    enterFrom="transform opacity-0"
+                                                    enterTo="transform opacity-100"
+                                                    leave="transition duration-75 ease-out"
+                                                    leaveFrom="transform opacity-100"
+                                                    leaveTo="transform opacity-0"
+                                                >
+                                                    <Disclosure.Panel static className="relative flex justify-between gap-x-6 bg-gray-50 border-y w-full">
+                                                        <ul
+                                                            role="list"
+                                                            className="divide-y overflow-hidden w-full"
                                                         >
-                                                            <div className="flex min-w-0 gap-x-4">
-                                                                <div className="min-w-0 flex-auto">
-                                                                    <p className="text-sm font-semibold leading-6 text-gray-900">
-                                                                        <span className="absolute inset-x-0 -top-px bottom-0" />
-                                                                        Introduction
-                                                                    </p>
+                                                            <li
+                                                                className="cursor-pointer py-3 px-5 w-full text-start relative flex justify-between gap-x-6 hover:bg-gray-50"
+                                                                onClick={() => PostChanger(category.slug)}
+                                                            >
+                                                                <div className="flex min-w-0 gap-x-4">
+                                                                    <div className="min-w-0 flex-auto">
+                                                                        <p className="text-sm font-semibold leading-6 text-gray-900">
+                                                                            <span className="absolute inset-x-0 -top-px bottom-0" />
+                                                                            Introduction
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            <div className="flex shrink-0 items-center gap-x-4">
-                                                                <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
-                                                            </div>
-                                                        </li>
-                                                        {
-                                                            category.children.length > 0 && category.children.map((post) => (
-                                                                <li
-                                                                    className="cursor-pointer py-3 px-5 w-full text-start relative flex justify-between gap-x-6 hover:bg-gray-50"
-                                                                    onClick={() => PostChanger(post.slug)}
-                                                                >
-                                                                    <div className="flex min-w-0 gap-x-4">
-                                                                        <div className="min-w-0 flex-auto">
-                                                                            <p
-                                                                                className={clsx(
-                                                                                    "text-sm font-semibold leading-6 text-gray-900",
-                                                                                    singlePost?.id == post.id && 'text-blue-500'
-                                                                                )}>
-                                                                                {post.title}
-                                                                            </p>
+                                                                <div className="flex shrink-0 items-center gap-x-4">
+                                                                    <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
+                                                                </div>
+                                                            </li>
+                                                            {
+                                                                category.children.length > 0 && category.children.map((post) => (
+                                                                    <li
+                                                                        className="cursor-pointer py-3 px-5 w-full text-start relative flex justify-between gap-x-6 hover:bg-gray-50"
+                                                                        onClick={() => PostChanger(post.slug)}
+                                                                    >
+                                                                        <div className="flex min-w-0 gap-x-4">
+                                                                            <div className="min-w-0 flex-auto">
+                                                                                <p
+                                                                                    className={clsx(
+                                                                                        "text-sm font-semibold leading-6 text-gray-900",
+                                                                                        singlePost?.id == post.id && 'text-blue-500'
+                                                                                    )}>
+                                                                                    {post.title}
+                                                                                </p>
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                    <div className="flex shrink-0 items-center gap-x-4">
-                                                                        <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
-                                                                    </div>
-                                                                </li>
-                                                            ))
-                                                        }
-                                                    </ul>
-                                                </Disclosure.Panel>
-                                            </Transition>
-                                        </>
-                                    )}
+                                                                        <div className="flex shrink-0 items-center gap-x-4">
+                                                                            <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
+                                                                        </div>
+                                                                    </li>
+                                                                ))
+                                                            }
+                                                        </ul>
+                                                    </Disclosure.Panel>
+                                                </Transition>
+                                            </>
+                                        )
+                                    }
+                                    }
                                 </Disclosure>
                             </li>
                         )
@@ -799,25 +822,7 @@ export default function Sidebar({ tagData, setTagData }) {
                     </>}
             </div> */}
 
-            {
-                activePage == 'search' && !tagData ? <SearchSection /> : null
-            }
-
-            {
-                activePage == 'dashboard' && !tagData ? <ListOfContentSection /> : null
-            }
-
-            {
-                activePage == 'bookmark' && !tagData ? <BookmarkSection /> : null
-            }
-
-            {
-                activePage == 'decision-report' && !tagData ? <DecisionReportSection /> : null
-            }
-
-            {
-                activePage == 'decision-graph' && !tagData ? <GraphSection /> : null
-            }
+            <ListOfContentSection />
 
         </aside>
     )
