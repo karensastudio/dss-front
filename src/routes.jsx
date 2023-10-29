@@ -17,6 +17,7 @@ import DecisionPdfPage from "./pages/DecisionPdf";
 import SinglePostPage from "./pages/Single";
 import GraphPage from "./pages/Graph";
 import BookmarksPage from "./pages/Bookmarks";
+import SearchResultPage from "./pages/SearchResult";
 
 export const router = createBrowserRouter([
     {
@@ -95,6 +96,13 @@ export const router = createBrowserRouter([
     {
         path: "/bookmarks",
         element: <BookmarksPage />,
+        // errorElement: <ErrorPage />
+    },
+
+    // SearchResultPage
+    {
+        path: "/search",
+        element: <SearchResultPage />,
         // errorElement: <ErrorPage />
     },
 
