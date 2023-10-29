@@ -1,9 +1,14 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useAuthHeader } from "react-auth-kit";
 import { useNavigate } from "react-router-dom";
 import { getDecisionsApi } from "../api/decision";
 import parse from 'html-react-parser';
 import { CgSpinner } from 'react-icons/cg';
+import ToggleComponent from "../components/editor/ToggleComponent";
+import LinkComponent from "../components/editor/LinkComponent";
+import ImageComponent from "../components/editor/ImageComponent";
+import HeadingComponentV2 from "../components/editor/HeadingComponentV2";
+import ParagraphComponent from "../components/editor/ParagraphComponent";
 
 export default function DecisionPdfPage() {
     const [decisions, setDecisions] = useState([]);
@@ -76,15 +81,81 @@ export default function DecisionPdfPage() {
                                 </div>
                             </div>
                             <div className="text-[16px] leading-[24px] text-[#111315]">
-                                {decision?.description && parse(decision?.description)}
+                                {
+                                    JSON.parse(decision.description)?.blocks.map((block) => {
+                                        if (block.type == "paragraph")
+                                            return <ParagraphComponent block={block} />;
+                                        if (block.type == "header")
+                                            return <div key={block.id} className="mb-3">
+                                                <HeadingComponentV2 element={block} />
+                                            </div>;
+                                        if (block.type == "Image")
+                                            return <ImageComponent element={block} />;
+                                        if (block.type == "raw")
+                                            return <div key={block.id} className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
+                                        if (block.type == "linkTool") {
+                                            return <LinkComponent block={block} />;
+                                        }
+                                        if (block.type == "warning")
+                                            return <div key={block.id} className="w-full rounded-[12px] bg-gray-500 bg-opacity-10 text-gray-700 dark:text-white p-4 mb-3">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center space-x-2">
+                                                        <div>
+                                                            <span className="text-[16px] leading-[20px] font-semibold">
+                                                                {block.data.title}
+                                                            </span>
+                                                            <p className="text-[14px]">
+                                                                {block.data.message}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>;
+                                        if (block.type == "list")
+                                            return <div key={block.id} className="w-full rounded-[12px] mb-3">
+                                                <ul className="list-disc list-inside">
+                                                    {block.data.items.map((item) => {
+                                                        return <li key={item}>{item}</li>
+                                                    })}
+                                                </ul>
+                                            </div>;
+                                        if (block.type == "table")
+                                            return <div key={block.id} className="w-full rounded-[12px] mb-3">
+                                                <table className="w-full">
+                                                    <thead>
+                                                        <tr>
+                                                            {block.data.content[0].map((item) => {
+                                                                return <th key={item}>{parse(item)}</th>
+                                                            })}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {block.data.content.slice(1).map((row) => {
+                                                            return <tr key={row[0]}>
+                                                                {row.map((item) => {
+                                                                    return <td key={item}>{parse(item)}</td>
+                                                                })}
+                                                            </tr>
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>;
+                                        if (block.type == "toggle") {
+                                            return <ToggleComponent
+                                                block={block}
+                                            />;
+                                        }
+                                    })
+                                }
+                                {/* {decision?.description && parse(decision?.description)} */}
                             </div>
                             {decision.notes && decision.notes.length > 0 && (
                                 <div className="text-[16px] leading-[24px] text-[#111315]">
                                     {decision.notes.map((note, index) => (
-                                        <React.Fragment key={index}>
+                                        <Fragment key={index}>
                                             <span>{note.message}</span>
                                             {index !== decision.notes.length - 1 && <br />}
-                                        </React.Fragment>
+                                        </Fragment>
                                     ))}
                                 </div>
                             )}
