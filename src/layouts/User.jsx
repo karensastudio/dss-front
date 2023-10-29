@@ -39,10 +39,10 @@ export default function UserLayout({ children, pageTitle, tagData, setTagData, h
                             {children}
                         </div> :
                         <div className="grid md:grid-cols-5 gap-5 w-full h-full grow">
-                            <div className={`min-h-full col-span-2`}>
+                            <div className={`min-h-full col-span-5 md:col-span-2`}>
                                 <Sidebar tagData={tagData} setTagData={setTagData} />
                             </div>
-                            <div className="min-h-full col-span-3">
+                            <div className="min-h-full col-span-5 md:col-span-3">
                                 {children}
                             </div>
                         </div>
