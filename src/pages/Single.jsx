@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
-import { MdMessage, MdContactMail, MdOutlineBookmarkBorder, MdOutlineBookmark, MdOutlineShare } from "react-icons/md";
-import { PiWarningFill } from "react-icons/pi";
+import { FiEdit2 } from "react-icons/fi";
 import { ImSpinner8 } from "react-icons/im";
+import { BsChatDots } from "react-icons/bs";
+import { GoReport } from "react-icons/go";
 import { HiShare, HiBookmark, HiLifebuoy, HiChatBubbleBottomCenterText, HiFolderPlus } from "react-icons/hi2";
 import UserLayout from "../layouts/User";
 import { attachDecisionApi, detachDecisionApi } from "../api/decision";
@@ -24,11 +24,11 @@ import { Disclosure, Transition } from "@headlessui/react";
 import HeadingComponentV2 from "../components/editor/HeadingComponentV2";
 import ImageComponent from "../components/editor/ImageComponent";
 import LinkComponent from "../components/editor/LinkComponent";
-import { BookmarkSlashIcon, ChevronRightIcon, EnvelopeIcon, FolderMinusIcon, FolderPlusIcon, HomeIcon, PhoneIcon } from '@heroicons/react/20/solid'
+import { BookmarkSlashIcon, ChevronRightIcon, EnvelopeIcon, HomeIcon, PhoneIcon } from '@heroicons/react/20/solid'
 import clsx from "clsx";
 import ToggleComponent from "../components/editor/ToggleComponent";
 import ParagraphComponent from "../components/editor/ParagraphComponent";
-import { BookmarkIcon } from "@heroicons/react/24/outline";
+import { BookmarkIcon, FolderMinusIcon, FolderPlusIcon } from "@heroicons/react/24/outline";
 import TableComponent from "../components/editor/TableComponent";
 import { set } from "react-hook-form";
 
@@ -61,6 +61,8 @@ export default function SinglePostPage() {
     const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
     const [singlePostDataJSON, setSinglePostDataJSON] = useState(null);
 
+    console.log(singlePostDataJSON)
+    
     async function PostChanger(slug) {
         setSinglePost(null);
         setSinglePostLoading(true);
@@ -71,7 +73,6 @@ export default function SinglePostPage() {
             if (response.status === 'success') {
                 setSinglePost(response.response.post);
                 let tmpSinglePostDataJSON = JSON.parse(response.response.post.description);
-                console.log(tmpSinglePostDataJSON);
 
                 // set toggle blocks childrens from by item value from next block to children
                 tmpSinglePostDataJSON.blocks.map((block) => {
@@ -229,8 +230,6 @@ export default function SinglePostPage() {
         }
     }, [slug]);
 
-    console.log(singlePost);
-
     return (
         <UserLayout pageTitle={singlePost ? singlePost.title : 'Home Page'} tagData={tag} setTagData={setTag}>
             <ToastContainer
@@ -386,6 +385,24 @@ export default function SinglePostPage() {
                                             </div>
                                         </div>
                                         <div className="flex flex-shrink-0 gap-x-3">
+                                            {
+                                                isAuthenticated() && (
+                                                    <>
+                                                        <Link
+                                                            data-tooltip-id="AdminEditPostButton"
+                                                            data-tooltip-content="Edit Post"
+                                                            data-tooltip-place="top"
+                                                            to={`/posts/update/${singlePost?.id}`}
+                                                            className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                                                        >
+                                                            <FiEdit2 className="h-5 w-5 text-gray-600" aria-hidden="true" />
+                                                        </Link>
+                                                        <Tooltip id="AdminEditPostButton" />
+
+                                                    </>
+                                                )
+                                            }
+
                                             {isAuthenticated() && (
                                                 <button
                                                     type="button"
@@ -414,7 +431,7 @@ export default function SinglePostPage() {
                                                             className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                                                             onClick={() => openChat('note')}
                                                         >
-                                                            <HiChatBubbleBottomCenterText className="h-5 w-5 text-gray-600" aria-hidden="true" />
+                                                            <BsChatDots className="h-5 w-5 text-gray-600" aria-hidden="true" />
                                                         </button>
                                                     </>
                                                 )
@@ -427,7 +444,7 @@ export default function SinglePostPage() {
                                                             className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                                                             onClick={() => openChat('propose')}
                                                         >
-                                                            <HiLifebuoy className="h-5 w-5 text-gray-600" aria-hidden="true" />
+                                                            <GoReport className="h-5 w-5 text-gray-600" aria-hidden="true" />
                                                         </button>
                                                     </>
                                                 )
