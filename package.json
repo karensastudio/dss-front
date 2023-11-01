@@ -41,6 +41,7 @@
     "node-sass": "^9.0.0",
     "react": "^18.2.0",
     "react-auth-kit": "^2.12.5",
+    "react-d3-library": "^1.1.8",
     "react-dom": "^18.2.0",
     "react-editor-js": "^2.1.0",
     "react-force-graph": "^1.43.2",

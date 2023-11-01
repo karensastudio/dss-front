@@ -77,86 +77,67 @@ export default function PostIndexPage() {
         theme="dark"
       />
       <div className="h-screen bg-opacity-0 bg-transparent">
-        <section className={`my-[55px] md:rounded-[12px] max-w-7xl mx-auto px-[16px] md:px-[105px] py-[60px] bg-white shadow border border-white dark:border-neutral-700 text-[#202427] dark:bg-[#202427] dark:text-white`}>
-          <div className="flex flex-col">
-            <div className="flex items-center justify-between mb-3">
-              <h1 className={`text-[24px] font-bold text-[#111315] dark:text-[#F9FAFB] mb-3`}>Posts</h1>
 
-              <Link
-                to={`/posts/create`}
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-full bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700 text-white"
-              >
-                <CgMathPlus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-                Add Post
-              </Link>
+        <section className="max-w-7xl mx-auto my-[50px]">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="sm:flex sm:items-center">
+              <div className="sm:flex-auto">
+                <h1 className="text-lg font-semibold leading-6 text-neutral-900">Posts</h1>
+                <p className="mt-2 text-sm text-gray-700">
+                  A list of all posts for edit and delete.
+                </p>
+              </div>
+              <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                <Link
+                  to={`/posts/create`}
+                  className="flex items-center rounded-full bg-blue-600 px-5 py-2 text-center text-base font-medium text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                >
+                  <CgMathPlus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+
+                  Add Post
+                </Link>
+              </div>
             </div>
-
-            <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-              <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-                <div className="overflow-hidden shadow ring-1 ring-[#111315] ring-opacity-5 md:rounded-lg">
-                  <table className="bg-white dark:bg-opacity-10 min-w-full divide-y divide-gray-900">
-                    <thead className="bg-white bg-opacity-5">
-                      <tr>
-                        <th scope="col" className="py-3.5 pl-4 pr-3 text-start text-sm font-semibold sm:pl-6">
-                          Title
-                        </th>
-                        <th scope="col" className="relative py-3.5 pr-3 pl-4 sm:pl-6">
-                          <span className="sr-only">Action</span>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-900 bg-white bg-opacity-10">
-                      {posts.map((post) => (
-                        <tr key={post.id}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                            <p className="font-medium">{post.title}</p>
-                          </td>
-                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                            <Link to={`/posts/update/${post.id}`} className="text-white dark:text-opacity-70">
-                              Edit <span className="sr-only">, {post.title}</span>
-                            </Link>
-                            <Link className="text-red-500 hover:text-gray-400 ml-3" onClick={() => handleDeleteClick(post.id)}>
-                              Delete <span className="sr-only"></span>
-                            </Link>
-
-                            {showConfirmation && (
-                              <div className="fixed z-10 inset-0 overflow-y-auto">
-                                <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                                  <div className="fixed inset-0 transition-opacity">
-                                    <div className={`absolute inset-0 opacity-75 bg-gray-300 dark:bg-gray-900`}></div>
-                                  </div>
-                                  <span className="hidden sm:inline-block sm:align-middle sm:h-screen"></span>&#8203;
-                                  <div className="inline-block align-bottom bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                                    <div className={`px-4 pt-5 pb-4 sm:p-6 sm:pb-4 bg-gray-100 dark:bg-gray-900`}>
-                                      <h3 className="text-lg leading-6 font-medium">Confirm Deletion</h3>
-                                      <div className="mt-2">
-                                        <p className="text-sm text-gray-400">Are you sure you want to delete this item?</p>
-                                      </div>
-                                    </div>
-                                    <div className={`px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse bg-gray-200 dark:bg-gray-800`}>
-                                      <button
-                                        onClick={handleConfirmDelete}
-                                        className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-                                      >
-                                        Delete
-                                      </button>
-                                      <button
-                                        onClick={handleCancelDelete}
-                                        className={`mt-3 w-full inline-flex justify-center rounded-md border border-gray-600 shadow-sm px-4 py-2 text-base font-medium text-gray-300 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 sm:mt-0 sm:w-auto sm:text-sm`}
-                                      >
-                                        Cancel
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                          </td>
+            <div className="mt-8 flow-root">
+              <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                  <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-300">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                            Title
+                          </th>
+                          <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                            <span className="sr-only">Edit</span>
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 bg-white">
+                        {posts.map((post) => (
+                          <tr key={post.id}>
+                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                              {post.title}
+                            </td>
+                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex items-center justify-end gap-5">
+                              <Link to={`/posts/update/${post.id}`}
+                                className="rounded-full bg-yellow-50 px-5 py-1 text-sm font-medium text-yellow-600 shadow-sm hover:bg-yellow-100"
+                              >
+                                Edit <span className="sr-only">, {post.slug}</span>
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteClick(post.id)}
+                                className="rounded-full bg-red-50 px-4 py-1 text-sm font-medium text-red-600 shadow-sm hover:bg-red-100"
+                              >
+                                Delete <span className="sr-only">, {post.slug}</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>

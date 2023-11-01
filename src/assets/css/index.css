@@ -2,12 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-    background-color: #111315 !important;
-    /* Dark mode background color */
-    color: #ffffff !important;
-    /* Dark mode text color */
-}
 
 .light-mode {
     background-color: #ececec !important;
