@@ -62,11 +62,23 @@ export default function PostCreatePage() {
         const parentResponse = await getUserPostsApi(authHeader());
         const relatedResponse = await getPostsApi(authHeader());
         if (parentResponse.status === "success") {
+          // extract children posts to flat 
           const allParentPosts = [...parentResponse.response.posts];
           const parentOptions = allParentPosts.map((post) => ({
             value: post.id.toString(),
             label: post.title,
           }));
+          // append all children posts to parent options
+          allParentPosts.forEach((post) => {
+            if (post.children.length > 0) {
+              post.children.forEach((child) => {
+                parentOptions.push({
+                  value: child.id.toString(),
+                  label: child.title,
+                });
+              });
+            }
+          });
           setParentOptions(parentOptions);
 
           const allRelatedPosts = [...relatedResponse.response.posts];
