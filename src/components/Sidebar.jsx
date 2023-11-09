@@ -15,92 +15,108 @@ import { SinglePostLoadingState, SinglePostState } from "../states";
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import clsx from "clsx";
 
-export function SearchSection() {
-    const authHeader = useAuthHeader();
-    const [searchValue, setSearchValue] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
-    const [isPostsLoading, setIsPostsLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const navigate = useNavigate();
+export function SingleListDiclosure(props) {
+    const { post, PostChanger } = props;
 
-    const handleSearch = async () => {
-        try {
-            setIsPostsLoading(true);
-            const response = await searchAPI(authHeader(), searchValue);
-            if (response.status === 'success') {
-                setSearchResults(response.response.posts);
-                setError(null);
-                setIsPostsLoading(false);
-            } else {
-                setError(response.message);
-                setSearchResults([]);
-                setIsPostsLoading(false);
-            }
-        } catch (error) {
-            console.error(error);
-            setError('An unexpected error occurred.');
-            setSearchResults([]);
-            setIsPostsLoading(false);
-        }
-    };
-
-    const handleClickOnPost = async (result) => {
-        const resultsWithHighlight = searchResults.map((s) => {
-            return {
-                ...s,
-                highlight: s.id === result.id
-            };
-        });
-        setSearchResults(resultsWithHighlight);
-        navigate(`/posts/${result.slug}`);
-    };
-
-    const handleOnEnterSearch = (e) => {
-        if (e.key == 'Enter') {
-            handleSearch();
-        }
-    }
+    const [singlePost, setSinglePost] = useRecoilState(SinglePostState);
 
     return (
-        <div className="flex flex-col space-y-[16px]">
-
-            <div className="flex py-[32px] items-center justify-between space-x-[16px]">
-                <input
-                    type="search"
-                    placeholder="Search for content"
-                    className="w-full bg-transparent rounded-none focus-within:outline-none text-white py-[15px] text-[20px] border-b-2 border-b-white border-opacity-25 focus:border-opacity-100 leading-[32px] font-medium"
-                    onChange={(e) => setSearchValue(e.target.value)}
-                    onKeyUp={(e) => handleOnEnterSearch(e)}
-                />
-
-                <button type="button" className="ml-auto flex bg-[#0071FF] rounded-full px-[32px] py-[15px] text-white text-[16px] leading-[18px] font-medium" onClick={handleSearch}>
-                    Search
-                </button>
-            </div>
-
-            {error && (
-                <p className="text-red-500">{error}</p>
-            )}
-
-            {
-                isPostsLoading ? (
-                    <div className="flex items-center justify-center py-10">
-                        <CgSpinner className="text-white text-[48px] animate-spin" />
-                    </div>
-                ) :
-                    searchResults?.length > 0 && (
-                        <div className="flex flex-col space-y-[16px]">
-                            {searchResults?.map((result) => (
-                                <div key={result.id} className={`text-[16px] leading-[24px] cursor-pointer ${result.highlight ? 'text-[#0071FF]' : 'text-white'}`}
-                                    onClick={() => handleClickOnPost(result)}
-                                >
-                                    {result.title}
+        <li key={post.id}>
+            <Disclosure>
+                {({ open }) => {
+                    return (
+                        <>
+                            <Disclosure.Button
+                                className="group transition-all w-full text-start relative flex justify-between items-center gap-x-6 px-4 py-5 sm:px-6"
+                            >
+                                <div className="flex min-w-0 gap-x-4">
+                                    <div className="min-w-0 flex-auto">
+                                        <p className="text-sm font-semibold leading-6 text-gray-900">
+                                            <span className="absolute inset-x-0 -top-px bottom-0" />
+                                            {post.title}
+                                        </p>
+                                        <p className="mt-1 flex text-xs leading-5 text-gray-500">
+                                            <span className="relative truncate hover:underline">
+                                                {post.children.length + 1} Post
+                                            </span>
+                                        </p>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-        </div>
-    );
+                                <div className="flex shrink-0 items-center gap-x-4">
+                                    <div className={clsx("group-hover:bg-gray-100 rounded-full transition-all w-7 h-7 flex justify-center items-center", (open ? 'rotate-90 transform' : ''))}>
+                                        <ChevronRightIcon className={"h-5 w-5 flex-none text-gray-400"} aria-hidden="true" />
+                                    </div>
+                                </div>
+                            </Disclosure.Button>
+                            <Transition
+                                enter="transition duration-100 ease-out"
+                                enterFrom="transform opacity-0"
+                                enterTo="transform opacity-100"
+                                leave="transition duration-75 ease-out"
+                                leaveFrom="transform opacity-100"
+                                leaveTo="transform opacity-0"
+                            >
+                                <Disclosure.Panel static className="relative flex justify-between gap-x-6 bg-gray-50 border-y w-full">
+                                    <ul
+                                        role="list"
+                                        className="divide-y overflow-hidden w-full"
+                                    >
+                                        <li
+                                            className="cursor-pointer py-3 px-5 w-full text-start relative flex justify-between gap-x-6 hover:bg-gray-50"
+                                            onClick={() => PostChanger(post.slug)}
+                                        >
+                                            <div className="flex min-w-0 gap-x-4">
+                                                <div className="min-w-0 flex-auto">
+                                                    <p className="text-sm font-semibold leading-6 text-gray-900">
+                                                        <span className="absolute inset-x-0 -top-px bottom-0" />
+                                                        Introduction
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex shrink-0 items-center gap-x-4">
+                                                <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
+                                            </div>
+                                        </li>
+                                        {
+                                            post.children.length > 0 && post.children.map((subPost) => {
+                                                if (subPost.children.length > 0) {
+                                                    return <SingleListDiclosure post={subPost} PostChanger={PostChanger} />
+                                                }
+                                                else {
+                                                    return (
+                                                        <li
+                                                            className="cursor-pointer py-3 px-5 w-full text-start relative flex justify-between gap-x-6 hover:bg-gray-50"
+                                                            onClick={() => PostChanger(subPost.slug)}
+                                                        >
+                                                            <div className="flex min-w-0 gap-x-4">
+                                                                <div className="min-w-0 flex-auto">
+                                                                    <p
+                                                                        className={clsx(
+                                                                            "text-sm font-semibold leading-6 text-gray-900",
+                                                                            singlePost?.id == subPost.id && 'text-blue-500'
+                                                                        )}>
+                                                                        {subPost.title}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex shrink-0 items-center gap-x-4">
+                                                                <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
+                                                            </div>
+                                                        </li>
+                                                    )
+                                                }
+                                            })
+                                        }
+                                    </ul>
+                                </Disclosure.Panel>
+                            </Transition>
+                        </>
+                    )
+                }
+                }
+            </Disclosure>
+        </li>
+    )
 }
 
 export function ListOfContentSection() {
@@ -202,118 +218,7 @@ export function ListOfContentSection() {
                     className="divide-y divide-gray-100 overflow-hidden bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl"
                 >
                     {userPosts.map((category) => {
-                        return (
-                            <li key={category.id}>
-                                <Disclosure defaultOpen={isCategoryOrChildrensActive(category)}>
-                                    {({ open }) => {
-                                        return (
-                                            <>
-                                                <Disclosure.Button
-                                                    className="group transition-all w-full text-start relative flex justify-between items-center gap-x-6 px-4 py-5 sm:px-6"
-                                                >
-                                                    <div className="flex min-w-0 gap-x-4">
-                                                        <div className="min-w-0 flex-auto">
-                                                            <p className="text-sm font-semibold leading-6 text-gray-900">
-                                                                <span className="absolute inset-x-0 -top-px bottom-0" />
-                                                                {category.title}
-                                                            </p>
-                                                            <p className="mt-1 flex text-xs leading-5 text-gray-500">
-                                                                <span className="relative truncate hover:underline">
-                                                                    {category.children.length + 1} Post
-                                                                </span>
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex shrink-0 items-center gap-x-4">
-                                                        <div className={clsx("group-hover:bg-gray-100 rounded-full transition-all w-7 h-7 flex justify-center items-center", (open ? 'rotate-90 transform' : ''))}>
-                                                            <ChevronRightIcon className={"h-5 w-5 flex-none text-gray-400"} aria-hidden="true" />
-                                                        </div>
-                                                    </div>
-                                                </Disclosure.Button>
-                                                <Transition
-                                                    enter="transition duration-100 ease-out"
-                                                    enterFrom="transform opacity-0"
-                                                    enterTo="transform opacity-100"
-                                                    leave="transition duration-75 ease-out"
-                                                    leaveFrom="transform opacity-100"
-                                                    leaveTo="transform opacity-0"
-                                                >
-                                                    <Disclosure.Panel static className="relative flex justify-between gap-x-6 bg-gray-50 border-y w-full">
-                                                        <ul
-                                                            role="list"
-                                                            className="divide-y overflow-hidden w-full"
-                                                        >
-                                                            <li
-                                                                className="cursor-pointer py-3 px-5 w-full text-start relative flex justify-between gap-x-6 hover:bg-gray-50"
-                                                                onClick={() => PostChanger(category.slug)}
-                                                            >
-                                                                <div className="flex min-w-0 gap-x-4">
-                                                                    <div className="min-w-0 flex-auto">
-                                                                        <p className="text-sm font-semibold leading-6 text-gray-900">
-                                                                            <span className="absolute inset-x-0 -top-px bottom-0" />
-                                                                            Introduction
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex shrink-0 items-center gap-x-4">
-                                                                    <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
-                                                                </div>
-                                                            </li>
-                                                            {
-                                                                category.children.length > 0 && category.children.map((post) => (
-                                                                    <li
-                                                                        className="cursor-pointer py-3 px-5 w-full text-start relative flex justify-between gap-x-6 hover:bg-gray-50"
-                                                                        onClick={() => PostChanger(post.slug)}
-                                                                    >
-                                                                        <div className="flex min-w-0 gap-x-4">
-                                                                            <div className="min-w-0 flex-auto">
-                                                                                <p
-                                                                                    className={clsx(
-                                                                                        "text-sm font-semibold leading-6 text-gray-900",
-                                                                                        singlePost?.id == post.id && 'text-blue-500'
-                                                                                    )}>
-                                                                                    {post.title}
-                                                                                </p>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="flex shrink-0 items-center gap-x-4">
-                                                                            <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
-                                                                        </div>
-                                                                    </li>
-                                                                ))
-                                                            }
-                                                        </ul>
-                                                    </Disclosure.Panel>
-                                                </Transition>
-                                            </>
-                                        )
-                                    }
-                                    }
-                                </Disclosure>
-                            </li>
-                        )
-                        return (
-                            <li key={category.id} className="relative flex justify-between gap-x-6 px-4 py-5 hover:bg-gray-50 sm:px-6">
-                                <div className="flex min-w-0 gap-x-4">
-                                    <div className="min-w-0 flex-auto">
-                                        <p className="text-sm font-semibold leading-6 text-gray-900">
-                                            <a href={'#'}>
-                                                <span className="absolute inset-x-0 -top-px bottom-0" />
-                                                {category.title}
-                                            </a>
-                                        </p>
-                                        <p className="mt-1 flex text-xs leading-5 text-gray-500">
-                                            <a href={`#`} className="relative truncate hover:underline">
-                                                {category.children.length + 1} Post
-                                            </a>
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex shrink-0 items-center gap-x-4">
-                                    <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
-                                </div>
-                            </li>
-                        )
+                        return <SingleListDiclosure post={category} PostChanger={PostChanger} key={category.id} />
                     }
                     )}
                 </ul>
@@ -322,406 +227,6 @@ export function ListOfContentSection() {
             {error && (
                 <div className="text-red-500">{error}</div>
             )}
-        </div>
-    );
-}
-
-export function BookmarkSection() {
-    const [bookmarks, setBookmarks] = useState([]);
-    const [error, setError] = useState(null);
-    const [isPostsLoading, setIsPostsLoading] = useState(true);
-    const [highlightedBookmark, setHighlightedBookmark] = useState(null);
-    const authHeader = useAuthHeader();
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const fetchBookmarks = async () => {
-            try {
-                const response = await getBookmarksApi(authHeader());
-                if (response.status === 'success') {
-                    setBookmarks(response.response.posts);
-                    setError(null);
-                    setIsPostsLoading(false);
-                } else {
-                    setError(response.message);
-                    setBookmarks([]);
-                    setIsPostsLoading(false);
-                }
-            } catch (error) {
-                console.error(error);
-                setError('An unexpected error occurred.');
-                setBookmarks([]);
-                setIsPostsLoading(false);
-            }
-        };
-
-        fetchBookmarks();
-    }, []);
-
-    const [singlePost, setSinglePost] = useRecoilState(SinglePostState);
-    const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
-    async function PostChanger(slug) {
-        setSinglePostLoading(true);
-        try {
-            const response = await getPostBySlugApi(authHeader(), slug);
-
-            if (response.status === 'success') {
-                setSinglePost(response.response.post);
-
-                // change url to /posts/:slug
-                navigate(`/posts/${slug}`);
-                setSinglePostLoading(false);
-            } else {
-                console.error(response.message);
-            }
-        } catch (error) {
-            console.error(error.message);
-        } finally {
-            setSinglePostLoading(false);
-        }
-    }
-
-
-    return (
-        <div className="flex flex-col space-y-[8px] mt-[10px]">
-            {isPostsLoading ? (
-                <div className="flex items-center justify-center py-10">
-                    <CgSpinner className="text-white text-[48px] animate-spin" />
-                </div>
-            ) : bookmarks?.map((bookmark) => (
-                <a
-                    key={bookmark.id}
-                    className={`text-[16px] leading-[24px] cursor-pointer flex items-center ${singlePost?.id === bookmark.id
-                        ? 'text-[#0071FF]'
-                        : 'text-[#111315] dark:text-white'
-                        }`}
-                    onClick={() => PostChanger(bookmark.slug)}
-                >
-                    <BsBookmarkFill className="mr-[10px]" />
-                    <span>{bookmark.title}</span>
-                </a>
-            ))}
-
-            {error && <div className="text-red-500">{error}</div>}
-        </div>
-    );
-}
-
-export function DecisionReportSection() {
-    const [decisions, setDecisions] = useState([]);
-    const [error, setError] = useState(null);
-    const [isPostsLoading, setIsPostsLoading] = useState(true);
-    const navigate = useNavigate();
-    const authHeader = useAuthHeader();
-
-    const [singlePost, setSinglePost] = useRecoilState(SinglePostState);
-    const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
-    async function PostChanger(slug) {
-        setSinglePostLoading(true);
-        try {
-            const response = await getPostBySlugApi(authHeader(), slug);
-
-            if (response.status === 'success') {
-                setSinglePost(response.response.post);
-
-                // change url to /posts/:slug
-                navigate(`/posts/${slug}`);
-                setSinglePostLoading(false);
-            } else {
-                console.error(response.message);
-            }
-        } catch (error) {
-            console.error(error.message);
-        } finally {
-            setSinglePostLoading(false);
-        }
-    }
-
-    useEffect(() => {
-        const fetchDecisions = async () => {
-            try {
-                const response = await getDecisionsApi(authHeader());
-                if (response.status === 'success') {
-                    setDecisions(response.response.posts);
-                    setError(null);
-                    setIsPostsLoading(false);
-                } else {
-                    setError(response.message);
-                    setDecisions([]);
-                    setIsPostsLoading(false);
-                }
-            } catch (error) {
-                console.error(error);
-                setError('An unexpected error occurred.');
-                setDecisions([]);
-                setIsPostsLoading(false);
-            }
-        };
-
-        fetchDecisions();
-    }, []);
-
-    return (
-        <div className="flex flex-col mt-[10px]">
-            <div className={`flex flex-col space-y-[16px] mb-[48px] text-[#111315] dark:text-white`}>
-                {isPostsLoading ? (
-                    <div className="flex items-center justify-center py-10">
-                        <CgSpinner className="text-[48px] animate-spin" />
-                    </div>
-                ) : decisions.map((decision) => (
-                    <span
-                        key={decision.id}
-                        className={`text-[16px] leading-[24px] cursor-pointer ${singlePost?.id === decision.id ? 'text-[#0071FF]' : 'text-[#111315] dark:text-white'}`}
-                        onClick={() => PostChanger(decision.slug)}
-                    >
-                        {decision.title}
-                    </span>
-                ))}
-            </div>
-
-            {
-                (decisions && decisions.length > 0) && (
-                    <span className="flex w-fit bg-[#0071FF] rounded-full px-[32px] py-[15px] text-[16px] leading-[18px] font-medium cursor-pointer"
-                        onClick={() => { navigate('/decision/pdf') }}>
-                        Generate Decision Report
-                    </span>
-                )
-            }
-
-            {error && (
-                <div className="text-red-500">{error}</div>
-            )}
-        </div>
-    )
-}
-
-export function GraphSection() {
-    const { isLightMode } = useTheme();
-    const svgRef = useRef(null);
-    const [data, setData] = useState([]);
-    const simulationRef = useRef(null);
-    const [isDragging, setIsDragging] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [singlePost, setSinglePost] = useRecoilState(SinglePostState);
-    const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
-    const authHeader = useAuthHeader();
-    const navigate = useNavigate();
-
-    const fetchDecisions = async () => {
-        try {
-            const response = await getUserGraphApi(authHeader());
-            if (response.status === 'success' && response.response.posts) {
-                setData(response.response.posts);
-                setError(null);
-            } else {
-                setError('No valid data received from API');
-            }
-        } catch (error) {
-            console.error(error);
-            setError('An unexpected error occurred.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    async function PostChanger(node) {
-        setSinglePostLoading(true);
-        try {
-            const response = await getPostBySlugApi(authHeader(), node.target.__data__.slug);
-
-            if (response.status === 'success') {
-                setSinglePost(response.response.post);
-                navigate(`/posts/${node.target.__data__.slug}`);
-                setSinglePostLoading(false);
-            } else {
-                console.error(response.message);
-            }
-        } catch (error) {
-            console.error(error.message);
-        } finally {
-            setSinglePostLoading(false);
-        }
-    }
-
-    const dragstarted = (event, d) => {
-        if (!event.active) simulationRef.current.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
-        setIsDragging(true);
-    }
-
-    const dragged = (event, d) => {
-        d.fx = event.x;
-        d.fy = event.y;
-    }
-
-    const dragended = (event, d) => {
-        if (!event.active) simulationRef.current.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
-        setIsDragging(false);
-    }
-
-    useEffect(() => {
-        fetchDecisions();
-    }, []);
-
-    useEffect(() => {
-        if (!data || data.length === 0) {
-            return;
-        }
-
-        const width = 800;
-        const height = 700;
-        const radius = Math.min(width, height) / 2;
-
-        const svg = d3.select(svgRef.current);
-
-        const flattenData = (data) => {
-            const nodes = [];
-            const links = [];
-
-            const nodePather = (node) => {
-                nodes.push(node);
-            };
-
-            const linksPather = (node) => {
-                if (node.related) {
-                    node.related.forEach((child) => {
-                        if (links.find((link) => link.source === node.id && link.target === child.id)) {
-                            return;
-                        }
-                        if (links.find((link) => link.source === child.id && link.target === node.id)) {
-                            return;
-                        }
-                        links.push({ source: node.id, target: child.id });
-                    });
-                }
-                if (node.children) {
-                    node.children.forEach((child) => {
-                        if (links.find((link) => link.source === node.id && link.target === child.id)) {
-                            return;
-                        }
-                        if (links.find((link) => link.source === child.id && link.target === node.id)) {
-                            return;
-                        }
-                        links.push({ source: node.id, target: child.id });
-                    })
-                }
-            };
-
-            data.forEach((rootNode) => nodePather(rootNode));
-            data.forEach((rootNode) => linksPather(rootNode));
-
-            return { nodes, links };
-        };
-
-        const { nodes, links } = flattenData(data);
-
-        const centerX = width / 2;
-        const centerY = height / 2;
-
-        const angleToCoordinate = (angle, radius) => ({
-            x: centerX + radius * Math.cos(angle),
-            y: centerY + radius * Math.sin(angle),
-        });
-
-        const numNodes = nodes.length;
-
-        const anglePerNode = (2 * Math.PI) / numNodes;
-
-        nodes.forEach((node, index) => {
-            const angle = index * anglePerNode;
-
-            const { x, y } = angleToCoordinate(angle, radius);
-
-            node.x = x;
-            node.y = y;
-        });
-
-        console.log(links);
-
-        const simulation = d3
-            .forceSimulation(nodes)
-            .force('link', d3.forceLink(links).id((d) => d.id).distance(10).strength(1))
-            .force('charge', d3.forceManyBody().strength(-1000))
-            .force('x', d3.forceX(width / 2))
-            .force('y', d3.forceY(height / 2));
-
-        simulationRef.current = simulation;
-
-        const link = svg
-            .selectAll('line')
-            .data(links)
-            .enter()
-            .append('line')
-            .attr('stroke', (isLightMode ? 'black' : 'white'))
-            .attr('stroke-opacity', 0.3)
-            .attr('stroke-width', 1);
-
-        const nodeGroup = svg
-            .selectAll('g.node')
-            .data(nodes)
-            .enter()
-            .append('g')
-            .attr('class', 'node cursor-pointer')
-            .on('click', (d) => PostChanger(d))
-            .call(d3.drag()
-                .on('start', dragstarted)
-                .on('drag', dragged)
-                .on('end', dragended)
-            );
-
-        nodeGroup
-            .append('circle')
-            .attr('r', 10)
-            .attr('fill', (d) => {
-                if (isLightMode) {
-                    return d.is_decision ? '#4070FB' : '#9ca3af';
-                } else {
-                    return d.is_decision ? '#4070FB' : '#9ca3af';
-                }
-            });
-
-        nodeGroup
-            .append('text')
-            .attr('dy', '-2em')
-            .attr('text-anchor', 'middle')
-            .attr('fill', (isLightMode ? 'black' : 'white'))
-            .attr('class', 'node-text')
-            .text((d) => d.title);
-
-        function ticked() {
-            if (!isDragging) {
-                link
-                    .attr('x1', (d) => d.source.x)
-                    .attr('y1', (d) => d.source.y)
-                    .attr('x2', (d) => d.target.x)
-                    .attr('y2', (d) => d.target.y);
-
-                nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
-            }
-        }
-
-        simulation.on('tick', ticked);
-
-        return () => {
-            simulation.stop();
-        };
-    }, [data, isLightMode]);
-
-    if (isLoading) {
-        return <p>Loading...</p>;
-    }
-
-    if (error) {
-        return <p>Error: {error}</p>;
-    }
-
-    return (
-        <div className="rounded-[12px] bg-white dark:bg-transparent">
-            <svg ref={svgRef} width="100%" height="730" />
         </div>
     );
 }
