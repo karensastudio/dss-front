@@ -11,8 +11,10 @@ function convertToSlug(Text) {
 export default function LinkComponent(props) {
     const { block } = props;
 
+    console.log(block);
+
     if (block.data.meta.type == "internal") {
-        return <Link key={block.id} to={`/posts/${convertToSlug(block.data.meta.title)}`} className="mb-3 flex shadow-sm border border-l-4 border-l-blue-500 rounded-[12px] bg-blue-50 items-center justify-start p-5">
+        return <Link key={block.id} to={`/posts/${block.data.link.replace("https://dss-v2.netlify.app/posts/", "")}`} className="mb-3 flex shadow-sm border border-l-4 border-l-blue-500 rounded-[12px] bg-blue-50 items-center justify-start p-5">
             <div className="w-full text-neutral-900 flex items-center justify-between">
                 <div>
                     <p className='font-bold'>
