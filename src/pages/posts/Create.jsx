@@ -28,8 +28,11 @@ import { APIUploadFile } from "../../api/uploader";
 import { getUserPostsApi } from "../../api/userPost";
 import { useTheme } from "../../context/ThemeContext";
 import { useNavigate } from "react-router";
+import { usePermify } from '@permify/react-role';
 
 export default function PostCreatePage() {
+  const { isAuthorized, isLoading } = usePermify();
+
   const { isLightMode } = useTheme();
   const navigate = useNavigate();
   const { getValues, register, handleSubmit, formState: { errors } } = useForm()
@@ -46,6 +49,10 @@ export default function PostCreatePage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!await isAuthorized(["admin", "super-admin"], [])) {
+        navigate('/')
+      };
+      
       try {
         const tagResponse = await getTagsApi(authHeader());
         if (tagResponse.status === "success") {
