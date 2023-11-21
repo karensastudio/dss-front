@@ -34,7 +34,7 @@ export default function LoginPage() {
         if (response.status === 'success') {
             console.log(response.response.user.roles);
             setUser({
-                id: response.response.user.id,
+                id: response.response.user.email,
                 roles: response.response.user.roles.map(role => role.name),
                 permissions: response.response.user.roles.map(role => role.name)
             });

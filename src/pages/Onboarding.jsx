@@ -82,7 +82,7 @@ export default function OnboardingPage() {
             });
 
             if (response.status == 'success') {
-                navigate('/dashboard')
+                navigate('/')
             }
             else {
                 toast.error(response.message)

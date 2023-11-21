@@ -6,14 +6,22 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { registerAPI } from "../api/auth";
 import { useTheme } from "../context/ThemeContext";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useSignIn } from "react-auth-kit";
+import { usePermify } from "@permify/react-role";
 
 
 export default function RegisterPage() {
     const { getValues, register, handleSubmit, formState: { errors } } = useForm()
 
+    const navigate = useNavigate();
+    const signIn = useSignIn();
+    const { setUser } = usePermify();
+
     async function onSubmit(data) {
         // call register api function 
-        const repsponse = await registerAPI({
+        const response = await registerAPI({
             first_name: data['first-name'],
             last_name: data['last-name'],
             email: data['email'],
@@ -21,7 +29,26 @@ export default function RegisterPage() {
             project: data['project-name']
         })
 
-        console.log(repsponse)
+        console.log(response);
+        if (response.status === 'success') {
+            setUser({
+                id: response.response.user.email,
+                roles: response.response.user.roles.map(role => role.name),
+                permissions: response.response.user.roles.map(role => role.name)
+            });
+
+            signIn({
+                token: response.response.token,
+                expiresIn: 131400,
+                tokenType: "Bearer",
+                authState: response.response.user
+            });
+
+            navigate('/onboarding');
+        } else {
+            toast.error(response.message);
+        }
+
         
     }
 

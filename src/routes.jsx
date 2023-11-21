@@ -72,7 +72,8 @@ export const router = createBrowserRouter([
     // Tags Admin
     {
         path: "/tags",
-        element: <TagIndexPage />,
+        element: 
+        <TagIndexPage />,
         // errorElement: <ErrorPage />
     },
     {

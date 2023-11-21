@@ -3,17 +3,22 @@ import { Helmet } from "react-helmet";
 import Header from "../../components/Header";
 import { ToastContainer, toast } from "react-toastify";
 import { useAuthHeader } from "react-auth-kit";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { CgMathPlus } from "react-icons/cg";
 import { getUserPostsApi } from "../../api/userPost";
 import { deletePostApi, getPostsApi } from "../../api/post";
 import { useTheme } from "../../context/ThemeContext";
+import { usePermify } from "@permify/react-role";
 
 export default function PostIndexPage() {
+  const { isAuthorized, isLoading } = usePermify();
+
   const authHeader = useAuthHeader();
   const [posts, setPosts] = useState([]);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [postIdToDelete, setPostIdToDelete] = useState(null);
+
+  const navigate = useNavigate();
 
   const handleDeleteClick = (postId) => {
     setPostIdToDelete(postId);
@@ -44,6 +49,10 @@ export default function PostIndexPage() {
 
 
   const fetchPostsData = async () => {
+    if (!await isAuthorized(["admin", "super-admin"], [])) {
+      navigate('/')
+    };
+
     try {
       const response = await getPostsApi(authHeader());
       if (response.status === "success") {

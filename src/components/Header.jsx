@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useAuthHeader, useIsAuthenticated, useSignOut } from "react-auth-kit";
 import { logoutAPI } from "../api/auth";
-import { HasAccess } from "@permify/react-role";
+import { HasAccess, usePermify } from "@permify/react-role";
 import ToggleThemeSwitch from "./ToggleThemeSwitch";
 import { useTheme } from "../context/ThemeContext";
 import { Disclosure, Menu, Popover, Transition } from '@headlessui/react'
@@ -36,6 +36,7 @@ export default function Header() {
     const isAuthenticated = useIsAuthenticated()
     const authHeader = useAuthHeader();
     const signOut = useSignOut();
+    const { setUser } = usePermify();
 
     const handleLogout = async () => {
 
@@ -43,6 +44,7 @@ export default function Header() {
 
         if (response.status === 'success') {
             signOut();
+            setUser(null);
             navigate('/login');
         } else {
             signOut();
@@ -108,60 +110,64 @@ export default function Header() {
                                             >
                                                 Decisions
                                             </Link>
-                                            <Popover className="relative">
-                                                {({ open }) => (
-                                                    <>
-                                                        <Popover.Button
-                                                            className={clsx(
-                                                                "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium",
-                                                                "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
-                                                            )}
-                                                        >
-                                                            <span className="py-5">Admin Panel</span>
-                                                            <ChevronDownIcon
-                                                                className={`${open ? 'text-blue-300' : 'text-blue-300/70'}
+                                            <HasAccess
+                                                roles={["admin", "super-admin"]}
+                                            >
+                                                <Popover className="relative">
+                                                    {({ open }) => (
+                                                        <>
+                                                            <Popover.Button
+                                                                className={clsx(
+                                                                    "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium",
+                                                                    "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                                                                )}
+                                                            >
+                                                                <span className="py-5">Admin Panel</span>
+                                                                <ChevronDownIcon
+                                                                    className={`${open ? 'text-blue-300' : 'text-blue-300/70'}
                   ml-2 h-5 w-5 transition duration-150 ease-in-out group-hover:text-blue-300/80`}
-                                                                aria-hidden="true"
-                                                            />
-                                                        </Popover.Button>
-                                                        <Transition
-                                                            as={Fragment}
-                                                            enter="transition ease-out duration-200"
-                                                            enterFrom="opacity-0 translate-y-1"
-                                                            enterTo="opacity-100 translate-y-0"
-                                                            leave="transition ease-in duration-150"
-                                                            leaveFrom="opacity-100 translate-y-0"
-                                                            leaveTo="opacity-0 translate-y-1"
-                                                        >
-                                                            <Popover.Panel className="absolute left-1/2 z-10 mt-3 w-screen max-w-sm -translate-x-1/2 transform px-4 sm:px-0">
-                                                                <div className="overflow-hidden rounded-lg shadow-lg ring-1 ring-black/5">
-                                                                    <div className="relative flex flex-col gap-8 bg-white p-7">
-                                                                        {solutions.map((item) => (
-                                                                            <a
-                                                                                key={item.name}
-                                                                                href={item.href}
-                                                                                className="-m-3 flex items-center rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50"
-                                                                            >
-                                                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center text-blue-600 text-opacity-50 sm:h-12 sm:w-12">
-                                                                                    <item.icon aria-hidden="true" />
-                                                                                </div>
-                                                                                <div className="ml-4">
-                                                                                    <p className="text-sm font-medium text-gray-900">
-                                                                                        {item.name}
-                                                                                    </p>
-                                                                                    <p className="text-sm text-gray-500">
-                                                                                        {item.description}
-                                                                                    </p>
-                                                                                </div>
-                                                                            </a>
-                                                                        ))}
+                                                                    aria-hidden="true"
+                                                                />
+                                                            </Popover.Button>
+                                                            <Transition
+                                                                as={Fragment}
+                                                                enter="transition ease-out duration-200"
+                                                                enterFrom="opacity-0 translate-y-1"
+                                                                enterTo="opacity-100 translate-y-0"
+                                                                leave="transition ease-in duration-150"
+                                                                leaveFrom="opacity-100 translate-y-0"
+                                                                leaveTo="opacity-0 translate-y-1"
+                                                            >
+                                                                <Popover.Panel className="absolute left-1/2 z-10 mt-3 w-screen max-w-sm -translate-x-1/2 transform px-4 sm:px-0">
+                                                                    <div className="overflow-hidden rounded-lg shadow-lg ring-1 ring-black/5">
+                                                                        <div className="relative flex flex-col gap-8 bg-white p-7">
+                                                                            {solutions.map((item) => (
+                                                                                <a
+                                                                                    key={item.name}
+                                                                                    href={item.href}
+                                                                                    className="-m-3 flex items-center rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-orange-500/50"
+                                                                                >
+                                                                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center text-blue-600 text-opacity-50 sm:h-12 sm:w-12">
+                                                                                        <item.icon aria-hidden="true" />
+                                                                                    </div>
+                                                                                    <div className="ml-4">
+                                                                                        <p className="text-sm font-medium text-gray-900">
+                                                                                            {item.name}
+                                                                                        </p>
+                                                                                        <p className="text-sm text-gray-500">
+                                                                                            {item.description}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                </a>
+                                                                            ))}
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            </Popover.Panel>
-                                                        </Transition>
-                                                    </>
-                                                )}
-                                            </Popover>
+                                                                </Popover.Panel>
+                                                            </Transition>
+                                                        </>
+                                                    )}
+                                                </Popover>
+                                            </HasAccess>
                                         </>
                                     }
 

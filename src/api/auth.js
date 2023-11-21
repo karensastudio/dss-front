@@ -23,7 +23,7 @@ export const registerAPI = async (request) => {
                 status: 'success',
                 variant: 'default',
                 message: response.data.message,
-                response: response
+                response: response?.data
             }
         }
         else {
