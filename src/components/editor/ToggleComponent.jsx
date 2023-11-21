@@ -3,10 +3,11 @@ import parse from 'html-react-parser';
 import { BsChevronRight } from 'react-icons/bs';
 import LinkComponent from './LinkComponent';
 import { useEffect, useState } from 'react';
-import HeadingComponent from './headingComponent';
+import HeadingComponentV2 from './HeadingComponentV2';
 import ImageComponent from './ImageComponent';
 import { PiWarningFill } from "react-icons/pi";
 import ParagraphComponent from './ParagraphComponent';
+import clsx from 'clsx';
 
 export default function ToggleComponent(props) {
     const { block } = props;
@@ -14,11 +15,14 @@ export default function ToggleComponent(props) {
     return (<Disclosure>
         {({ open }) => (
             /* Use the `open` state to conditionally change the direction of an icon. */
-            <div className="border border-white border-opacity-25 rounded-[12px] mb-3">
-                <Disclosure.Button className="flex items-center justify-between text-black dark:text-white bg-black bg-opacity-10 dark:bg-white dark:bg-opacity-10 text-start px-3 py-5 rounded-[12px] w-full">
+            <div className="border rounded-xl mb-3">
+                <Disclosure.Button className={clsx(
+                    "flex items-center justify-between text-black dark:text-white bg-gray-100 dark:bg-white dark:bg-opacity-10 text-start p-5 rounded-t-xl w-full font-medium",
+                    open ? "border-b" : "rounded-b-xl"
+                )}>
                     {parse(block.data.text)}
 
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-500 text-white dark:text-gray-200">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full text-black dark:text-gray-200">
                         <BsChevronRight className={`text-[16px] ${open ? 'rotate-90' : 'rotate-0'}`} />
                     </div>
                 </Disclosure.Button>
@@ -30,14 +34,14 @@ export default function ToggleComponent(props) {
                     leaveFrom="transform scale-100 opacity-100"
                     leaveTo="transform scale-95 opacity-0"
                 >
-                    <Disclosure.Panel className="text-black dark:text-white text-opacity-70 px-3 py-5">
+                    <Disclosure.Panel className="text-black dark:text-white text-opacity-70 p-5">
                         {/* parse next blocks by block.data.items count as child of this block */}
 
                         {block.data.children && block.data.children.map((subBlock) => {
                             if (subBlock.type == "paragraph")
                                 return <ParagraphComponent block={subBlock} />;
                             if (subBlock.type == "header")
-                                return <HeadingComponent attributes={subBlock.attributes} element={subBlock} children={subBlock.children} />;
+                                return <HeadingComponentV2 attributes={subBlock.attributes} element={subBlock} children={subBlock.children} />;
                             if (subBlock.type == "Image")
                                 return <ImageComponent element={subBlock} />;
                             if (subBlock.type == "raw")
@@ -75,14 +79,14 @@ export default function ToggleComponent(props) {
                                 return <div key={subBlock.id} className="w-full rounded-[12px] mb-3">
                                     <ul className="list-disc list-inside">
                                         {subBlock.data.items.map((item) => {
-                                            return <li key={item}>{item}</li>
+                                            return <li key={item}>{parse(item)}</li>
                                         })}
                                     </ul>
                                 </div>;
                             if (subBlock.type == "quote")
                                 return <div key={subBlock.id} className="w-full rounded-[12px] mb-3">
                                     <blockquote className="text-[14px] text-opacity-60">
-                                        {subBlock.data.text}
+                                        {parse(subBlock.data.text)}
                                     </blockquote>
                                 </div>;
                             if (subBlock.type == "table")
@@ -91,7 +95,7 @@ export default function ToggleComponent(props) {
                                         <thead>
                                             <tr>
                                                 {subBlock.data.content[0].map((item) => {
-                                                    return <th key={item}>{item}</th>
+                                                    return <th key={item}>{parse(item)}</th>
                                                 })}
                                             </tr>
                                         </thead>
@@ -99,7 +103,7 @@ export default function ToggleComponent(props) {
                                             {subBlock.data.content.slice(1).map((row) => {
                                                 return <tr key={row[0]}>
                                                     {row.map((item) => {
-                                                        return <td key={item}>{item}</td>
+                                                        return <td key={item}>{parse(item)}</td>
                                                     })}
                                                 </tr>
                                             })}

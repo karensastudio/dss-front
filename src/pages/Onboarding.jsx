@@ -7,7 +7,7 @@ import { useAuthHeader } from "react-auth-kit";
 import { useNavigate } from "react-router-dom";
 import { OnboardAPI } from "../api/onboarding";
 import { ToastContainer, toast } from "react-toastify";
-import { CgSpinner } from "react-icons/cg";
+import { CgChevronRight, CgSpinner } from "react-icons/cg";
 
 const Questions = [
     {
@@ -113,15 +113,15 @@ export default function OnboardingPage() {
                 theme="dark"
             />
 
-            <section className="relative my-[55px] bg-[#202427] md:rounded-[12px] max-w-4xl mx-auto px-[16px] md:px-[105px] py-[60px]">
+            <section className="relative my-[55px] bg-white border shadow md:rounded-[12px] max-w-4xl mx-auto px-[16px] md:px-[105px] py-[60px]">
                 {
                     submitButtonStatus == 'loading' && (
-                        <div className="absolute w-full h-full left-0 top-0 bg-black bg-opacity-30 backdrop-blur-md flex items-center justify-center">
+                        <div className="absolute w-full h-full left-0 top-0 bg-black bg-opacity-30 rounded-[12px] backdrop-blur-md flex items-center justify-center">
                             <CgSpinner color="white" className="animate-spin text-[48px]" />
                         </div>
                     )
                 }
-                <h2 className="text-white text-[24px] leading-[29px] font-medium mb-[60px]">{Questions[step].title}</h2>
+                <h2 className="text-neutral-900 text-[24px] leading-[29px] font-medium mb-[60px]">{Questions[step].title}</h2>
 
                 <div className="flex flex-col gap-y-[16px]">
                     {
@@ -129,8 +129,10 @@ export default function OnboardingPage() {
                             <div
                                 key={index}
                                 onClick={() => handleSelectAnswer(choice.value)}
-                                className="cursor-pointer p-[28px] bg-[#0071FF] rounded-[12px] text-white text-[16px] font-normal">
+                                className="cursor-pointer p-[28px] bg-neutral-50 rounded-[12px] text-neutral-900 border text-[16px] font-medium flex items-center justify-between">
                                 {choice.label}
+
+                                <CgChevronRight className="text-[24px]" />
                             </div>
                         ))
                     }

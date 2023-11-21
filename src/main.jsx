@@ -8,6 +8,8 @@ import "./assets/css/index.css";
 
 import 'react-toastify/dist/ReactToastify.css';
 
+import 'react-tooltip/dist/react-tooltip.css'
+
 import { AuthProvider } from "react-auth-kit";
 import { router } from "./routes";
 import { RecoilRoot } from "recoil";

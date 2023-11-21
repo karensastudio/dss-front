@@ -7,7 +7,7 @@ import { CgSpinner } from 'react-icons/cg';
 import ToggleComponent from "../components/editor/ToggleComponent";
 import LinkComponent from "../components/editor/LinkComponent";
 import ImageComponent from "../components/editor/ImageComponent";
-import HeadingComponent from "../components/editor/headingComponent";
+import HeadingComponentV2 from "../components/editor/HeadingComponentV2";
 import ParagraphComponent from "../components/editor/ParagraphComponent";
 
 export default function DecisionPdfPage() {
@@ -56,7 +56,7 @@ export default function DecisionPdfPage() {
     }, [decisions]);
 
     return (
-        <div className="bg-white min-h-screen max-w-5xl mx-auto border-black border-[2px] rounded-lg">
+        <div className="bg-white aspect-1/1.4 max-w-5xl mx-auto border-black border-[2px] rounded-lg">
             <div className="mx-3 mt-3 rounded-xl print:bg-black print:bg-opacity-25 bg-black bg-opacity-25 px-5 py-3 flex items-center justify-between">
                 <h1 className="text-black text-2xl font-black tracking-widest">DSS</h1>
 
@@ -87,7 +87,7 @@ export default function DecisionPdfPage() {
                                             return <ParagraphComponent block={block} />;
                                         if (block.type == "header")
                                             return <div key={block.id} className="mb-3">
-                                                <HeadingComponent element={block} />
+                                                <HeadingComponentV2 element={block} />
                                             </div>;
                                         if (block.type == "Image")
                                             return <ImageComponent element={block} />;

@@ -2,12 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-    background-color: #111315 !important;
-    /* Dark mode background color */
-    color: #ffffff !important;
-    /* Dark mode text color */
-}
 
 .light-mode {
     background-color: #ececec !important;
@@ -80,6 +74,10 @@ body.light-mode {
 }
 
 /* Start Text Editor Styles */
+
+.text-editor a {
+    @apply underline text-blue-600;
+}
 
 .text-editor a.consideration {
     @apply text-white py-[16px] px-[25px] bg-[#0071FF] rounded-[12px] my-[8px] w-full block;

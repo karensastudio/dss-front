@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
-import { MdMessage, MdContactMail, MdOutlineBookmarkBorder, MdOutlineBookmark, MdOutlineShare } from "react-icons/md";
-import { PiWarningFill } from "react-icons/pi";
+import { FiEdit2 } from "react-icons/fi";
+import { ImSpinner8 } from "react-icons/im";
+import { BsChatDots } from "react-icons/bs";
+import { GoReport } from "react-icons/go";
+import { HiShare, HiBookmark, HiLifebuoy, HiChatBubbleBottomCenterText, HiFolderPlus } from "react-icons/hi2";
 import UserLayout from "../layouts/User";
 import { attachDecisionApi, detachDecisionApi } from "../api/decision";
 import { attachBookmarkApi, detachBookmarkApi } from "../api/bookmark";
@@ -19,11 +21,21 @@ import { getUserTagByIdApi } from "../api/tag";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { SinglePostLoadingState, SinglePostState } from "../states";
 import { Disclosure, Transition } from "@headlessui/react";
-import HeadingComponent from "../components/editor/headingComponent";
+import HeadingComponentV2 from "../components/editor/HeadingComponentV2";
 import ImageComponent from "../components/editor/ImageComponent";
 import LinkComponent from "../components/editor/LinkComponent";
-import ParagraphComponent from "../components/editor/ParagraphComponent";
+import { BookmarkSlashIcon, ChevronRightIcon, EnvelopeIcon, HomeIcon, PhoneIcon } from '@heroicons/react/20/solid'
+import clsx from "clsx";
 import ToggleComponent from "../components/editor/ToggleComponent";
+import ParagraphComponent from "../components/editor/ParagraphComponent";
+import { BookmarkIcon, FolderMinusIcon, FolderPlusIcon } from "@heroicons/react/24/outline";
+import TableComponent from "../components/editor/TableComponent";
+import { set } from "react-hook-form";
+
+const pages = [
+    { name: 'Projects', href: '#', current: false },
+    { name: 'Project Nero', href: '#', current: true },
+]
 
 export default function SinglePostPage() {
     const location = useLocation();
@@ -49,6 +61,8 @@ export default function SinglePostPage() {
     const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
     const [singlePostDataJSON, setSinglePostDataJSON] = useState(null);
 
+    console.log(singlePostDataJSON)
+    
     async function PostChanger(slug) {
         setSinglePost(null);
         setSinglePostLoading(true);
@@ -59,7 +73,6 @@ export default function SinglePostPage() {
             if (response.status === 'success') {
                 setSinglePost(response.response.post);
                 let tmpSinglePostDataJSON = JSON.parse(response.response.post.description);
-                console.log(tmpSinglePostDataJSON);
 
                 // set toggle blocks childrens from by item value from next block to children
                 tmpSinglePostDataJSON.blocks.map((block) => {
@@ -137,11 +150,15 @@ export default function SinglePostPage() {
         try {
             setIsBookmarkLoading(true);
             if (singlePost.is_bookmark) {
-                await detachBookmarkApi(authHeader(), singlePost.id).then(() => { PostChanger(singlePost.slug); });
+                await detachBookmarkApi(authHeader(), singlePost.id).then(() => {
+                    setSinglePost({ ...singlePost, is_bookmark: false });
+                });
                 setIsBookmarked(false);
                 toast.success("Bookmark removed");
             } else {
-                await attachBookmarkApi(authHeader(), singlePost.id).then(() => { PostChanger(singlePost.slug); });
+                await attachBookmarkApi(authHeader(), singlePost.id).then(() => {
+                    setSinglePost({ ...singlePost, is_bookmark: true });
+                });
                 setIsBookmarked(true);
                 toast.success("Bookmark added");
             }
@@ -156,12 +173,16 @@ export default function SinglePostPage() {
         try {
             setIsDecisionLoading(true)
             if (singlePost.is_decision) {
-                await detachDecisionApi(authHeader(), singlePost.id).then(() => { PostChanger(singlePost.slug); });
+                await detachDecisionApi(authHeader(), singlePost.id).then(() => {
+                    setSinglePost({ ...singlePost, is_decision: false });
+                });
                 setIsDecision(false);
                 setIsDecisionLoading(false);
                 toast.success("Decision removed");
             } else {
-                await attachDecisionApi(authHeader(), singlePost.id).then(() => { PostChanger(singlePost.slug); });
+                await attachDecisionApi(authHeader(), singlePost.id).then(() => {
+                    setSinglePost({ ...singlePost, is_decision: true });
+                });
                 setIsDecision(true);
                 setIsDecisionLoading(false);
                 toast.success("Decision added");;
@@ -183,7 +204,7 @@ export default function SinglePostPage() {
             breadcrumb = getPostBreadcrumbByParentTitles(post.parent);
         }
 
-        breadcrumb.push(post.title);
+        breadcrumb.push(post);
 
         return breadcrumb;
 
@@ -225,118 +246,249 @@ export default function SinglePostPage() {
 
             {
                 singlePostLoading ? (
-                    <div className="flex items-center justify-center h-[calc(100vh-72px)]">
-                        <CgSpinner className="text-black dark:text-white text-[36px] animate-spin" />
-                    </div>
+                    <>
+                        {/* skeleton */}
+                        <nav className="flex mb-3" aria-label="Breadcrumb">
+                            <ol role="list" className="flex space-x-4 rounded-lg w-full bg-white px-6 shadow">
+                                <li className="flex">
+                                    <div className="flex items-center">
+                                        <Link to={'/'} className="text-gray-400 hover:text-gray-500">
+                                            <HomeIcon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                                            <span className="sr-only">Home</span>
+                                        </Link>
+                                    </div>
+                                </li>
+                                <li className="flex">
+                                    <div className="flex items-center">
+                                        <svg
+                                            className="h-full w-6 flex-shrink-0 text-gray-200"
+                                            viewBox="0 0 24 44"
+                                            preserveAspectRatio="none"
+                                            fill="currentColor"
+                                            aria-hidden="true"
+                                        >
+                                            <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
+                                        </svg>
+                                        <button
+                                            className="ml-4 text-start py-2 text-sm font-medium text-gray-500 hover:text-gray-700"
+                                        >
+                                            <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                                        </button>
+                                    </div>
+                                </li>
+                                <li className="flex">
+                                    <div className="flex items-center">
+                                        <svg
+                                            className="h-full w-6 flex-shrink-0 text-gray-200"
+                                            viewBox="0 0 24 44"
+                                            preserveAspectRatio="none"
+                                            fill="currentColor"
+                                            aria-hidden="true"
+                                        >
+                                            <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
+                                        </svg>
+                                        <button
+                                            className="ml-4 text-start py-2 text-sm font-medium text-gray-500 hover:text-gray-700"
+                                        >
+                                            <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                                        </button>
+                                    </div>
+                                </li>
+                            </ol>
+                        </nav>
+
+                        <div className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow mb-5">
+                            <div className="px-4 py-5 sm:px-6 flex items-center">
+                                <div className="w-full flex items-center justify-between">
+                                    <div className="flex flex-col items-start gap-3">
+                                        <div className="w-60 h-6 rounded-md bg-gray-200 animate-pulse"></div>
+                                        <div className="w-12 h-5 rounded-md bg-gray-100 animate-pulse"></div>
+                                    </div>
+                                    <div className="flex flex-shrink-0 gap-x-3">
+                                        <div className="w-12 h-10 rounded-md bg-gray-200 animate-pulse"></div>
+                                        <div className="w-12 h-10 rounded-md bg-gray-200 animate-pulse"></div>
+                                        <div className="w-12 h-10 rounded-md bg-gray-200 animate-pulse"></div>
+                                        <div className="w-12 h-10 rounded-md bg-gray-200 animate-pulse"></div>
+                                        <div className="w-12 h-10 rounded-md bg-gray-200 animate-pulse"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="px-4 py-5 sm:p-6 flex flex-col gap-3">
+                                <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
+                                <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
+                                <div className="h-4 bg-gray-200 rounded animate-pulse w-full"></div>
+                                <div className="h-4 bg-gray-200 rounded animate-pulse w-2/3"></div>
+                            </div>
+                        </div>
+                    </>
                 ) :
                     (slug &&
                         <>
-                            <div className={`w-full bg-white text-[#111315] dark:bg-[#111315] dark:text-white`}>
-
-                                <div className={`mx-[40px] py-[24px] border-b-[1px] flex items-center justify-between space-x-[16px] border-b-[#111315] dark:border-b-white`}>
-                                    <p className="text-[14px] leading-[20px] text-opacity-60">
-                                        {getPostBreadcrumbByParentTitles(singlePost).join(' | ')}
-                                    </p>
-
-                                    <div className="flex space-x-[20px] text-[18px] cursor-pointer items-center">
-
-                                        {
-                                            isAuthenticated() && (
-                                                <>
-                                                    <MdMessage
-                                                        className="text-[22px]"
-                                                        onClick={() => openChat('note')}
-                                                        data-for="note-tooltip"
-                                                        data-tooltip-id="note-tooltip"
-                                                        data-tooltip-content="Add your note"
-                                                    />
-                                                    <Tooltip id="note-tooltip" />
-                                                </>
-                                            )
-                                        }
-
-                                        {
-                                            isAuthenticated() && (
-                                                <>
-                                                    <MdContactMail
-                                                        className="text-[22px]"
-                                                        onClick={() => openChat('propose')}
-                                                        data-for="propose-tooltip"
-                                                        data-tooltip-id="propose-tooltip"
-                                                        data-tooltip-content="Propose to editor"
-                                                    />
-                                                    <Tooltip id="propose-tooltip" />
-                                                </>
-                                            )
-                                        }
-
-                                        {
-                                            isAuthenticated() && (
-                                                isBookmarkLoading ? <div className={`animate-spin rounded-full h-[24px] w-[24px] border-t-[2px] border-[#111315] dark:border-white`}></div> :
-                                                    (
-                                                        isBookmarked ?
-                                                            <MdOutlineBookmark className="text-[22px]" onClick={handleBookmarkChange} /> :
-                                                            <MdOutlineBookmarkBorder className="text-[22px]" onClick={handleBookmarkChange} />
-                                                    )
-                                            )
-                                        }
-
-
-                                        <MdOutlineShare className="text-[22px]" onClick={sharePost} />
-                                    </div>
-                                </div>
-                                <div className="mx-[40px] py-[24px] flex items-center justify-between">
-                                    <div className="flex items-center text-opacity-60 text-[14px] leading-[20px] cursor-pointer">
-                                        <BsChevronLeft className="mr-[12px]" />
-                                        <span onClick={() => { navigate(-1) }}>Go back</span>
-                                    </div>
-
-                                    {isAuthenticated() && (
-                                        <div className="flex space-x-[16px] text-[18px] items-center">
-                                            {isDecisionLoading ? (
-                                                <div className={`flex items-center justify-center`}>
-                                                    <CgSpinner className="text-black dark:text-white text-[20px] animate-spin" />
-                                                </div>
-                                            ) : (
-                                                <label className="text-[16px] cursor-pointer flex items-center">
-                                                    Add to My Decision
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={isDecision}
-                                                        onChange={handleDecisionChange}
-                                                        className="w-[24px] h-[24px] rounded-[4px] bg-[#2B2F33] ml-[10px] inline-flex"
-                                                    />
-                                                </label>
-                                            )}
+                            <nav className="flex mb-3" aria-label="Breadcrumb">
+                                <ol role="list" className="flex space-x-4 rounded-lg w-full bg-white px-6 shadow">
+                                    <li className="flex">
+                                        <div className="flex items-center">
+                                            <Link to={'/'} className="text-gray-400 hover:text-gray-500">
+                                                <HomeIcon className="h-5 w-5 flex-shrink-0" aria-hidden="true" />
+                                                <span className="sr-only">Home</span>
+                                            </Link>
                                         </div>
-                                    )}
-                                </div>
-
-                                <div className="mx-[40px] py-[16px]">
-                                    <h1 className="text-[24px] leading-[32px]">{singlePost?.title}</h1>
-                                </div>
-
-                                <div className="mx-[40px] py-[24px]">
-                                    <div className="flex items-center justify-start space-x-[8px]">
-                                        {singlePost?.tags?.map((tag) => (
-                                            <div key={tag.id} className="flex items-center">
-                                                <span
-                                                    className={`px-[12px] py-[2px] text-[12px] leading-[20px] rounded-full border-[1px] cursor-pointer border-[#111315] dark:border-white`}
-                                                    onClick={() => fetchTagData(tag.id)}
+                                    </li>
+                                    {getPostBreadcrumbByParentTitles(singlePost).map((page) => (
+                                        <li key={page.id} className="flex">
+                                            <div className="flex items-center">
+                                                <svg
+                                                    className="h-full w-6 flex-shrink-0 text-gray-200"
+                                                    viewBox="0 0 24 44"
+                                                    preserveAspectRatio="none"
+                                                    fill="currentColor"
+                                                    aria-hidden="true"
                                                 >
-                                                    #{tag.name}
-                                                </span>
-                                                {tagLoadingState[tag.id] ? (
-                                                    <div className="flex items-center justify-center ml-2">
-                                                        <CgSpinner className="text-white text-[20px] animate-spin" />
-                                                    </div>
-                                                ) : null}
+                                                    <path d="M.293 0l22 22-22 22h1.414l22-22-22-22H.293z" />
+                                                </svg>
+                                                <button
+                                                    onClick={() => PostChanger(page.slug)}
+                                                    className="ml-4 text-start py-2 text-sm font-medium text-gray-500 hover:text-gray-700"
+                                                    aria-current={page.id == singlePost.id ? 'page' : undefined}
+                                                >
+                                                    {page.title.slice(0, 20)}
+                                                </button>
                                             </div>
-                                        ))}
+                                        </li>
+                                    ))}
+                                </ol>
+                            </nav>
+
+                            <div className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow mb-5">
+                                <div className="px-4 py-5 sm:px-6 flex items-center">
+                                    <div className="w-full flex items-center justify-between">
+                                        <div className="flex items-center">
+                                            <div>
+                                                <h3 className="text-2xl mb-1 font-bold leading-6 text-gray-900">{singlePost?.title}</h3>
+                                                <p className="text-xs text-gray-500">
+                                                    {singlePost?.tags?.map((tag) => (
+                                                        <div key={tag.id} className="flex items-center">
+                                                            <span
+                                                                className={`text-[10px] leading-[20px] mr-3 cursor-pointer`}
+                                                                onClick={() => fetchTagData(tag.id)}
+                                                            >
+                                                                #{tag.name}
+                                                            </span>
+                                                            {tagLoadingState[tag.id] ? (
+                                                                <div className="flex items-center justify-center ml-2">
+                                                                    <CgSpinner className="text-white text-[20px] animate-spin" />
+                                                                </div>
+                                                            ) : null}
+                                                        </div>
+                                                    ))}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-shrink-0 gap-x-3">
+                                            {
+                                                isAuthenticated() && (
+                                                    <>
+                                                        <Link
+                                                            data-tooltip-id="AdminEditPostButton"
+                                                            data-tooltip-content="Edit Post"
+                                                            data-tooltip-place="top"
+                                                            to={`/posts/update/${singlePost?.id}`}
+                                                            className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                                                        >
+                                                            <FiEdit2 className="h-5 w-5 text-gray-600" aria-hidden="true" />
+                                                        </Link>
+                                                        <Tooltip id="AdminEditPostButton" />
+
+                                                    </>
+                                                )
+                                            }
+
+                                            {isAuthenticated() && (
+                                                <button
+                                                    type="button"
+                                                    className={clsx("relative inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset",
+                                                        isDecision ? "bg-blue-500 ring-blue-600 text-white hover:bg-blue-600" : "bg-white text-gray-600 ring-gray-300 hover:bg-gray-50"
+                                                    )}
+                                                    onClick={handleDecisionChange}
+                                                >
+                                                    {
+                                                        isDecisionLoading ?
+                                                            <ImSpinner8 className="animate-spin h-4 w-4" aria-hidden="true" /> :
+                                                            (
+                                                                isDecision ?
+                                                                    <FolderMinusIcon className="h-5 w-5" /> :
+                                                                    <FolderPlusIcon className="h-5 w-5" />
+                                                            )
+                                                    }
+                                                </button>
+                                            )}
+
+                                            {
+                                                isAuthenticated() && (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                                                            onClick={() => openChat('note')}
+                                                        >
+                                                            <BsChatDots className="h-5 w-5 text-gray-600" aria-hidden="true" />
+                                                        </button>
+                                                    </>
+                                                )
+                                            }
+                                            {
+                                                isAuthenticated() && (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                                                            onClick={() => openChat('propose')}
+                                                        >
+                                                            <GoReport className="h-5 w-5 text-gray-600" aria-hidden="true" />
+                                                        </button>
+                                                    </>
+                                                )
+                                            }
+
+                                            {
+                                                isAuthenticated() && (
+                                                    <>
+                                                        <button
+                                                            data-tooltip-id="setBookmarkButton"
+                                                            data-tooltip-content="Bookmark"
+                                                            data-tooltip-place="top"
+                                                            type="button"
+                                                            className={clsx("relative inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset",
+                                                                isBookmarked ? "bg-blue-500 ring-blue-500 text-white hover:bg-blue-600" : "bg-white ring-gray-300 hover:bg-gray-50 text-gray-600"
+                                                            )}
+                                                            onClick={handleBookmarkChange}
+                                                        >
+                                                            {
+                                                                isBookmarkLoading ?
+                                                                    <ImSpinner8 className="animate-spin h-4 w-4" aria-hidden="true" /> :
+                                                                    (
+                                                                        isBookmarked ?
+                                                                            <BookmarkSlashIcon className="h-6 w-6" /> :
+                                                                            <BookmarkIcon className="h-6 w-6" />
+                                                                    )
+                                                            }
+                                                        </button>
+                                                        <Tooltip id="setBookmarkButton" />
+                                                    </>
+                                                )
+                                            }
+
+                                            <button
+                                                type="button"
+                                                onClick={sharePost}
+                                                className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                                            >
+                                                <HiShare className="h-5 w-5 text-gray-600" aria-hidden="true" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <div className="mx-[40px] py-[16px]">
+                                <div className="px-4 py-5 sm:p-6">
                                     <div className={`text-editor text-[16px] leading-[24px] text-[#444444] dark:text-neutral-200`}>
                                         {singlePostDataJSON &&
                                             singlePostDataJSON.blocks.map((block) => {
@@ -344,7 +496,7 @@ export default function SinglePostPage() {
                                                     return <ParagraphComponent block={block} />;
                                                 if (block.type == "header")
                                                     return <div key={block.id} className="mb-3">
-                                                        <HeadingComponent element={block} />
+                                                        <HeadingComponentV2 element={block} />
                                                     </div>;
                                                 if (block.type == "Image")
                                                     return <ImageComponent element={block} />;
@@ -372,31 +524,12 @@ export default function SinglePostPage() {
                                                     return <div key={block.id} className="w-full rounded-[12px] mb-3">
                                                         <ul className="list-disc list-inside">
                                                             {block.data.items.map((item) => {
-                                                                return <li key={item}>{item}</li>
+                                                                return <li key={item}>{parse(item)}</li>
                                                             })}
                                                         </ul>
                                                     </div>;
                                                 if (block.type == "table")
-                                                    return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                        <table className="w-full">
-                                                            <thead>
-                                                                <tr>
-                                                                    {block.data.content[0].map((item) => {
-                                                                        return <th key={item}>{parse(item)}</th>
-                                                                    })}
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {block.data.content.slice(1).map((row) => {
-                                                                    return <tr key={row[0]}>
-                                                                        {row.map((item) => {
-                                                                            return <td key={item}>{parse(item)}</td>
-                                                                        })}
-                                                                    </tr>
-                                                                })}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>;
+                                                    return <TableComponent block={block} />;
                                                 if (block.type == "toggle") {
                                                     return <ToggleComponent
                                                         block={block}
@@ -407,6 +540,43 @@ export default function SinglePostPage() {
                                     </div>
                                 </div>
                             </div>
+
+                            {
+                                singlePost?.related && singlePost?.related.length > 0 &&
+                                (
+                                    <div className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
+                                        <div className="border-b border-gray-200 bg-white px-4 py-5 sm:px-6">
+                                            <h3 className="text-base font-semibold leading-6 text-gray-900">Related Posts</h3>
+                                        </div>
+
+                                        <div className="flex flex-col divide-y">
+                                            {
+                                                singlePost?.related?.map((post) => (
+                                                    <Link
+                                                        key={post.id}
+                                                        to={`/posts/${post.slug}`}
+                                                        className="px-4 py-5 sm:p-6 flex w-full items-center justify-between space-x-6 hover:bg-gray-50 transition-all">
+                                                        <div className="flex-1 truncate">
+                                                            <div className="flex items-center space-x-3">
+                                                                <h3 className="truncate text-base font-semibold text-gray-900">{post.title}</h3>
+                                                            </div>
+                                                            <div className="flex items-center justify-start gap-1">
+                                                                {
+                                                                    console.log(post)
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                        <div className="h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-gray-200 transition-all">
+                                                            <ChevronRightIcon className="h-6 w-6 text-gray-500" aria-hidden="true" />
+                                                        </div>
+                                                    </Link>
+                                                ))
+                                            }
+                                        </div>
+                                    </div>
+                                )
+                            }
+
                             {isChatOpen && <CommentPopUp type={commentType} postId={singlePost.id} onClose={closeChat} />}
                         </>
                     )
