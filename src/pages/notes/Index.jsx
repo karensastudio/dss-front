@@ -23,7 +23,6 @@ export default function NoteIndexPage() {
     try {
       const response = await getNotesApi(authHeader());
       if (response.status === "success") {
-        console.log(response.response);
         setNotes(response.response.notes);
       } else {
         console.error("Error fetching note data:", response);
