@@ -1,6 +1,6 @@
 import { Disclosure, Transition } from "@headlessui/react";
 import { useEffect, useRef, useState } from "react";
-import { BsSearch, BsChevronUp, BsBookmarkFill, BsChevronLeft } from "react-icons/bs";
+import { BsSearch, BsChevronUp, BsBookmarkFill, BsChevronLeft, BsDashLg } from "react-icons/bs";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import { getPostBySlugApi, getUserGraphApi, getUserPostsApi } from "../api/userPost";
 import { getDecisionsApi } from "../api/decision";
@@ -92,9 +92,11 @@ export function SingleListDiclosure(props) {
                                                                 <div className="min-w-0 flex-auto">
                                                                     <p
                                                                         className={clsx(
+                                                                            "flex items-center",
                                                                             "text-sm font-semibold leading-6 text-gray-900",
                                                                             singlePost?.id == subPost.id && 'text-blue-500'
                                                                         )}>
+                                                                        <BsDashLg className="mr-2" />
                                                                         {subPost.title}
                                                                     </p>
                                                                 </div>

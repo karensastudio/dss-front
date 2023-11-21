@@ -14,7 +14,7 @@ export default function ParagraphComponent(props) {
                         </div>
                         <div className="ml-3">
                             <div className="text-sm text-orange-700">
-                                <p>{parse(block.data.text)}</p>
+                                <p>{parse(block.data.text.replace('&nbsp;', ''))}</p>
                             </div>
                         </div>
                     </div>
@@ -26,7 +26,7 @@ export default function ParagraphComponent(props) {
     return (
         <div key={block.id}>
             <p className="mb-3">
-                {parse(block.data.text)}
+                {parse(block.data.text.replace('&nbsp;', ''))}
             </p>
         </div>
     )

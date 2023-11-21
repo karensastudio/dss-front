@@ -524,7 +524,7 @@ export default function SinglePostPage() {
                                                     return <div key={block.id} className="w-full rounded-[12px] mb-3">
                                                         <ul className="list-disc list-inside">
                                                             {block.data.items.map((item) => {
-                                                                return <li key={item}>{item}</li>
+                                                                return <li key={item}>{parse(item)}</li>
                                                             })}
                                                         </ul>
                                                     </div>;
