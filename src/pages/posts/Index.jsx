@@ -9,6 +9,46 @@ import { getUserPostsApi } from "../../api/userPost";
 import { deletePostApi, getPostsApi } from "../../api/post";
 import { useTheme } from "../../context/ThemeContext";
 import { usePermify } from "@permify/react-role";
+import { BsDashLg } from "react-icons/bs";
+
+export function SinglePostRow(props) {
+  const { post, handleDeleteClick, subCount } = props;
+
+  return (
+    <>
+      <tr key={post.id}>
+        <td className="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6">
+          <div className="text-sm font-medium text-gray-900 flex items-center">
+            {
+              // return <BsDashLg className="mr-2" /> to the number of subcounts
+              Array.from(Array(subCount), (_, i) => <BsDashLg key={i} className="mr-2" />)
+            }
+            {post.title}
+          </div>
+        </td>
+        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex items-center justify-end gap-5">
+          <Link to={`/posts/update/${post.id}`}
+            className="rounded-full bg-yellow-50 px-5 py-1 text-sm font-medium text-yellow-600 shadow-sm hover:bg-yellow-100"
+          >
+            Edit <span className="sr-only">, {post.slug}</span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => handleDeleteClick(post.id)}
+            className="rounded-full bg-red-50 px-4 py-1 text-sm font-medium text-red-600 shadow-sm hover:bg-red-100"
+          >
+            Delete <span className="sr-only">, {post.slug}</span>
+          </button>
+        </td>
+      </tr>
+      {
+        post.children && post.children.map((child) => (
+          <SinglePostRow key={child.id} post={child} handleDeleteClick={handleDeleteClick} subCount={subCount + 1} />
+        ))
+      }
+    </>
+  )
+}
 
 export default function PostIndexPage() {
   const { isAuthorized, isLoading } = usePermify();
@@ -54,7 +94,7 @@ export default function PostIndexPage() {
     };
 
     try {
-      const response = await getPostsApi(authHeader());
+      const response = await getUserPostsApi(authHeader());
       if (response.status === "success") {
         setPosts(response.response.posts);
       } else {
@@ -124,25 +164,7 @@ export default function PostIndexPage() {
                       </thead>
                       <tbody className="divide-y divide-gray-200 bg-white">
                         {posts.map((post) => (
-                          <tr key={post.id}>
-                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                              {post.title}
-                            </td>
-                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex items-center justify-end gap-5">
-                              <Link to={`/posts/update/${post.id}`}
-                                className="rounded-full bg-yellow-50 px-5 py-1 text-sm font-medium text-yellow-600 shadow-sm hover:bg-yellow-100"
-                              >
-                                Edit <span className="sr-only">, {post.slug}</span>
-                              </Link>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteClick(post.id)}
-                                className="rounded-full bg-red-50 px-4 py-1 text-sm font-medium text-red-600 shadow-sm hover:bg-red-100"
-                              >
-                                Delete <span className="sr-only">, {post.slug}</span>
-                              </button>
-                            </td>
-                          </tr>
+                          <SinglePostRow key={post.id} post={post} handleDeleteClick={handleDeleteClick} subCount={0} />
                         ))}
                       </tbody>
                     </table>

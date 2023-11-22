@@ -50,7 +50,7 @@ export default function ToggleComponent(props) {
                                 return <div key={subBlock.id} className="w-full rounded-[12px] mb-3">
                                     <ul className="list-disc list-inside">
                                         {subBlock.data.items.map((item) => {
-                                            return <li key={item}>{item}</li>
+                                            return <li key={item}>{parse(item)}</li>
                                         })}
                                     </ul>
                                 </div>;
@@ -66,7 +66,7 @@ export default function ToggleComponent(props) {
                                                     {subBlock.data.title}
                                                 </span>
                                                 <p className="text-[14px]">
-                                                    {subBlock.data.message}
+                                                    {parse(subBlock.data.message)}
                                                 </p>
                                             </div>
                                         </div>
