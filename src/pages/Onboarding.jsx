@@ -82,7 +82,7 @@ export default function OnboardingPage() {
             });
 
             if (response.status == 'success') {
-                navigate('/')
+                navigate('/posts/tutorial')
             }
             else {
                 toast.error(response.message)
