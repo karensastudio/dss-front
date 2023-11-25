@@ -67,14 +67,18 @@ export function SingleListDiclosure(props) {
                                         >
                                             <div className="flex min-w-0 gap-x-4">
                                                 <div className="min-w-0 flex-auto">
-                                                    <p className="text-sm font-semibold leading-6 text-gray-900">
-                                                        <span className="absolute inset-x-0 -top-px bottom-0" />
+                                                    <p
+                                                        className={clsx(
+                                                            "flex items-center",
+                                                            "text-sm font-semibold leading-6 text-gray-900"
+                                                        )}>
+                                                        <BsDashLg className="mr-2" />
                                                         Introduction
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="flex shrink-0 items-center gap-x-4">
-                                                <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
+                                                {/* <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" /> */}
                                             </div>
                                         </li>
                                         {
@@ -102,7 +106,7 @@ export function SingleListDiclosure(props) {
                                                                 </div>
                                                             </div>
                                                             <div className="flex shrink-0 items-center gap-x-4">
-                                                                <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
+                                                                {/* <ChevronRightIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" /> */}
                                                             </div>
                                                         </li>
                                                     )
