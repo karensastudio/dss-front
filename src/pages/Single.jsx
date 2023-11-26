@@ -62,7 +62,7 @@ export default function SinglePostPage() {
     const [singlePostDataJSON, setSinglePostDataJSON] = useState(null);
 
     console.log(singlePostDataJSON)
-    
+
     async function PostChanger(slug) {
         setSinglePost(null);
         setSinglePostLoading(true);
@@ -118,6 +118,11 @@ export default function SinglePostPage() {
             })
                 .then(() => console.log('Successful share'))
                 .catch((error) => console.log('Error sharing', error));
+        }
+        else {
+            // copy url to clipboard and toast success
+            navigator.clipboard.writeText(window.location.href);
+            toast.success("Link copied to clipboard");
         }
     }
 
@@ -404,23 +409,29 @@ export default function SinglePostPage() {
                                             }
 
                                             {isAuthenticated() && (
-                                                <button
-                                                    type="button"
-                                                    className={clsx("relative inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset",
-                                                        isDecision ? "bg-blue-500 ring-blue-600 text-white hover:bg-blue-600" : "bg-white text-gray-600 ring-gray-300 hover:bg-gray-50"
-                                                    )}
-                                                    onClick={handleDecisionChange}
-                                                >
-                                                    {
-                                                        isDecisionLoading ?
-                                                            <ImSpinner8 className="animate-spin h-4 w-4" aria-hidden="true" /> :
-                                                            (
-                                                                isDecision ?
-                                                                    <FolderMinusIcon className="h-5 w-5" /> :
-                                                                    <FolderPlusIcon className="h-5 w-5" />
-                                                            )
-                                                    }
-                                                </button>
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        data-tooltip-id="AddToDecisionButton"
+                                                        data-tooltip-content="Add to Decision"
+                                                        data-tooltip-place="top"
+                                                        className={clsx("relative inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset",
+                                                            isDecision ? "bg-blue-500 ring-blue-600 text-white hover:bg-blue-600" : "bg-white text-gray-600 ring-gray-300 hover:bg-gray-50"
+                                                        )}
+                                                        onClick={handleDecisionChange}
+                                                    >
+                                                        {
+                                                            isDecisionLoading ?
+                                                                <ImSpinner8 className="animate-spin h-4 w-4" aria-hidden="true" /> :
+                                                                (
+                                                                    isDecision ?
+                                                                        <FolderMinusIcon className="h-5 w-5" /> :
+                                                                        <FolderPlusIcon className="h-5 w-5" />
+                                                                )
+                                                        }
+                                                    </button>
+                                                    <Tooltip id="AddToDecisionButton" />
+                                                </>
                                             )}
 
                                             {
@@ -428,11 +439,15 @@ export default function SinglePostPage() {
                                                     <>
                                                         <button
                                                             type="button"
+                                                            data-tooltip-id="AddNoteButton"
+                                                            data-tooltip-content="Add Note"
+                                                            data-tooltip-place="top"
                                                             className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                                                             onClick={() => openChat('note')}
                                                         >
                                                             <BsChatDots className="h-5 w-5 text-gray-600" aria-hidden="true" />
                                                         </button>
+                                                        <Tooltip id="AddNoteButton" />
                                                     </>
                                                 )
                                             }
@@ -441,11 +456,15 @@ export default function SinglePostPage() {
                                                     <>
                                                         <button
                                                             type="button"
+                                                            data-tooltip-id="AddProposeButton"
+                                                            data-tooltip-content="Propose To Editor"
+                                                            data-tooltip-place="top"
                                                             className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                                                             onClick={() => openChat('propose')}
                                                         >
                                                             <GoReport className="h-5 w-5 text-gray-600" aria-hidden="true" />
                                                         </button>
+                                                        <Tooltip id="AddProposeButton" />
                                                     </>
                                                 )
                                             }
@@ -478,13 +497,19 @@ export default function SinglePostPage() {
                                                 )
                                             }
 
-                                            <button
-                                                type="button"
-                                                onClick={sharePost}
-                                                className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                                            >
-                                                <HiShare className="h-5 w-5 text-gray-600" aria-hidden="true" />
-                                            </button>
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    data-tooltip-id="SharePostButton"
+                                                    data-tooltip-content="Share Post"
+                                                    data-tooltip-place="top"
+                                                    onClick={sharePost}
+                                                    className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                                                >
+                                                    <HiShare className="h-5 w-5 text-gray-600" aria-hidden="true" />
+                                                </button>
+                                                <Tooltip id="SharePostButton" />
+                                            </>
                                         </div>
                                     </div>
                                 </div>

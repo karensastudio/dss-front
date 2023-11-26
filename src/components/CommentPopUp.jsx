@@ -67,7 +67,9 @@ function CommentPopUp({ type, postId, onClose }) {
             <div className="bg-neutral-200 px-4 py-6 sm:px-6">
               <div className="flex items-center justify-between">
                 <p className="text-base font-semibold capitalize leading-6 text-neutral-900">
-                  Add a note, to go into your report
+                  {
+                    type === "propose" ? "Propose to editor" : "Add a note"
+                  }
                 </p>
                 <div className="ml-3 flex h-7 items-center">
                   <button
