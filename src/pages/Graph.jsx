@@ -12,6 +12,7 @@ import { CgSpinner } from "react-icons/cg";
 
 export default function GraphPage() {
   const [isTagRelationEnabled, setTagRelationEnabled] = useState(false);
+  const [isTagNodeEnabled, setIsTagNodeEnabled] = useState(false);
   const [isDecisionRelationEnabled, setDecisionRelationEnabled] = useState(false);
   const [isPostsLoading, setIsPostsLoading] = useState(true);
   const [userPosts, setUserPosts] = useState([]);

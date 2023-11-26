@@ -22,7 +22,8 @@ import Input from "../../utils/Input";
 import { useAuthHeader } from "react-auth-kit";
 import { createPostApi, updatePostApi, getPostByIdApi, getPostsApi } from "../../api/post";
 import Select from 'react-select';
-import { getTagsApi } from "../../api/tag";
+import Creatable, { useCreatable } from 'react-select/creatable';
+import { createTagApi, getTagsApi } from "../../api/tag";
 
 import { APIUploadFile } from "../../api/uploader";
 import { getUserPostsApi } from "../../api/userPost";
@@ -39,6 +40,7 @@ export default function PostCreatePage() {
   const authHeader = useAuthHeader();
   const [tagOptions, setTagOptions] = useState([]);
   const [selectedTag, setSelectedTag] = useState([]);
+  const [isTagLoading, setIsTagLoading] = useState(false);
   const [parentOptions, setParentOptions] = useState([]);
   const [relatedOptions, setRelatedOptions] = useState([]);
   const [selectedParent, setSelectedParent] = useState(null);
@@ -144,6 +146,24 @@ export default function PostCreatePage() {
       console.error("Error:", error);
     }
   };
+
+  const handleCreate = async (inputValue) => {
+    setIsTagLoading(true);
+    const response = await createTagApi(authHeader(), { name: inputValue });
+    if (response.status === "success") {
+      toast.success(response.message);
+      const newTag = {
+        value: response.response.tag.id.toString(),
+        label: response.response.tag.name,
+      };
+      setSelectedTag([...selectedTag, newTag]);
+      setTagOptions([...tagOptions, newTag]);
+      setIsTagLoading(false);
+    } else {
+      console.error("Error creating tag:", response);
+      toast.error(response.message);
+    }
+  }
 
   return (
     <>
@@ -260,11 +280,14 @@ export default function PostCreatePage() {
             </div>
 
             <div className="flex-1 mt-4">
-              <Select
+              <Creatable
                 defaultValue={selectedTag}
+                value={selectedTag}
                 onChange={setSelectedTag}
                 options={tagOptions}
+                isLoading={isTagLoading}
                 isClearable={true}
+                onCreateOption={handleCreate}
                 isMulti
                 className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
                 classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
