@@ -536,10 +536,10 @@ export default function SinglePostPage() {
                                                             <div className="flex items-center space-x-2">
                                                                 <div>
                                                                     <span className="text-[16px] leading-[20px] font-semibold">
-                                                                        {block.data.title}
+                                                                        {parse(block.data.title)}
                                                                     </span>
                                                                     <p className="text-[14px]">
-                                                                        {block.data.message}
+                                                                        {parse(block.data.message)}
                                                                     </p>
                                                                 </div>
                                                             </div>
@@ -547,9 +547,9 @@ export default function SinglePostPage() {
                                                     </div>;
                                                 if (block.type == "list")
                                                     return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                        <ul className="list-disc list-inside">
+                                                        <ul className="list-decimal list-inside pl-5">
                                                             {block.data.items.map((item) => {
-                                                                return <li key={item}>{parse(item)}</li>
+                                                                return <li className="mb-3" key={item}>{parse(item)}</li>
                                                             })}
                                                         </ul>
                                                     </div>;
