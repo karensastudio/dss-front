@@ -31,6 +31,7 @@ import ParagraphComponent from "../components/editor/ParagraphComponent";
 import { BookmarkIcon, FolderMinusIcon, FolderPlusIcon } from "@heroicons/react/24/outline";
 import TableComponent from "../components/editor/TableComponent";
 import { set } from "react-hook-form";
+import { HasAccess } from "@permify/react-role";
 
 const pages = [
     { name: 'Projects', href: '#', current: false },
@@ -392,7 +393,9 @@ export default function SinglePostPage() {
                                         <div className="flex flex-shrink-0 gap-x-3">
                                             {
                                                 isAuthenticated() && (
-                                                    <>
+                                                    <HasAccess
+                                                        roles={["admin", "super-admin"]}
+                                                    >
                                                         <Link
                                                             data-tooltip-id="AdminEditPostButton"
                                                             data-tooltip-content="Edit Post"
@@ -403,8 +406,7 @@ export default function SinglePostPage() {
                                                             <FiEdit2 className="h-5 w-5 text-gray-600" aria-hidden="true" />
                                                         </Link>
                                                         <Tooltip id="AdminEditPostButton" />
-
-                                                    </>
+                                                    </HasAccess>
                                                 )
                                             }
 
