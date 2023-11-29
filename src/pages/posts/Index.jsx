@@ -27,7 +27,7 @@ export function SinglePostRow(props) {
           </div>
         </td>
         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 flex items-center justify-end gap-5">
-          <Link to={`/posts/update/${post.id}`}
+          <Link to={`/admin/posts/update/${post.id}`}
             className="rounded-full bg-yellow-50 px-5 py-1 text-sm font-medium text-yellow-600 shadow-sm hover:bg-yellow-100"
           >
             Edit <span className="sr-only">, {post.slug}</span>
@@ -138,7 +138,7 @@ export default function PostIndexPage() {
               </div>
               <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
                 <Link
-                  to={`/posts/create`}
+                  to={`/admin/posts/create`}
                   className="flex items-center rounded-full bg-blue-600 px-5 py-2 text-center text-base font-medium text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                 >
                   <CgMathPlus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />

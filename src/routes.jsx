@@ -19,6 +19,7 @@ import GraphPage from "./pages/Graph";
 import BookmarksPage from "./pages/Bookmarks";
 import SearchResultPage from "./pages/SearchResult";
 import DecisionsPage from "./pages/Decisions";
+import TagPostsPage from "./pages/TagPosts";
 
 export const router = createBrowserRouter([
     {
@@ -52,40 +53,6 @@ export const router = createBrowserRouter([
         // errorElement: <ErrorPage />
     },
 
-    // Posts Admin
-    {
-        path: "/posts",
-        element: <PostIndexPage />,
-        // errorElement: <ErrorPage />
-    },
-    {
-        path: "/posts/update/:postId",
-        element: <PostUpdatePage />,
-        // errorElement: <tErrorPage />
-    },
-    {
-        path: "/posts/create",
-        element: <PostCreatePage />,
-        // errorElement: <ErrorPage />
-    },
-
-    // Tags Admin
-    {
-        path: "/tags",
-        element: 
-        <TagIndexPage />,
-        // errorElement: <ErrorPage />
-    },
-    {
-        path: "/tags/:tagId",
-        element: <TagUpdatePage />,
-        // errorElement: <tErrorPage />
-    },
-    {
-        path: "/tags/create",
-        element: <TagCreatePage />,
-        // errorElement: <ErrorPage />
-    },
 
     // Graph
     {
@@ -115,19 +82,61 @@ export const router = createBrowserRouter([
         // errorElement: <ErrorPage />
     },
 
+    // SearchResultPage
+    {
+        path: "/tag/:tagId",
+        element: <TagPostsPage />,
+        // errorElement: <ErrorPage />
+    },
+
+    // Posts Admin
+    {
+        path: "/admin/posts",
+        element: <PostIndexPage />,
+        // errorElement: <ErrorPage />
+    },
+    {
+        path: "/admin/posts/update/:postId",
+        element: <PostUpdatePage />,
+        // errorElement: <tErrorPage />
+    },
+    {
+        path: "/admin/posts/create",
+        element: <PostCreatePage />,
+        // errorElement: <ErrorPage />
+    },
+
+    // Tags Admin
+    {
+        path: "/admin/tags",
+        element: 
+        <TagIndexPage />,
+        // errorElement: <ErrorPage />
+    },
+    {
+        path: "/admin/tags/update/:tagId",
+        element: <TagUpdatePage />,
+        // errorElement: <tErrorPage />
+    },
+    {
+        path: "/admin/tags/create",
+        element: <TagCreatePage />,
+        // errorElement: <ErrorPage />
+    },
+
     // Notes
     {
-        path: "/notes",
+        path: "/admin/notes",
         element: <NoteIndexPage/>,
         // errorElement: <ErrorPage />
     },
     {
-        path: "/notes/:noteId",
+        path: "/admin/notes/:noteId",
         element: <NoteUpdatePage />,
         // errorElement: <tErrorPage />
     },
     {
-        path: "/notes/create",
+        path: "/admin/notes/create",
         element: <NoteCreatePage />,
         // errorElement: <ErrorPage />
     }

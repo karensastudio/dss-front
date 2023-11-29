@@ -373,7 +373,7 @@ export default function SinglePostPage() {
                                                 <h3 className="text-2xl mb-1 font-bold leading-6 text-gray-900">{singlePost?.title}</h3>
                                                 <p className="text-xs text-gray-500">
                                                     {singlePost?.tags?.map((tag) => (
-                                                        <div key={tag.id} className="flex items-center">
+                                                        <Link to={'/tag/' + tag.id} key={tag.id} className="flex items-center">
                                                             <span
                                                                 className={`text-[10px] leading-[20px] mr-3 cursor-pointer`}
                                                                 onClick={() => fetchTagData(tag.id)}
@@ -385,7 +385,7 @@ export default function SinglePostPage() {
                                                                     <CgSpinner className="text-white text-[20px] animate-spin" />
                                                                 </div>
                                                             ) : null}
-                                                        </div>
+                                                        </Link>
                                                     ))}
                                                 </p>
                                             </div>
@@ -400,7 +400,7 @@ export default function SinglePostPage() {
                                                             data-tooltip-id="AdminEditPostButton"
                                                             data-tooltip-content="Edit Post"
                                                             data-tooltip-place="top"
-                                                            to={`/posts/update/${singlePost?.id}`}
+                                                            to={`/admin/posts/update/${singlePost?.id}`}
                                                             className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                                                         >
                                                             <FiEdit2 className="h-5 w-5 text-gray-600" aria-hidden="true" />

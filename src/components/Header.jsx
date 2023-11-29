@@ -19,13 +19,13 @@ const solutions = [
     {
         name: 'Posts',
         description: 'Create and manage your posts',
-        href: '/posts',
+        href: '/admin/posts',
         icon: DocumentTextIcon,
     },
     {
         name: 'Tags',
         description: 'Create and manage your tags',
-        href: '/tags',
+        href: '/admin/tags',
         icon: TagIcon,
     },
 ]

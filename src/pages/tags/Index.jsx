@@ -59,7 +59,7 @@ export default function TagIndexPage() {
               <h1 className={`text-[24px] font-bold text-[#111315] dark:text-[#F9FAFB] mb-3`}>Tags</h1>
 
               <Link
-                to={`/tags/create`}
+                to={`/admin/tags/create`}
                 className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-full bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-700 text-white"
               >
                 <CgMathPlus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
@@ -95,7 +95,7 @@ export default function TagIndexPage() {
                           </td>
                           <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                             <Link
-                              to={`/tags/${tag.id}`}
+                              to={`/admin/tags/update/${tag.id}`}
                               className="rounded-full bg-yellow-50 px-5 py-1 text-sm font-medium text-yellow-600 shadow-sm hover:bg-yellow-100"
                             >
                               Edit <span className="sr-only">, {tag.name}</span>
