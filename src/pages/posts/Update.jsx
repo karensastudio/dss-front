@@ -23,10 +23,11 @@ import Input from "../../utils/Input";
 import { useAuthHeader } from "react-auth-kit";
 import { getPostByIdApi, getPostsApi, updatePostApi } from "../../api/post";
 import Select from 'react-select';
-import { getTagsApi } from "../../api/tag";
+import { createTagApi, getTagsApi } from "../../api/tag";
 import { getUserPostsApi } from "../../api/userPost";
 import { useTheme } from "../../context/ThemeContext";
 import { APIUploadFile } from '../../api/uploader';
+import Creatable from 'react-select/creatable';
 
 export default function PostUpdatePage() {
   const { isLightMode } = useTheme();
@@ -42,6 +43,8 @@ export default function PostUpdatePage() {
   const [relatedOptions, setRelatedOptions] = useState([]);
   const [selectedParent, setSelectedParent] = useState();
   const [selectedRelated, setSelectedRelated] = useState(null);
+
+  const [isTagLoading, setIsTagLoading] = useState(false);
 
   const ReactEditorJS = createReactEditorJS();
   const [editorData, setEditorData] = useState(null);
@@ -153,7 +156,7 @@ export default function PostUpdatePage() {
       const response = await updatePostApi(authHeader(), postId, postData);
       if (response.status === "success") {
         toast.success(response.message);
-        navigate('/posts');
+        navigate('/admin/posts');
       } else {
         console.error("Error updating post:", response);
         toast.error(response.message);
@@ -162,6 +165,25 @@ export default function PostUpdatePage() {
       console.error("Error:", error);
     }
   };
+
+  const handleCreate = async (inputValue) => {
+    setIsTagLoading(true);
+    const response = await createTagApi(authHeader(), { name: inputValue });
+    if (response.status === "success") {
+      toast.success(response.message);
+      const newTag = {
+        value: response.response.tag.id.toString(),
+        label: response.response.tag.name,
+      };
+      setSelectedTags([...selectedTags, newTag]);
+      setTagOptions([...tagOptions, newTag]);
+      setIsTagLoading(false);
+    } else {
+      console.error("Error creating tag:", response);
+      toast.error(response.message);
+    }
+  }
+
 
   return (
     <>
@@ -281,17 +303,20 @@ export default function PostUpdatePage() {
             <div className="flex w-full space-x-5">
 
               <div className="flex-1 mt-4">
-                <Select
+                <Creatable
                   defaultValue={selectedTags}
                   value={selectedTags}
                   onChange={setSelectedTags}
                   options={tagOptions}
+                  isLoading={isTagLoading}
                   isClearable={true}
+                  onCreateOption={handleCreate}
                   isMulti
                   className={`${isLightMode ? 'dark-multi-select' : 'basic-multi-select'}`}
                   classNamePrefix={`${isLightMode ? 'light-select' : 'dark-select'}`}
                   placeholder={<div>Tags</div>}
                 />
+
               </div>
 
               <div className="flex-1 mt-4">

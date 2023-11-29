@@ -367,7 +367,7 @@ export default function SinglePostPage() {
 
                             <div className="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow mb-5">
                                 <div className="px-4 py-5 sm:px-6 flex items-center">
-                                    <div className="w-full flex items-center justify-between">
+                                    <div className="w-full flex flex-col md:flex-row items-start space-y-3 md:items-center justify-between">
                                         <div className="flex items-center">
                                             <div>
                                                 <h3 className="text-2xl mb-1 font-bold leading-6 text-gray-900">{singlePost?.title}</h3>

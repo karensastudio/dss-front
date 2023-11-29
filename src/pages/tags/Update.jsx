@@ -41,7 +41,7 @@ export default function TagUpdatePage() {
       const response = await updateTagApi(authHeader(), tagId, data);
       if (response.status === "success") {
         toast.success(response.message);
-        navigate('/tags');
+        navigate('/admin/tags');
       } else {
         console.error("Error updating tag:", response);
         toast.error(response.message);

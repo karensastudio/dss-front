@@ -33,7 +33,7 @@ export default function TagCreatePage({ tagId }) {
         const response = await updateTagApi(authHeader(), tagId, tagData);
         if (response.status === "success") {
           toast.success(response.message);
-          navigate('/tags');
+          navigate('/admin/tags');
         } else {
           console.error("Error updating tag:", response);
           toast.error(response.message);
@@ -42,7 +42,7 @@ export default function TagCreatePage({ tagId }) {
         const response = await createTagApi(authHeader(), tagData);
         if (response.status === "success") {
           toast.success(response.message);
-          navigate('/tags');
+          navigate('/admin/tags');
         } else {
           console.error("Error creating tag:", response);
           toast.error(response.message);

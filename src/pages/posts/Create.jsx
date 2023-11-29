@@ -137,7 +137,7 @@ export default function PostCreatePage() {
       const response = await createPostApi(authHeader(), postData);
       if (response.status === "success") {
         toast.success(response.message);
-        navigate('/posts');
+        navigate('/admin/posts');
       } else {
         console.error("Error creating post:", response);
         toast.error(response.message);
