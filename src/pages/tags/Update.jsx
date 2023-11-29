@@ -97,7 +97,7 @@ export default function TagUpdatePage() {
             type="submit"
             className="bg-blue-700 hover:bg-blue-800 text-white text-sm py-3 px-5 rounded-full mt-4"
           >
-            Edit Tag
+            Save
           </button>
         </form>
       </section>

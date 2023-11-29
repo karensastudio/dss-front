@@ -107,7 +107,7 @@ export default function TagCreatePage({ tagId }) {
             type="submit"
             className="bg-blue-700 hover:bg-blue-800 text-white text-sm py-3 px-5 rounded-full mt-4"
           >
-            {isUpdate ? "Update Tag" : "Create Tag"}
+            Save
           </button>
         </form>
       </section>
