@@ -14,7 +14,7 @@ export default function LinkComponent(props) {
     console.log(block);
 
     if (block.data.meta.type == "internal") {
-        return <Link key={block.id} to={`/posts/${block.data.link.replace("https://dss-v2.netlify.app/posts/", "")}`} className="mb-3 flex shadow-sm border border-l-4 border-l-blue-500 rounded-[12px] bg-blue-50 items-center justify-start p-5 !no-underline">
+        return <Link key={block.id} to={`/posts/${block.data.link.replace("http://nbs-dss.oppla.eu/posts/", "")}`} className="mb-3 flex shadow-sm border border-l-4 border-l-blue-500 rounded-[12px] bg-blue-50 items-center justify-start p-5 !no-underline">
             <div className="w-full text-neutral-900 flex items-center justify-between">
                 <div>
                     <p className='font-bold'>
