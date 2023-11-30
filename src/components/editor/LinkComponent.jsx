@@ -28,13 +28,13 @@ export default function LinkComponent(props) {
         </Link>;
     }
     if (block.data.meta.type == "external") {
-        return <a key={block.id} href={block.data.link} target='_blank' className="mb-3 flex shadow-sm border rounded-[12px] bg-white items-center justify-start p-5 !no-underline">
-            <div className="text-neutral-900 flex items-center justify-between">
+        return <a key={block.id} href={block.data.link} target='_blank' className="w-full mb-3 flex shadow-sm border rounded-[12px] bg-white items-center justify-start p-5 !no-underline">
+            <div className="text-neutral-900 w-full flex items-center justify-between">
                 <div>
-                    <p className='font-bold mb-3'>
+                    <p className='font-bold'>
                         {block.data.meta.title}
                     </p>
-                    <p className='font-normal text-sm mb-3'>
+                    <p className='font-normal text-sm'>
                         {block.data.meta.description}
                     </p>
                 </div>
