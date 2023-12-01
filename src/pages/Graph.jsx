@@ -19,6 +19,7 @@ export default function GraphPage() {
   const [userPosts, setUserPosts] = useState([]);
   const [error, setError] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [tags, setTags] = useState([]);
 
   const isAuthenticated = useIsAuthenticated()
   const authHeader = useAuthHeader();
@@ -32,12 +33,36 @@ export default function GraphPage() {
   const simulationRef = useRef(null);
   const dssGraphRef = useRef();
 
+  // collect tags from posts with append posts to tags
+  function collectTagsfromPosts(posts) {
+    let tags = [];
+    posts.forEach((post) => {
+      if (post.tags) {
+        post.tags.forEach((tag) => {
+          if (!tags.find((t) => t.id === tag.id)) {
+            tags.push(tag);
+          }
+        })
+      }
+    })
+    // push posts to tags
+    tags.forEach((tag) => {
+      tag.posts = posts.filter((post) => {
+        if (post.tags) {
+          return post.tags.find((t) => t.id === tag.id);
+        }
+      })
+    })
+    return tags;
+  }
+
   useEffect(() => {
     const fetchUserPosts = async () => {
       try {
         const response = await getUserGraphApi(authHeader());
         if (response.status === 'success') {
           setUserPosts(response.response.posts);
+          setTags(collectTagsfromPosts(response.response.posts));
           setError(null);
           setIsPostsLoading(false);
         } else {
@@ -118,6 +143,17 @@ export default function GraphPage() {
       const links = [];
 
       const nodePather = (node) => {
+        if (isTagNodeEnabled) {
+          if (node.tags) {
+            node.tags.forEach((tag) => {
+              // find tag in nodes
+              const tagNode = nodes.find((n) => n.id === tag.id);
+              if (!tagNode) {
+                nodes.push(tag);
+              }
+            })
+          }
+        }
         if (isDecisionRelationEnabled) {
           if (node.is_decision) {
             nodes.push(node);
@@ -129,6 +165,17 @@ export default function GraphPage() {
       };
 
       const linksPather = (node) => {
+        if(isTagNodeEnabled) {
+          if(node.posts) {
+            node.posts.forEach((post) => {
+              const targetNode = nodes.find((n) => n.title && n.id === post.id);
+              if (targetNode?.id && targetNode.id == post.id) {
+                console.log(node, post);
+                links.push({ source: 'post' + post.id, target: 'tag' + node.id });
+              }
+            })
+          }
+        }
         if (isDecisionRelationEnabled) {
           if (node.is_decision) {
             if (node.related) {
@@ -141,13 +188,13 @@ export default function GraphPage() {
                 if (!childNode.is_decision) {
                   return;
                 }
-                if (links.find((link) => link.source === node.id && link.target === child.id)) {
+                if (links.find((link) => link.source === 'post' + node.id && link.target === 'post' + child.id)) {
                   return;
                 }
-                if (links.find((link) => link.source === child.id && link.target === node.id)) {
+                if (links.find((link) => link.source === 'post' + child.id && link.target === 'post' + node.id)) {
                   return;
                 }
-                links.push({ source: node.id, target: child.id });
+                links.push({ source: 'post' + node.id, target: 'post' + child.id });
               });
             }
             if (!isChildRelationDisabled) {
@@ -156,13 +203,13 @@ export default function GraphPage() {
                   if (!child.is_decision) {
                     return;
                   }
-                  if (links.find((link) => link.source === node.id && link.target === child.id)) {
+                  if (links.find((link) => link.source === 'post' + node.id && link.target === 'post' + child.id)) {
                     return;
                   }
-                  if (links.find((link) => link.source === child.id && link.target === node.id)) {
+                  if (links.find((link) => link.source === 'post' + child.id && link.target === 'post' + node.id)) {
                     return;
                   }
-                  links.push({ source: node.id, target: child.id });
+                  links.push({ source: 'post' + node.id, target: 'post' + child.id });
                 })
               }
             }
@@ -181,13 +228,13 @@ export default function GraphPage() {
               // except itself
               relatedNodes.forEach((relatedNode) => {
                 if (relatedNode.id !== node.id) {
-                  if (links.find((link) => link.source === node.id && link.target === relatedNode.id)) {
+                  if (links.find((link) => link.source === 'post' + node.id && link.target === 'post' + relatedNode.id)) {
                     return;
                   }
-                  if (links.find((link) => link.source === relatedNode.id && link.target === node.id)) {
+                  if (links.find((link) => link.source === 'post' + relatedNode.id && link.target === 'post' + node.id)) {
                     return;
                   }
-                  links.push({ source: node.id, target: relatedNode.id });
+                  links.push({ source: 'post' + node.id, target: 'post' + relatedNode.id });
                 }
               })
             });
@@ -196,25 +243,25 @@ export default function GraphPage() {
         else {
           if (node.related) {
             node.related.forEach((child) => {
-              if (links.find((link) => link.source === node.id && link.target === child.id)) {
+              if (links.find((link) => link.source === 'post' + node.id && link.target === 'post' + child.id)) {
                 return;
               }
-              if (links.find((link) => link.source === child.id && link.target === node.id)) {
+              if (links.find((link) => link.source === 'post' + child.id && link.target === 'post' + node.id)) {
                 return;
               }
-              links.push({ source: node.id, target: child.id });
+              links.push({ source: 'post' + node.id, target: 'post' + child.id });
             });
           }
           if (!isChildRelationDisabled) {
             if (node.children) {
               node.children.forEach((child) => {
-                if (links.find((link) => link.source === node.id && link.target === child.id)) {
+                if (links.find((link) => link.source === 'post' + node.id && link.target === 'post' + child.id)) {
                   return;
                 }
-                if (links.find((link) => link.source === child.id && link.target === node.id)) {
+                if (links.find((link) => link.source === 'post' + child.id && link.target === 'post' + node.id)) {
                   return;
                 }
-                links.push({ source: node.id, target: child.id });
+                links.push({ source: 'post' + node.id, target: 'post' + child.id });
               })
             }
           }
@@ -223,6 +270,7 @@ export default function GraphPage() {
 
       userPosts.forEach((rootNode) => nodePather(rootNode));
       userPosts.forEach((rootNode) => linksPather(rootNode));
+      tags.forEach((rootNode) => linksPather(rootNode));
 
       return { nodes, links };
     };
@@ -252,7 +300,7 @@ export default function GraphPage() {
 
     const simulation = d3
       .forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id((d) => d.id).distance(100).strength(1))
+      .force('link', d3.forceLink(links).id((d) => (d.title ? 'post' + d.id : 'tag' + d.id)).distance(100).strength(1))
       .force('charge', d3.forceManyBody().strength(distance))
       .force('x', d3.forceX(width / 2))
       .force('y', d3.forceY(height / 2));
@@ -285,19 +333,19 @@ export default function GraphPage() {
       .append('circle')
       .attr('r', 10)
       .attr('fill', (d) => {
-        return d.is_decision ? '#4070FB' : '#9ca3af';
+        return d?.is_decision ? '#4070FB' : '#9ca3af';
       }).on("mouseover", function (d) {
         d3.select(this).style("fill", "#f87171").style("stroke", "#fecaca").style("stroke-width", "2px");
         // change color of links
         d3.selectAll('line').filter(function (link) {
-          return link.source.id === d.target.__data__.id || link.target.id === d.target.__data__.id;
+          return link.source.id === d?.target.__data__.id || link.target.id === d?.target.__data__.id;
         }).style("stroke", "#ef4444").style("stroke-width", "2px");
       })
       .on("mouseout", function (d) {
-        d3.select(this).style("fill", (d.target.__data__.is_decision ? '#4070FB' : '#9ca3af')).style("stroke", "#dc2626").style("stroke-width", "0");
+        d3.select(this).style("fill", (d?.target.__data__.is_decision ? '#4070FB' : '#9ca3af')).style("stroke", "#dc2626").style("stroke-width", "0");
         // change color of links
         d3.selectAll('line').filter(function (link) {
-          return link.source.id === d.target.__data__.id || link.target.id === d.target.__data__.id;
+          return link.source.id === d?.target.__data__.id || link.target.id === d?.target.__data__.id;
         }).style("stroke", "black").style("stroke-width", "1px");
       });
 
@@ -307,7 +355,19 @@ export default function GraphPage() {
       .attr('text-anchor', 'middle')
       .attr('fill', 'black')
       .attr('class', 'node-text')
-      .text((d) => d.title.slice(0, 30));
+      .text((d) => {
+        if (d.title) {
+          return d.title;
+        }
+        else {
+          return '#' + d.name;
+        }
+      });
+
+    // change fill to green if d.name exist
+    nodeGroup.selectAll('circle').filter(function (d) {
+      return d.name;
+    }).style("fill", "#10b981");
 
     function ticked() {
       if (!isDragging) {
@@ -326,7 +386,7 @@ export default function GraphPage() {
     return () => {
       simulation.stop();
     };
-  }, [userPosts, distance, isTagRelationEnabled, isDecisionRelationEnabled, isChildRelationDisabled, window.innerWidth, window.innerHeight]);
+  }, [userPosts, distance, isTagRelationEnabled, isDecisionRelationEnabled, isTagNodeEnabled, isChildRelationDisabled, window.innerWidth, window.innerHeight]);
 
   return (
     <UserLayout pageTitle={'Graph'} hideSidebar fullWidth>
@@ -338,7 +398,7 @@ export default function GraphPage() {
               <Switch
                 checked={isTagNodeEnabled}
                 onChange={setIsTagNodeEnabled}
-                className={`${isTagNodeEnabled ? 'bg-blue-600' : 'bg-gray-200'
+                className={`${isTagNodeEnabled ? 'bg-green-500' : 'bg-gray-200'
                   } relative inline-flex h-6 w-11 items-center rounded-full`}
               >
                 <span className="sr-only">Enable notifications</span>
@@ -349,7 +409,7 @@ export default function GraphPage() {
               </Switch>
             </div>
 
-            <div className="flex flex-col justify-center items-start py-3">
+            <div className="flex flex-col justify-center items-start py-3 pl-5">
               <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">Tag relation:</p>
               <Switch
                 checked={isTagRelationEnabled}

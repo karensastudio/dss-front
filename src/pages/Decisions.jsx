@@ -123,7 +123,7 @@ export default function DecisionsPage() {
             ) : (
               <div className="col-span-3 flex flex-col justify-center items-center bg-white py-10 shadow rounded-lg border-x-4 border-x-red-400">
                 <ExclamationTriangleIcon className="h-10 w-10 text-red-500 mb-3" aria-hidden="true" />
-                <p className="text-neutral-900 font-bold">You have no bookmarks.</p>
+                <p className="text-neutral-900 font-bold">You have no items in your decisions.</p>
               </div>
             )
           }

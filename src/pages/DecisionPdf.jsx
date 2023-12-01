@@ -9,12 +9,15 @@ import LinkComponent from "../components/editor/LinkComponent";
 import ImageComponent from "../components/editor/ImageComponent";
 import HeadingComponentV2 from "../components/editor/HeadingComponentV2";
 import ParagraphComponent from "../components/editor/ParagraphComponent";
+import TableComponent from "../components/editor/TableComponent";
 
 export default function DecisionPdfPage() {
     const [decisions, setDecisions] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const authHeader = useAuthHeader();
+
+    console.log(decisions);
 
     useEffect(() => {
         const fetchDecisions = async () => {
@@ -102,10 +105,10 @@ export default function DecisionPdfPage() {
                                                     <div className="flex items-center space-x-2">
                                                         <div>
                                                             <span className="text-[16px] leading-[20px] font-semibold">
-                                                                {block.data.title}
+                                                                {parse(block.data.title)}
                                                             </span>
                                                             <p className="text-[14px]">
-                                                                {block.data.message}
+                                                                {parse(block.data.message)}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -115,31 +118,12 @@ export default function DecisionPdfPage() {
                                             return <div key={block.id} className="w-full rounded-[12px] mb-3">
                                                 <ul className="list-disc list-inside">
                                                     {block.data.items.map((item) => {
-                                                        return <li key={item}>{item}</li>
+                                                        return <li key={item}>{parse(item)}</li>
                                                     })}
                                                 </ul>
                                             </div>;
                                         if (block.type == "table")
-                                            return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                <table className="w-full">
-                                                    <thead>
-                                                        <tr>
-                                                            {block.data.content[0].map((item) => {
-                                                                return <th key={item}>{parse(item)}</th>
-                                                            })}
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {block.data.content.slice(1).map((row) => {
-                                                            return <tr key={row[0]}>
-                                                                {row.map((item) => {
-                                                                    return <td key={item}>{parse(item)}</td>
-                                                                })}
-                                                            </tr>
-                                                        })}
-                                                    </tbody>
-                                                </table>
-                                            </div>;
+                                            return <TableComponent block={block} />;
                                         if (block.type == "toggle") {
                                             return <ToggleComponent
                                                 block={block}
@@ -150,13 +134,16 @@ export default function DecisionPdfPage() {
                                 {/* {decision?.description && parse(decision?.description)} */}
                             </div>
                             {decision.notes && decision.notes.length > 0 && (
-                                <div className="text-[16px] leading-[24px] text-[#111315]">
+                                <div className="border rounded p-3 text-[16px] leading-[24px] text-[#111315]">
+                                    <h3 className="font-bold py-2">Notes:</h3>
+                                    <div className="flex flex-col divide-y ">
                                     {decision.notes.map((note, index) => (
-                                        <Fragment key={index}>
-                                            <span>{note.message}</span>
+                                        <div key={index} className="py-2">
+                                            <span>{note.note}</span>
                                             {index !== decision.notes.length - 1 && <br />}
-                                        </Fragment>
+                                        </div>
                                     ))}
+                                    </div>
                                 </div>
                             )}
                         </div>
