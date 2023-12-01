@@ -8,6 +8,7 @@ import ImageComponent from './ImageComponent';
 import { PiWarningFill } from "react-icons/pi";
 import ParagraphComponent from './ParagraphComponent';
 import clsx from 'clsx';
+import TableComponent from './TableComponent';
 
 export default function ToggleComponent(props) {
     const { block } = props;
