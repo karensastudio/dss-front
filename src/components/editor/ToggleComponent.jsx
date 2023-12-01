@@ -90,26 +90,7 @@ export default function ToggleComponent(props) {
                                     </blockquote>
                                 </div>;
                             if (subBlock.type == "table")
-                                return <div key={subBlock.id} className="w-full rounded-[12px] mb-3">
-                                    <table className="w-full">
-                                        <thead>
-                                            <tr>
-                                                {subBlock.data.content[0].map((item) => {
-                                                    return <th key={item}>{parse(item)}</th>
-                                                })}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {subBlock.data.content.slice(1).map((row) => {
-                                                return <tr key={row[0]}>
-                                                    {row.map((item) => {
-                                                        return <td key={item}>{parse(item)}</td>
-                                                    })}
-                                                </tr>
-                                            })}
-                                        </tbody>
-                                    </table>
-                                </div>;
+                                return <TableComponent block={subBlock} />;
                             if (subBlock.type == "code")
                                 return <div key={subBlock.id} className="w-full rounded-[12px] mb-3">
                                     <pre className="bg-black bg-opacity-10 dark:bg-white dark:bg-opacity-10 rounded-[12px] p-4">

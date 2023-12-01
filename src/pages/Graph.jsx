@@ -12,6 +12,7 @@ import { CgSpinner } from "react-icons/cg";
 
 export default function GraphPage() {
   const [isTagRelationEnabled, setTagRelationEnabled] = useState(false);
+  const [isChildRelationDisabled, setIsChildRelationDisabled] = useState(false);
   const [isTagNodeEnabled, setIsTagNodeEnabled] = useState(false);
   const [isDecisionRelationEnabled, setDecisionRelationEnabled] = useState(false);
   const [isPostsLoading, setIsPostsLoading] = useState(true);
@@ -149,19 +150,21 @@ export default function GraphPage() {
                 links.push({ source: node.id, target: child.id });
               });
             }
-            if (node.children) {
-              node.children.forEach((child) => {
-                if (!child.is_decision) {
-                  return;
-                }
-                if (links.find((link) => link.source === node.id && link.target === child.id)) {
-                  return;
-                }
-                if (links.find((link) => link.source === child.id && link.target === node.id)) {
-                  return;
-                }
-                links.push({ source: node.id, target: child.id });
-              })
+            if (!isChildRelationDisabled) {
+              if (node.children) {
+                node.children.forEach((child) => {
+                  if (!child.is_decision) {
+                    return;
+                  }
+                  if (links.find((link) => link.source === node.id && link.target === child.id)) {
+                    return;
+                  }
+                  if (links.find((link) => link.source === child.id && link.target === node.id)) {
+                    return;
+                  }
+                  links.push({ source: node.id, target: child.id });
+                })
+              }
             }
           }
         }
@@ -202,16 +205,18 @@ export default function GraphPage() {
               links.push({ source: node.id, target: child.id });
             });
           }
-          if (node.children) {
-            node.children.forEach((child) => {
-              if (links.find((link) => link.source === node.id && link.target === child.id)) {
-                return;
-              }
-              if (links.find((link) => link.source === child.id && link.target === node.id)) {
-                return;
-              }
-              links.push({ source: node.id, target: child.id });
-            })
+          if (!isChildRelationDisabled) {
+            if (node.children) {
+              node.children.forEach((child) => {
+                if (links.find((link) => link.source === node.id && link.target === child.id)) {
+                  return;
+                }
+                if (links.find((link) => link.source === child.id && link.target === node.id)) {
+                  return;
+                }
+                links.push({ source: node.id, target: child.id });
+              })
+            }
           }
         }
       };
@@ -321,13 +326,29 @@ export default function GraphPage() {
     return () => {
       simulation.stop();
     };
-  }, [userPosts, distance, isTagRelationEnabled, isDecisionRelationEnabled, window.innerWidth, window.innerHeight]);
+  }, [userPosts, distance, isTagRelationEnabled, isDecisionRelationEnabled, isChildRelationDisabled, window.innerWidth, window.innerHeight]);
 
   return (
     <UserLayout pageTitle={'Graph'} hideSidebar fullWidth>
       <div className="w-full bg-white border-y shadow-sm flex flex-col min-h-full grow">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between px-[16px] md:px-0">
           <div className="flex items-center justify-start divide-x gap-5">
+            <div className="flex flex-col justify-center items-start py-3">
+              <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">Show tag nodes:</p>
+              <Switch
+                checked={isTagNodeEnabled}
+                onChange={setIsTagNodeEnabled}
+                className={`${isTagNodeEnabled ? 'bg-blue-600' : 'bg-gray-200'
+                  } relative inline-flex h-6 w-11 items-center rounded-full`}
+              >
+                <span className="sr-only">Enable notifications</span>
+                <span
+                  className={`${isTagNodeEnabled ? 'translate-x-6' : 'translate-x-1'
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                />
+              </Switch>
+            </div>
+
             <div className="flex flex-col justify-center items-start py-3">
               <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">Tag relation:</p>
               <Switch
@@ -339,6 +360,23 @@ export default function GraphPage() {
                 <span className="sr-only">Enable notifications</span>
                 <span
                   className={`${isTagRelationEnabled ? 'translate-x-6' : 'translate-x-1'
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                />
+              </Switch>
+
+            </div>
+
+            <div className="pl-5 flex flex-col justify-center items-start py-3">
+              <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">Disable child relation:</p>
+              <Switch
+                checked={isChildRelationDisabled}
+                onChange={setIsChildRelationDisabled}
+                className={`${isChildRelationDisabled ? 'bg-blue-600' : 'bg-gray-200'
+                  } relative inline-flex h-6 w-11 items-center rounded-full`}
+              >
+                <span className="sr-only">Enable notifications</span>
+                <span
+                  className={`${isChildRelationDisabled ? 'translate-x-6' : 'translate-x-1'
                     } inline-block h-4 w-4 transform rounded-full bg-white transition`}
                 />
               </Switch>
