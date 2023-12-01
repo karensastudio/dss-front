@@ -20,6 +20,7 @@ import BookmarksPage from "./pages/Bookmarks";
 import SearchResultPage from "./pages/SearchResult";
 import DecisionsPage from "./pages/Decisions";
 import TagPostsPage from "./pages/TagPosts";
+import UsersIndexPage from "./pages/users/Index";
 
 export const router = createBrowserRouter([
     {
@@ -86,6 +87,13 @@ export const router = createBrowserRouter([
     {
         path: "/tag/:tagId",
         element: <TagPostsPage />,
+        // errorElement: <ErrorPage />
+    },
+
+    // Users Admin
+    {
+        path: "/admin/users",
+        element: <UsersIndexPage />,
         // errorElement: <ErrorPage />
     },
 

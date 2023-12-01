@@ -5,7 +5,7 @@ import { HasAccess, usePermify } from "@permify/react-role";
 import ToggleThemeSwitch from "./ToggleThemeSwitch";
 import { useTheme } from "../context/ThemeContext";
 import { Disclosure, Menu, Popover, Transition } from '@headlessui/react'
-import { ChevronDownIcon, DocumentTextIcon, MagnifyingGlassIcon, TagIcon } from '@heroicons/react/20/solid'
+import { ChevronDownIcon, DocumentTextIcon, MagnifyingGlassIcon, TagIcon, UsersIcon } from '@heroicons/react/20/solid'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { HiOutlineLogout } from "react-icons/hi";
 import clsx from "clsx";
@@ -27,6 +27,12 @@ const solutions = [
         description: 'Create and manage your tags',
         href: '/admin/tags',
         icon: TagIcon,
+    },
+    {
+        name: 'Users',
+        description: 'View and change role of your users',
+        href: '/admin/users',
+        icon: UsersIcon,
     },
 ]
 

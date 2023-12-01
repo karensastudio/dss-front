@@ -33,10 +33,19 @@ import TableComponent from "../components/editor/TableComponent";
 import { set } from "react-hook-form";
 import { HasAccess } from "@permify/react-role";
 
-const pages = [
-    { name: 'Projects', href: '#', current: false },
-    { name: 'Project Nero', href: '#', current: true },
-]
+function unsecuredCopyToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        document.execCommand('copy');
+    } catch (err) {
+        console.error('Unable to copy to clipboard', err);
+    }
+    document.body.removeChild(textArea);
+}
 
 export default function SinglePostPage() {
     const location = useLocation();
@@ -120,9 +129,11 @@ export default function SinglePostPage() {
                 .then(() => console.log('Successful share'))
                 .catch((error) => console.log('Error sharing', error));
         }
-        else {
-            // copy url to clipboard and toast success
+        else if (window.isSecureContext && navigator.clipboard) {
             navigator.clipboard.writeText(window.location.href);
+            toast.success("Link copied to clipboard");
+        } else {
+            unsecuredCopyToClipboard(window.location.href);
             toast.success("Link copied to clipboard");
         }
     }
