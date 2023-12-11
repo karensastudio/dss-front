@@ -25,7 +25,7 @@ export default function ParagraphComponent(props) {
 
     return (
         <div key={block.id}>
-            <p className="mb-3">
+            <p className="text-justify mb-3">
                 {parse(block.data.text.replace('&nbsp;', ''))}
             </p>
         </div>

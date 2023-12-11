@@ -80,7 +80,7 @@ export default function ToggleComponent(props) {
                                 return <div key={subBlock.id} className="w-full rounded-[12px] mb-3">
                                     <ul className="list-disc list-inside">
                                         {subBlock.data.items.map((item) => {
-                                            return <li key={item}>{parse(item)}</li>
+                                            return <li className='mb-3 text-justify' key={item}>{parse(item)}</li>
                                         })}
                                     </ul>
                                 </div>;

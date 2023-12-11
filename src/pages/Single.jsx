@@ -245,6 +245,9 @@ export default function SinglePostPage() {
             setSinglePostLoading(false);
             setSinglePost(null);
         }
+
+        // scroll to top of page
+        window.scrollTo(0, 0);
     }, [slug]);
 
     return (
@@ -562,7 +565,7 @@ export default function SinglePostPage() {
                                                     return <div key={block.id} className="w-full rounded-[12px] mb-3">
                                                         <ul className="list-decimal list-inside pl-5">
                                                             {block.data.items.map((item) => {
-                                                                return <li className="mb-3" key={item}>{parse(item)}</li>
+                                                                return <li className="mb-3 text-justify" key={item}>{parse(item)}</li>
                                                             })}
                                                         </ul>
                                                     </div>;
