@@ -120,6 +120,8 @@ export default function GraphPage() {
     }
   }
 
+  
+
   useEffect(() => {
     if (!userPosts || userPosts.length === 0) {
       return;
@@ -364,6 +366,12 @@ export default function GraphPage() {
 
       nodeGroup.selectAll('circle')
       .on("mouseover", function (event, d) {
+
+
+        const fullTitle = d.title || `#${d.name}`;
+        d3.select(this.parentNode) // Select the parent group (`<g>`) of the circle
+          .append('title')
+          .text(fullTitle);
         // Reduce the opacity of all nodes, links, and titles
         nodeGroup.selectAll('circle').style("opacity", 0.1);
         nodeGroup.selectAll('text').style("opacity", 0.1); // Reduce the opacity of the titles
@@ -386,24 +394,34 @@ export default function GraphPage() {
       })
       .on("mouseout", function () {
         // Restore the opacity of all nodes, links, and titles
+
+        d3.select(this.parentNode).select('title').remove();
         nodeGroup.selectAll('circle').style("opacity", 1);
         nodeGroup.selectAll('text').style("opacity", 1); // Titles
         link.style("opacity", 1);
       });
 
-    nodeGroup
+      nodeGroup
       .append('text')
       .attr('dy', '-2em')
       .attr('text-anchor', 'middle')
       .attr('fill', 'black')
-      .attr('class', 'node-text')
+      .style('font-size', '12px') // Adjust the font size
+      .style('font-family', 'Arial, sans-serif')
       .text((d) => {
-        if (d.title) {
-          return d.title;
+        let title = d.title || `#${d.name}`;
+        // Truncate the title if it's too long
+        if (title.length > 20) {
+          title = title.substring(0, 17) + '...';
         }
-        else {
-          return '#' + d.name;
-        }
+        return title;
+      })
+      .on('mouseover', function (event, d) {
+        // Show full title in a tooltip on hover
+        const fullTitle = d.title || `#${d.name}`;
+        d3.select(this)
+          .append('title')
+          .text(fullTitle);
       });
 
     // change fill to green if d.name exist
