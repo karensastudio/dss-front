@@ -298,6 +298,7 @@ export default function GraphPage() {
       node.y = y;
     });
 
+    
     const simulation = d3
       .forceSimulation(nodes)
       .force('link', d3.forceLink(links).id((d) => (d.title ? 'post' + d.id : 'tag' + d.id)).distance(100).strength(1))
@@ -308,13 +309,14 @@ export default function GraphPage() {
     simulationRef.current = simulation;
 
     const link = svg
-      .selectAll('line')
-      .data(links)
-      .enter()
-      .append('line')
-      .attr('stroke', 'black')
-      .attr('stroke-opacity', 0.3)
-      .attr('stroke-width', 1);
+  .selectAll('.link')
+  .data(links)
+  .enter()
+  .append('path')
+  .attr('class', 'link')
+  .attr('stroke', 'black')
+  .attr('stroke-opacity', 0.3)
+  .attr('fill', 'none');
 
     const nodeGroup = svg
       .selectAll('g.node')
@@ -328,10 +330,11 @@ export default function GraphPage() {
         .on('drag', dragged)
         .on('end', dragended)
       );
+      
 
     nodeGroup
       .append('circle')
-      .attr('r', 10)
+      .attr('r', 13)
       .attr('fill', (d) => {
         return d?.is_decision ? '#4070FB' : '#9ca3af';
       }).on("mouseover", function (d) {
@@ -368,17 +371,17 @@ export default function GraphPage() {
     nodeGroup.selectAll('circle').filter(function (d) {
       return d.name;
     }).style("fill", "#10b981");
-
+    
+    function linkArc(d) {
+      const dx = d.target.x - d.source.x;
+      const dy = d.target.y - d.source.y;
+      const dr = Math.sqrt(dx * dx + dy * dy);
+      return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
+    }
     function ticked() {
-      if (!isDragging) {
-        link
-          .attr('x1', (d) => d.source.x)
-          .attr('y1', (d) => d.source.y)
-          .attr('x2', (d) => d.target.x)
-          .attr('y2', (d) => d.target.y);
-
-        nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
-      }
+      link.attr('d', linkArc);
+    
+      nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
     }
 
     simulation.on('tick', ticked);
