@@ -146,10 +146,10 @@ export default function GraphPage() {
         if (isTagNodeEnabled) {
           if (node.tags) {
             node.tags.forEach((tag) => {
-              // find tag in nodes
+              // Ensure tag objects also have a 'tags' property
               const tagNode = nodes.find((n) => n.id === tag.id);
               if (!tagNode) {
-                nodes.push(tag);
+                nodes.push({...tag, tags: []}); // Add an empty array for 'tags'
               }
             })
           }
@@ -277,27 +277,33 @@ export default function GraphPage() {
 
     const { nodes, links } = flattenData(userPosts);
 
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    const angleToCoordinate = (angle, radius) => ({
-      x: centerX + radius * Math.cos(angle),
-      y: centerY + radius * Math.sin(angle),
+    const sectionGroups = {};
+    nodes.forEach(node => {
+      const sectionTag = node.tags.find(tag => tag.name.startsWith("Section"));
+      if (sectionTag) {
+        if (!sectionGroups[sectionTag.name]) {
+          sectionGroups[sectionTag.name] = [];
+        }
+        sectionGroups[sectionTag.name].push(node);
+      }
     });
 
-    const numNodes = nodes.length;
+  const sectionNames = Object.keys(sectionGroups).sort(); // Sort sections alphabetically
+  const sectionWidth = width / sectionNames.length; // Calculate section width
 
-    const anglePerNode = (2 * Math.PI) / numNodes;
+  // Position nodes within each section
+  sectionNames.forEach((sectionName, sectionIndex) => {
+    const nodesInSection = sectionGroups[sectionName];
+    const sectionXStart = sectionIndex * sectionWidth;
 
-    nodes.forEach((node, index) => {
-      const angle = index * anglePerNode;
+    nodesInSection.forEach((node, nodeIndex) => {
+      const nodeX = sectionXStart + (sectionWidth / nodesInSection.length) * nodeIndex;
+      const nodeY = height; // You can adjust Y position as per your layout
 
-      const { x, y } = angleToCoordinate(angle, radius);
-
-      node.x = x;
-      node.y = y;
+      node.x = nodeX;
+      node.y = nodeY;
     });
-
+  });
     
     const simulation = d3
       .forceSimulation(nodes)
