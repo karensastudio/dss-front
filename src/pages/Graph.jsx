@@ -316,7 +316,9 @@ export default function GraphPage() {
 
     simulationRef.current = simulation;
 
-    const link = svg
+    const g = svg.append('g');
+
+    const link = g
     .selectAll('.link')
     .data(links)
     .enter()
@@ -326,7 +328,7 @@ export default function GraphPage() {
     .attr('stroke-opacity', 0.3)
     .attr('fill', 'none');
 
-    const nodeGroup = svg
+    const nodeGroup = g
       .selectAll('g.node')
       .data(nodes)
       .enter()
@@ -338,7 +340,16 @@ export default function GraphPage() {
         .on('drag', dragged)
         .on('end', dragended)
       );
-      
+    
+    const zoom = d3.zoom()
+      .scaleExtent([1, 10]) // Set minimum scale to 1 to prevent zooming out
+      .on("zoom", (event) => {
+          g.attr("transform", event.transform); // Apply transform to the group 'g'
+      });
+  
+    svg.call(zoom);
+
+
     const sectionTags = new Set();
       nodes.forEach(node => {
         node.tags.forEach(tag => {
