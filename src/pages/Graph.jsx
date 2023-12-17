@@ -339,7 +339,7 @@ export default function GraphPage() {
           }
         });
       });
-      const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain([...sectionTags]);
+      const colorScale = d3.scaleOrdinal(d3.schemeTableau10).domain([...sectionTags]);
       
 
     nodeGroup
