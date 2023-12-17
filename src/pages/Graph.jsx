@@ -309,14 +309,14 @@ export default function GraphPage() {
     simulationRef.current = simulation;
 
     const link = svg
-  .selectAll('.link')
-  .data(links)
-  .enter()
-  .append('path')
-  .attr('class', 'link')
-  .attr('stroke', 'black')
-  .attr('stroke-opacity', 0.3)
-  .attr('fill', 'none');
+    .selectAll('.link')
+    .data(links)
+    .enter()
+    .append('path')
+    .attr('class', 'link')
+    .attr('stroke', 'black')
+    .attr('stroke-opacity', 0.3)
+    .attr('fill', 'none');
 
     const nodeGroup = svg
       .selectAll('g.node')
@@ -351,19 +351,38 @@ export default function GraphPage() {
           return colorScale(sectionTag.name);
         }
         return '#9ca3af'; // Default color if no relevant tags
-      }).on("mouseover", function (d) {
-        d3.select(this).style("fill", "#f87171").style("stroke", "#fecaca").style("stroke-width", "2px");
-        // change color of links
-        d3.selectAll('line').filter(function (link) {
-          return link.source.id === d?.target.__data__.id || link.target.id === d?.target.__data__.id;
-        }).style("stroke", "#ef4444").style("stroke-width", "2px");
       })
-      .on("mouseout", function (d) {
-        d3.select(this).style("fill", (d?.target.__data__.is_decision ? '#4070FB' : '#9ca3af')).style("stroke", "#dc2626").style("stroke-width", "0");
-        // change color of links
-        d3.selectAll('line').filter(function (link) {
-          return link.source.id === d?.target.__data__.id || link.target.id === d?.target.__data__.id;
-        }).style("stroke", "black").style("stroke-width", "1px");
+      .style('stroke', (d) => d.is_decision ? '#FFD700' : 'none') 
+      .style('stroke-width', (d) => d.is_decision ? '4px' : '0'); 
+    
+
+      nodeGroup.selectAll('circle')
+      .on("mouseover", function (event, d) {
+        // Reduce the opacity of all nodes, links, and titles
+        nodeGroup.selectAll('circle').style("opacity", 0.1);
+        nodeGroup.selectAll('text').style("opacity", 0.1); // Reduce the opacity of the titles
+        link.style("opacity", 0.1);
+
+        // Get all connected nodes
+        const connectedNodes = new Set();
+        links.forEach(link => {
+          if (link.source === d || link.target === d) {
+            connectedNodes.add(link.source);
+            connectedNodes.add(link.target);
+          }
+        });
+
+        // Increase the opacity of the hovered node, its connected links, connected nodes, and their titles
+        d3.select(this).style("opacity", 1); // Hovered node
+        nodeGroup.selectAll('text').filter(node => node === d || connectedNodes.has(node)).style("opacity", 1); // Titles
+        link.filter(l => l.source === d || l.target === d).style("opacity", 1); // Connected links
+        nodeGroup.selectAll('circle').filter(node => connectedNodes.has(node)).style("opacity", 1); // Connected nodes
+      })
+      .on("mouseout", function () {
+        // Restore the opacity of all nodes, links, and titles
+        nodeGroup.selectAll('circle').style("opacity", 1);
+        nodeGroup.selectAll('text').style("opacity", 1); // Titles
+        link.style("opacity", 1);
       });
 
     nodeGroup
@@ -396,9 +415,36 @@ export default function GraphPage() {
       link.attr('d', linkArc);
     
       nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
-    }
-
+    };
+    
     simulation.on('tick', ticked);
+
+    const legend = d3.select(dssGraphRef.current)
+    .append('g')
+      .attr('class', 'legend')
+      .attr('transform', 'translate(50, 50)'); 
+
+
+    const legendItem = legend.selectAll('.legend-item')
+      .data(colorScale.domain())
+      .enter()
+      .append('g')
+        .attr('class', 'legend-item')
+        .attr('transform', (d, i) => `translate(0, ${i * 25})`); // spacing between legend items
+
+    legendItem.append('rect')
+      .attr('width', 18)
+      .attr('height', 18)
+      .attr('fill', colorScale);
+
+    legendItem.append('text')
+      .attr('x', 24)
+      .attr('y', 9)
+      .attr('dy', '.35em')
+      .style('font-size', '12px')
+      .style('font-family', 'Arial, sans-serif')
+      .text(d => d);
+
 
     return () => {
       simulation.stop();
