@@ -331,12 +331,26 @@ export default function GraphPage() {
         .on('end', dragended)
       );
       
+    const sectionTags = new Set();
+      nodes.forEach(node => {
+        node.tags.forEach(tag => {
+          if (tag.slug.startsWith("section")) {
+            sectionTags.add(tag.name);
+          }
+        });
+      });
+      const colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain([...sectionTags]);
+      
 
     nodeGroup
       .append('circle')
       .attr('r', 13)
       .attr('fill', (d) => {
-        return d?.is_decision ? '#4070FB' : '#9ca3af';
+        const sectionTag = d.tags.find(tag => tag.name.startsWith("Section"));
+        if (sectionTag) {
+          return colorScale(sectionTag.name);
+        }
+        return '#9ca3af'; // Default color if no relevant tags
       }).on("mouseover", function (d) {
         d3.select(this).style("fill", "#f87171").style("stroke", "#fecaca").style("stroke-width", "2px");
         // change color of links
