@@ -358,8 +358,10 @@ export default function GraphPage() {
           }
         });
       });
-      const colorScale = d3.scaleOrdinal(d3.schemeTableau10).domain([...sectionTags]);
       
+      const sortedSectionTags = Array.from(sectionTags).sort();
+      const colorScale = d3.scaleOrdinal(d3.schemeTableau10).domain([...sortedSectionTags]);
+
 
     nodeGroup
       .append('circle')
