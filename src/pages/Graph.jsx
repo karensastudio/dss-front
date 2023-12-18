@@ -384,9 +384,9 @@ export default function GraphPage() {
           .append('title')
           .text(fullTitle);
         // Reduce the opacity of all nodes, links, and titles
-        nodeGroup.selectAll('circle').style("opacity", 0.1);
-        nodeGroup.selectAll('text').style("opacity", 0.1); // Reduce the opacity of the titles
-        link.style("opacity", 0.1);
+        nodeGroup.selectAll('circle').transition().duration(500).style("opacity", 0.1);
+        nodeGroup.selectAll('text').transition().duration(500).style("opacity", 0.1);
+        link.transition().duration(500).style("opacity", 0.1);
 
         // Get all connected nodes
         const connectedNodes = new Set();
@@ -398,18 +398,23 @@ export default function GraphPage() {
         });
 
         // Increase the opacity of the hovered node, its connected links, connected nodes, and their titles
-        d3.select(this).style("opacity", 1); // Hovered node
-        nodeGroup.selectAll('text').filter(node => node === d || connectedNodes.has(node)).style("opacity", 1); // Titles
-        link.filter(l => l.source === d || l.target === d).style("opacity", 1); // Connected links
-        nodeGroup.selectAll('circle').filter(node => connectedNodes.has(node)).style("opacity", 1); // Connected nodes
+        // d3.select(this).style("opacity", 1); // Hovered node
+        // nodeGroup.selectAll('text').filter(node => node === d || connectedNodes.has(node)).style("opacity", 1); // Titles
+        // link.filter(l => l.source === d || l.target === d).style("opacity", 1); // Connected links
+        // nodeGroup.selectAll('circle').filter(node => connectedNodes.has(node)).style("opacity", 1); // Connected nodes
+
+        d3.select(this).transition().duration(500).style("opacity", 1);
+        nodeGroup.selectAll('text').filter(node => node === d || connectedNodes.has(node)).transition().duration(500).style("opacity", 1);
+        link.filter(l => l.source === d || l.target === d).transition().duration(500).style("opacity", 1);
+        nodeGroup.selectAll('circle').filter(node => connectedNodes.has(node)).transition().duration(500).style("opacity", 1); // Connected nodes
       })
       .on("mouseout", function () {
         // Restore the opacity of all nodes, links, and titles
 
         d3.select(this.parentNode).select('title').remove();
-        nodeGroup.selectAll('circle').style("opacity", 1);
-        nodeGroup.selectAll('text').style("opacity", 1); // Titles
-        link.style("opacity", 1);
+        nodeGroup.selectAll('circle').transition().duration(500).style("opacity", 1);
+        nodeGroup.selectAll('text').transition().duration(500).style("opacity", 1);
+        link.transition().duration(500).style("opacity", 1);
       });
 
       nodeGroup
