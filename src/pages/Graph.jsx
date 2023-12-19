@@ -120,6 +120,8 @@ export default function GraphPage() {
     }
   }
 
+  
+
   useEffect(() => {
     if (!userPosts || userPosts.length === 0) {
       return;
@@ -146,10 +148,10 @@ export default function GraphPage() {
         if (isTagNodeEnabled) {
           if (node.tags) {
             node.tags.forEach((tag) => {
-              // find tag in nodes
+              // Ensure tag objects also have a 'tags' property
               const tagNode = nodes.find((n) => n.id === tag.id);
               if (!tagNode) {
-                nodes.push(tag);
+                nodes.push({...tag, tags: []}); // Add an empty array for 'tags'
               }
             })
           }
@@ -277,27 +279,34 @@ export default function GraphPage() {
 
     const { nodes, links } = flattenData(userPosts);
 
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    const angleToCoordinate = (angle, radius) => ({
-      x: centerX + radius * Math.cos(angle),
-      y: centerY + radius * Math.sin(angle),
+    const sectionGroups = {};
+    nodes.forEach(node => {
+      const sectionTag = node.tags.find(tag => tag.name.startsWith("Section"));
+      if (sectionTag) {
+        if (!sectionGroups[sectionTag.name]) {
+          sectionGroups[sectionTag.name] = [];
+        }
+        sectionGroups[sectionTag.name].push(node);
+      }
     });
 
-    const numNodes = nodes.length;
+  const sectionNames = Object.keys(sectionGroups).sort(); // Sort sections alphabetically
+  const sectionWidth = width / sectionNames.length; // Calculate section width
 
-    const anglePerNode = (2 * Math.PI) / numNodes;
+  // Position nodes within each section
+  sectionNames.forEach((sectionName, sectionIndex) => {
+    const nodesInSection = sectionGroups[sectionName];
+    const sectionXStart = sectionIndex * sectionWidth;
 
-    nodes.forEach((node, index) => {
-      const angle = index * anglePerNode;
+    nodesInSection.forEach((node, nodeIndex) => {
+      const nodeX = sectionXStart + (sectionWidth / nodesInSection.length) * nodeIndex;
+      const nodeY = height; // You can adjust Y position as per your layout
 
-      const { x, y } = angleToCoordinate(angle, radius);
-
-      node.x = x;
-      node.y = y;
+      node.x = nodeX;
+      node.y = nodeY;
     });
-
+  });
+    
     const simulation = d3
       .forceSimulation(nodes)
       .force('link', d3.forceLink(links).id((d) => (d.title ? 'post' + d.id : 'tag' + d.id)).distance(100).strength(1))
@@ -307,16 +316,19 @@ export default function GraphPage() {
 
     simulationRef.current = simulation;
 
-    const link = svg
-      .selectAll('line')
-      .data(links)
-      .enter()
-      .append('line')
-      .attr('stroke', 'black')
-      .attr('stroke-opacity', 0.3)
-      .attr('stroke-width', 1);
+    const g = svg.append('g');
 
-    const nodeGroup = svg
+    const link = g
+    .selectAll('.link')
+    .data(links)
+    .enter()
+    .append('path')
+    .attr('class', 'link')
+    .attr('stroke', 'black')
+    .attr('stroke-opacity', 0.3)
+    .attr('fill', 'none');
+
+    const nodeGroup = g
       .selectAll('g.node')
       .data(nodes)
       .enter()
@@ -328,60 +340,153 @@ export default function GraphPage() {
         .on('drag', dragged)
         .on('end', dragended)
       );
+    
+    const zoom = d3.zoom()
+      .scaleExtent([1, 10]) // Set minimum scale to 1 to prevent zooming out
+      .on("zoom", (event) => {
+          g.attr("transform", event.transform); // Apply transform to the group 'g'
+      });
+  
+    svg.call(zoom);
+
+
+    const sectionTags = new Set();
+      nodes.forEach(node => {
+        node.tags.forEach(tag => {
+          if (tag.slug.startsWith("section")) {
+            sectionTags.add(tag.name);
+          }
+        });
+      });
+      
+      const sortedSectionTags = Array.from(sectionTags).sort();
+      const colorScale = d3.scaleOrdinal(d3.schemeTableau10).domain([...sortedSectionTags]);
+
 
     nodeGroup
       .append('circle')
-      .attr('r', 10)
+      .attr('r', 13)
       .attr('fill', (d) => {
-        return d?.is_decision ? '#4070FB' : '#9ca3af';
-      }).on("mouseover", function (d) {
-        d3.select(this).style("fill", "#f87171").style("stroke", "#fecaca").style("stroke-width", "2px");
-        // change color of links
-        d3.selectAll('line').filter(function (link) {
-          return link.source.id === d?.target.__data__.id || link.target.id === d?.target.__data__.id;
-        }).style("stroke", "#ef4444").style("stroke-width", "2px");
+        const sectionTag = d.tags.find(tag => tag.name.startsWith("Section"));
+        if (sectionTag) {
+          return colorScale(sectionTag.name);
+        }
+        return '#9ca3af'; // Default color if no relevant tags
       })
-      .on("mouseout", function (d) {
-        d3.select(this).style("fill", (d?.target.__data__.is_decision ? '#4070FB' : '#9ca3af')).style("stroke", "#dc2626").style("stroke-width", "0");
-        // change color of links
-        d3.selectAll('line').filter(function (link) {
-          return link.source.id === d?.target.__data__.id || link.target.id === d?.target.__data__.id;
-        }).style("stroke", "black").style("stroke-width", "1px");
+      .style('stroke', (d) => d.is_decision ? '#FFD700' : 'none') 
+      .style('stroke-width', (d) => d.is_decision ? '4px' : '0'); 
+    
+
+      nodeGroup.selectAll('circle')
+      .on("mouseover", function (event, d) {
+
+
+        const fullTitle = d.title || `#${d.name}`;
+        d3.select(this.parentNode) // Select the parent group (`<g>`) of the circle
+          .append('title')
+          .text(fullTitle);
+        // Reduce the opacity of all nodes, links, and titles
+        nodeGroup.selectAll('circle').transition().duration(500).style("opacity", 0.1);
+        nodeGroup.selectAll('text').transition().duration(500).style("opacity", 0.1);
+        link.transition().duration(500).style("opacity", 0.1);
+
+        // Get all connected nodes
+        const connectedNodes = new Set();
+        links.forEach(link => {
+          if (link.source === d || link.target === d) {
+            connectedNodes.add(link.source);
+            connectedNodes.add(link.target);
+          }
+        });
+
+        // Increase the opacity of the hovered node, its connected links, connected nodes, and their titles
+        // d3.select(this).style("opacity", 1); // Hovered node
+        // nodeGroup.selectAll('text').filter(node => node === d || connectedNodes.has(node)).style("opacity", 1); // Titles
+        // link.filter(l => l.source === d || l.target === d).style("opacity", 1); // Connected links
+        // nodeGroup.selectAll('circle').filter(node => connectedNodes.has(node)).style("opacity", 1); // Connected nodes
+
+        d3.select(this).transition().duration(500).style("opacity", 1);
+        nodeGroup.selectAll('text').filter(node => node === d || connectedNodes.has(node)).transition().duration(500).style("opacity", 1);
+        link.filter(l => l.source === d || l.target === d).transition().duration(500).style("opacity", 1);
+        nodeGroup.selectAll('circle').filter(node => connectedNodes.has(node)).transition().duration(500).style("opacity", 1); // Connected nodes
+      })
+      .on("mouseout", function () {
+        // Restore the opacity of all nodes, links, and titles
+
+        d3.select(this.parentNode).select('title').remove();
+        nodeGroup.selectAll('circle').transition().duration(500).style("opacity", 1);
+        nodeGroup.selectAll('text').transition().duration(500).style("opacity", 1);
+        link.transition().duration(500).style("opacity", 1);
       });
 
-    nodeGroup
+      nodeGroup
       .append('text')
       .attr('dy', '-2em')
       .attr('text-anchor', 'middle')
       .attr('fill', 'black')
-      .attr('class', 'node-text')
+      .style('font-size', '12px') // Adjust the font size
+      .style('font-family', 'Arial, sans-serif')
       .text((d) => {
-        if (d.title) {
-          return d.title;
+        let title = d.title || `#${d.name}`;
+        // Truncate the title if it's too long
+        if (title.length > 20) {
+          title = title.substring(0, 17) + '...';
         }
-        else {
-          return '#' + d.name;
-        }
+        return title;
+      })
+      .on('mouseover', function (event, d) {
+        // Show full title in a tooltip on hover
+        const fullTitle = d.title || `#${d.name}`;
+        d3.select(this)
+          .append('title')
+          .text(fullTitle);
       });
 
     // change fill to green if d.name exist
     nodeGroup.selectAll('circle').filter(function (d) {
       return d.name;
     }).style("fill", "#10b981");
-
-    function ticked() {
-      if (!isDragging) {
-        link
-          .attr('x1', (d) => d.source.x)
-          .attr('y1', (d) => d.source.y)
-          .attr('x2', (d) => d.target.x)
-          .attr('y2', (d) => d.target.y);
-
-        nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
-      }
+    
+    function linkArc(d) {
+      const dx = d.target.x - d.source.x;
+      const dy = d.target.y - d.source.y;
+      const dr = Math.sqrt(dx * dx + dy * dy);
+      return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
     }
-
+    function ticked() {
+      link.attr('d', linkArc);
+    
+      nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
+    };
+    
     simulation.on('tick', ticked);
+
+    const legend = d3.select(dssGraphRef.current)
+    .append('g')
+      .attr('class', 'legend')
+      .attr('transform', 'translate(50, 50)'); 
+
+
+    const legendItem = legend.selectAll('.legend-item')
+      .data(colorScale.domain())
+      .enter()
+      .append('g')
+        .attr('class', 'legend-item')
+        .attr('transform', (d, i) => `translate(0, ${i * 25})`); // spacing between legend items
+
+    legendItem.append('rect')
+      .attr('width', 18)
+      .attr('height', 18)
+      .attr('fill', colorScale);
+
+    legendItem.append('text')
+      .attr('x', 24)
+      .attr('y', 9)
+      .attr('dy', '.35em')
+      .style('font-size', '12px')
+      .style('font-family', 'Arial, sans-serif')
+      .text(d => d);
+
 
     return () => {
       simulation.stop();
