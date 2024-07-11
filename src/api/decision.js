@@ -111,3 +111,35 @@ export const detachDecisionApi = async (authHeader, postId) => {
       }
   })
 };
+
+export const deleteAllDecisionApi = async (authHeader) => {
+    return youzAxios.get(`/api/v1/posts/decision/deleteAll`, {
+      headers: {
+          Authorization: authHeader
+      }
+  }).then((response) => {
+      if (response.data.status == 'success') {
+          return {
+              status: 'success',
+              variant: 'default',
+              message: response.data.message,
+              response: response?.data
+          }
+      }
+      else {
+          return {
+              status: 'error',
+              variant: 'error',
+              message: response?.data?.message,
+              response: response
+          }
+      }
+  }).catch((response) => {
+      return {
+          status: 'error',
+          variant: 'error',
+          message: response?.response?.data?.message,
+          response: response?.response?.data
+      }
+  })
+};

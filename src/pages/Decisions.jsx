@@ -1,14 +1,15 @@
 import { Switch } from "@headlessui/react";
 import UserLayout from "../layouts/User";
 import { useEffect, useState } from "react";
-import { BsZoomIn, BsZoomOut } from "react-icons/bs";
+import { BsTrash3, BsZoomIn, BsZoomOut } from "react-icons/bs";
 import { HiMinus, HiPlus } from "react-icons/hi";
 import { ForceGraph2D } from 'react-force-graph';
 import { useAuthHeader } from "react-auth-kit";
 import { ChevronRightIcon, EnvelopeIcon, ExclamationTriangleIcon, PhoneIcon } from "@heroicons/react/20/solid";
 import { getBookmarksApi } from "../api/bookmark";
 import { Link } from "react-router-dom";
-import { getDecisionsApi } from "../api/decision";
+import { deleteAllDecisionApi, getDecisionsApi } from "../api/decision";
+import clsx from "clsx";
 
 
 export default function DecisionsPage() {
@@ -17,6 +18,8 @@ export default function DecisionsPage() {
   const [isPostsLoading, setIsPostsLoading] = useState(true);
   const [userPosts, setUserPosts] = useState([]);
   const [error, setError] = useState(null);
+
+  const [isDecisionDeleting, setIsDecisionDeleting] = useState(false);
 
   const authHeader = useAuthHeader();
 
@@ -44,9 +47,49 @@ export default function DecisionsPage() {
     fetchUserPosts();
   }, []);
 
+  const handleDecisionDeleteAll = async () => {
+    try {
+      setIsDecisionDeleting(true)
+      await deleteAllDecisionApi(authHeader()).then(() => {
+        setUserPosts([]);
+        setIsDecisionDeleting(false);
+      });
+
+    } catch (error) {
+      console.error(error);
+      setIsDecisionDeleting(false);
+    }
+  };
+
+
   return (
     <UserLayout pageTitle={'Bookmarks'} hideSidebar>
       <div className="w-full flex flex-col min-h-full grow text-black">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-black font-bold text-2xl">Decisions</h1>
+
+          {
+            userPosts.length > 0 && (
+              <button
+                type="button"
+                data-tooltip-id="AddToDecisionButton"
+                data-tooltip-content="Add to Decision"
+                data-tooltip-place="top"
+                className={"relative inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm text-blue-600 shadow-sm hover:bg-blue-100 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"}
+                onClick={handleDecisionDeleteAll}
+              >
+                <BsTrash3 className="h-4 w-4" />
+                {
+                  isDecisionDeleting ? (
+                    <span className="animate-pulse">Deleting...</span>
+                  ) : (
+                    <span>Delete All</span>
+                  )
+                }
+              </button>
+            )
+          }
+        </div>
         <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {
             isPostsLoading ? (
