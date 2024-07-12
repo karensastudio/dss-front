@@ -334,6 +334,7 @@ export default function GraphPage() {
       .enter()
       .append('g')
       .attr('class', 'node cursor-pointer')
+      .on('click', (d) => navigate('/posts/' + d.target.__data__.slug))
     
     const zoom = d3.zoom()
       .scaleExtent([1, 10]) // Set minimum scale to 1 to prevent zooming out
