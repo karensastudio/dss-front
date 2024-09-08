@@ -20,6 +20,8 @@ export default function GraphPage() {
   const [error, setError] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [tags, setTags] = useState([]);
+  const [lastHoveredNode, setLastHoveredNode] = useState(null);
+
 
   const isAuthenticated = useIsAuthenticated()
   const authHeader = useAuthHeader();
@@ -380,15 +382,16 @@ export default function GraphPage() {
       nodeGroup.selectAll('circle')
       .on("mouseover", function (event, d) {
 
+        setLastHoveredNode(d);
 
         const fullTitle = d.title || `#${d.name}`;
         d3.select(this.parentNode) // Select the parent group (`<g>`) of the circle
           .append('title')
           .text(fullTitle);
         // Reduce the opacity of all nodes, links, and titles
-        nodeGroup.selectAll('circle').transition().duration(500).style("opacity", 0.1);
-        nodeGroup.selectAll('text').transition().duration(500).style("opacity", 0.1);
-        link.transition().duration(500).style("opacity", 0.1);
+        nodeGroup.selectAll('circle').transition().duration(500).style("opacity", 0.3);
+        nodeGroup.selectAll('text').transition().duration(500).style("opacity", 0.3);
+        link.transition().duration(500).style("opacity", 0.3);
 
         // Get all connected nodes
         const connectedNodes = new Set();
@@ -412,11 +415,22 @@ export default function GraphPage() {
       })
       .on("mouseout", function () {
         // Restore the opacity of all nodes, links, and titles
+        if (!lastHoveredNode) return;  // If no node has been hovered yet, skip
 
-        d3.select(this.parentNode).select('title').remove();
-        nodeGroup.selectAll('circle').transition().duration(500).style("opacity", 1);
-        nodeGroup.selectAll('text').transition().duration(500).style("opacity", 1);
-        link.transition().duration(500).style("opacity", 1);
+        // Reduce opacity for all nodes except the last hovered node and its neighbors
+        nodeGroup.selectAll('circle').transition().duration(500).style("opacity", (node) => {
+          return node === lastHoveredNode || connectedNodes.has(node) ? 1 : 0.2;
+        });
+        
+        // Same for text labels
+        nodeGroup.selectAll('text').transition().duration(500).style("opacity", (node) => {
+          return node === lastHoveredNode || connectedNodes.has(node) ? 1 : 0.2;
+        });
+      
+        // Same for links
+        link.transition().duration(500).style("opacity", (link) => {
+          return link.source === lastHoveredNode || link.target === lastHoveredNode ? 1 : 0.2;
+        });
       });
 
       nodeGroup
@@ -452,13 +466,46 @@ export default function GraphPage() {
       const dy = d.target.y - d.source.y;
       const dr = Math.sqrt(dx * dx + dy * dy);
       return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
-    }
+    };
+    
     function ticked() {
+    // Update node and link positions
       link.attr('d', linkArc);
     
       nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
     };
-    
+
+    function highlightTutorialNode() {
+    const tutorialNode = nodes.find(node => node.title === "Tutorial");
+    const connectedNodes = new Set();
+
+    if (tutorialNode) {
+      // Find all links that are connected to 'Tutorial' node
+      links.forEach(link => {
+        if (link.source === tutorialNode || link.target === tutorialNode) {
+          connectedNodes.add(link.source === tutorialNode ? link.target : link.source);
+        }
+      });
+
+      // Add the 'Tutorial' node itself to the connected nodes set
+      connectedNodes.add(tutorialNode);
+    }
+
+    // Set opacity for nodes and links
+    nodeGroup.selectAll('circle')
+      .style('opacity', d => connectedNodes.has(d) ? 1 : 0.3); // Highlight connected nodes, dim others
+
+    nodeGroup.selectAll('text')
+      .style('opacity', d => connectedNodes.has(d) ? 1 : 0.3); // Same for text labels
+
+    link
+      .style('opacity', d => connectedNodes.has(d.source) && connectedNodes.has(d.target) ? 1 : 0.3); // Dim other links
+  }
+
+    if (!userPosts || userPosts.length === 0) {
+      return;
+    }
+
     simulation.on('tick', ticked);
 
     const legend = d3.select(dssGraphRef.current)
@@ -487,6 +534,7 @@ export default function GraphPage() {
       .style('font-family', 'Arial, sans-serif')
       .text(d => d);
 
+    highlightTutorialNode();
 
     return () => {
       simulation.stop();
