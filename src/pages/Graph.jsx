@@ -20,6 +20,8 @@ export default function GraphPage() {
   const [error, setError] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [tags, setTags] = useState([]);
+  const [lastHoveredNode, setLastHoveredNode] = useState(null);
+
 
   const isAuthenticated = useIsAuthenticated()
   const authHeader = useAuthHeader();
@@ -145,38 +147,41 @@ export default function GraphPage() {
       const links = [];
 
       const nodePather = (node) => {
-        if (isTagNodeEnabled) {
-          if (node.tags) {
-            node.tags.forEach((tag) => {
-              // Ensure tag objects also have a 'tags' property
-              const tagNode = nodes.find((n) => n.id === tag.id);
+        if (isTagNodeEnabled && node.tags) {
+          node.tags.forEach((tag) => {
+            if (tag && tag.id) {  // Ensure the tag and tag ID exist
+              const tagNode = nodes.find((n) => n.id === 'tag' + tag.id);
               if (!tagNode) {
-                nodes.push({...tag, tags: []}); // Add an empty array for 'tags'
+                nodes.push({ id: 'tag' + tag.id, name: tag.name || `Tag ${tag.id}`, tags: [] });
               }
-            })
-          }
+            }
+          });
         }
-        if (isDecisionRelationEnabled) {
-          if (node.is_decision) {
-            nodes.push(node);
+        if (node && node.id && node.title) {
+          if (isDecisionRelationEnabled) {
+            if (node.is_decision) {
+              nodes.push({ id: 'post' + node.id, ...node });  // Ensure consistent post node ID format
+            }
+          } else {
+            nodes.push({ id: 'post' + node.id, ...node });  // Ensure consistent post node ID format
           }
-        }
-        else {
-          nodes.push(node);
         }
       };
 
       const linksPather = (node) => {
-        if(isTagNodeEnabled) {
-          if(node.posts) {
-            node.posts.forEach((post) => {
-              const targetNode = nodes.find((n) => n.title && n.id === post.id);
-              if (targetNode?.id && targetNode.id == post.id) {
-                console.log(node, post);
-                links.push({ source: 'post' + post.id, target: 'tag' + node.id });
-              }
-            })
-          }
+        if (node.tags && node.tags.length > 0) {
+          node.tags.forEach((tag) => {
+            // Find the corresponding tag node
+            const tagNode = nodes.find((n) => n.id === 'tag' + tag.id);
+            
+            // Find the corresponding post node in the nodes array
+            const postNodeInGraph = nodes.find((n) => n.id === 'post' + node.id);
+    
+            // Ensure both the post node and the tag node exist before creating the link
+            if (tagNode && postNodeInGraph) {
+              links.push({ source: 'post' + node.id, target: 'tag' + tag.id });
+            }
+          });
         }
         if (isDecisionRelationEnabled) {
           if (node.is_decision) {
@@ -375,15 +380,16 @@ export default function GraphPage() {
       nodeGroup.selectAll('circle')
       .on("mouseover", function (event, d) {
 
+        setLastHoveredNode(d);
 
         const fullTitle = d.title || `#${d.name}`;
         d3.select(this.parentNode) // Select the parent group (`<g>`) of the circle
           .append('title')
           .text(fullTitle);
         // Reduce the opacity of all nodes, links, and titles
-        nodeGroup.selectAll('circle').transition().duration(500).style("opacity", 0.1);
-        nodeGroup.selectAll('text').transition().duration(500).style("opacity", 0.1);
-        link.transition().duration(500).style("opacity", 0.1);
+        nodeGroup.selectAll('circle').transition().duration(500).style("opacity", 0.3);
+        nodeGroup.selectAll('text').transition().duration(500).style("opacity", 0.3);
+        link.transition().duration(500).style("opacity", 0.3);
 
         // Get all connected nodes
         const connectedNodes = new Set();
@@ -407,11 +413,22 @@ export default function GraphPage() {
       })
       .on("mouseout", function () {
         // Restore the opacity of all nodes, links, and titles
+        if (!lastHoveredNode) return;  // If no node has been hovered yet, skip
 
-        d3.select(this.parentNode).select('title').remove();
-        nodeGroup.selectAll('circle').transition().duration(500).style("opacity", 1);
-        nodeGroup.selectAll('text').transition().duration(500).style("opacity", 1);
-        link.transition().duration(500).style("opacity", 1);
+        // Reduce opacity for all nodes except the last hovered node and its neighbors
+        nodeGroup.selectAll('circle').transition().duration(500).style("opacity", (node) => {
+          return node === lastHoveredNode || connectedNodes.has(node) ? 1 : 0.2;
+        });
+        
+        // Same for text labels
+        nodeGroup.selectAll('text').transition().duration(500).style("opacity", (node) => {
+          return node === lastHoveredNode || connectedNodes.has(node) ? 1 : 0.2;
+        });
+      
+        // Same for links
+        link.transition().duration(500).style("opacity", (link) => {
+          return link.source === lastHoveredNode || link.target === lastHoveredNode ? 1 : 0.2;
+        });
       });
 
       nodeGroup
@@ -447,14 +464,48 @@ export default function GraphPage() {
       const dy = d.target.y - d.source.y;
       const dr = Math.sqrt(dx * dx + dy * dy);
       return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
-    }
+    };
+    
     function ticked() {
+    // Update node and link positions
       link.attr('d', linkArc);
     
       nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
     };
-    
+
+    function highlightTutorialNode() {
+    const tutorialNode = nodes.find(node => node.title === "Tutorial");
+    const connectedNodes = new Set();
+
+    if (tutorialNode) {
+      // Find all links that are connected to 'Tutorial' node
+      links.forEach(link => {
+        if (link.source === tutorialNode || link.target === tutorialNode) {
+          connectedNodes.add(link.source === tutorialNode ? link.target : link.source);
+        }
+      });
+
+      // Add the 'Tutorial' node itself to the connected nodes set
+      connectedNodes.add(tutorialNode);
+    }
+
+    // Set opacity for nodes and links
+    nodeGroup.selectAll('circle')
+      .style('opacity', d => connectedNodes.has(d) ? 1 : 0.3); // Highlight connected nodes, dim others
+
+    nodeGroup.selectAll('text')
+      .style('opacity', d => connectedNodes.has(d) ? 1 : 0.3); // Same for text labels
+
+    link
+      .style('opacity', d => connectedNodes.has(d.source) && connectedNodes.has(d.target) ? 1 : 0.3); // Dim other links
+  }
+
+    if (!userPosts || userPosts.length === 0) {
+      return;
+    }
+
     simulation.on('tick', ticked);
+
 
     const legend = d3.select(dssGraphRef.current)
     .append('g')
@@ -466,22 +517,69 @@ export default function GraphPage() {
       .data(colorScale.domain())
       .enter()
       .append('g')
-        .attr('class', 'legend-item')
-        .attr('transform', (d, i) => `translate(0, ${i * 25})`); // spacing between legend items
+      .attr('class', 'legend-item')
+      .attr('transform', (d, i) => `translate(0, ${i * 35})`); 
 
     legendItem.append('rect')
-      .attr('width', 18)
-      .attr('height', 18)
+      .attr('width', 24)  // Increased rectangle size
+      .attr('height', 24)
       .attr('fill', colorScale);
 
     legendItem.append('text')
-      .attr('x', 24)
-      .attr('y', 9)
+      .attr('x', 34)  // Increased space between the box and text
+      .attr('y', 12)  // Centered text vertically
       .attr('dy', '.35em')
-      .style('font-size', '12px')
+      .style('font-size', '14px')  // Increased font size for better readability
       .style('font-family', 'Arial, sans-serif')
       .text(d => d);
 
+    legend.append('text')
+      .attr('x', 0)
+      .attr('y', -20)  // Position above the legend items
+      .style('font-size', '16px')  // Slightly larger for emphasis
+      .style('font-weight', 'bold')  // Make it bold
+      .text('Section Legend');
+
+    legendItem
+      .on('mouseover', function(event, sectionName) {
+        // Highlight all nodes with the hovered section name
+        nodeGroup.selectAll('circle').style('opacity', (d) => {
+          const sectionTag = d.tags.find(tag => tag.name === sectionName);
+          return sectionTag ? 1 : 0.2;  // Highlight nodes with this section
+        });
+    
+        link.style('opacity', 0.2);  // Dim all links
+      })
+      .on('mouseout', function() {
+        // Reset all nodes and links to full opacity
+        nodeGroup.selectAll('circle').style('opacity', 1);
+        nodeGroup.selectAll('text').style('opacity', 1);
+        link.style('opacity', 1);
+      });
+
+
+      const sectionCounts = {};
+      nodes.forEach(node => {
+        const sectionTag = node.tags.find(tag => tag.name.startsWith("Section"));
+        if (sectionTag) {
+          if (!sectionCounts[sectionTag.name]) {
+            sectionCounts[sectionTag.name] = 0;
+          }
+          sectionCounts[sectionTag.name]++;
+        }
+      });
+
+      legendItem.append('text')
+        .attr('x', 34)
+        .attr('y', 12)
+        .attr('dy', '.35em')
+        .style('font-size', '14px')
+        .style('font-family', 'Arial, sans-serif')
+
+
+    
+
+    highlightTutorialNode();
 
     return () => {
       simulation.stop();
@@ -509,7 +607,7 @@ export default function GraphPage() {
               </Switch>
             </div>
 
-            <div className="flex flex-col justify-center items-start py-3 pl-5">
+            {/* <div className="flex flex-col justify-center items-start py-3 pl-5">
               <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">Tag relation:</p>
               <Switch
                 checked={isTagRelationEnabled}
@@ -524,7 +622,7 @@ export default function GraphPage() {
                 />
               </Switch>
 
-            </div>
+            </div> */}
 
             <div className="pl-5 flex flex-col justify-center items-start py-3">
               <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">Disable child relation:</p>
