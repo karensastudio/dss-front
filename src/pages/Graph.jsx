@@ -147,38 +147,41 @@ export default function GraphPage() {
       const links = [];
 
       const nodePather = (node) => {
-        if (isTagNodeEnabled) {
-          if (node.tags) {
-            node.tags.forEach((tag) => {
-              // Ensure tag objects also have a 'tags' property
-              const tagNode = nodes.find((n) => n.id === tag.id);
+        if (isTagNodeEnabled && node.tags) {
+          node.tags.forEach((tag) => {
+            if (tag && tag.id) {  // Ensure the tag and tag ID exist
+              const tagNode = nodes.find((n) => n.id === 'tag' + tag.id);
               if (!tagNode) {
-                nodes.push({...tag, tags: []}); // Add an empty array for 'tags'
+                nodes.push({ id: 'tag' + tag.id, name: tag.name || `Tag ${tag.id}`, tags: [] });
               }
-            })
-          }
+            }
+          });
         }
-        if (isDecisionRelationEnabled) {
-          if (node.is_decision) {
-            nodes.push(node);
+        if (node && node.id && node.title) {
+          if (isDecisionRelationEnabled) {
+            if (node.is_decision) {
+              nodes.push({ id: 'post' + node.id, ...node });  // Ensure consistent post node ID format
+            }
+          } else {
+            nodes.push({ id: 'post' + node.id, ...node });  // Ensure consistent post node ID format
           }
-        }
-        else {
-          nodes.push(node);
         }
       };
 
       const linksPather = (node) => {
-        if(isTagNodeEnabled) {
-          if(node.posts) {
-            node.posts.forEach((post) => {
-              const targetNode = nodes.find((n) => n.title && n.id === post.id);
-              if (targetNode?.id && targetNode.id == post.id) {
-                console.log(node, post);
-                links.push({ source: 'post' + post.id, target: 'tag' + node.id });
-              }
-            })
-          }
+        if (node.tags && node.tags.length > 0) {
+          node.tags.forEach((tag) => {
+            // Find the corresponding tag node
+            const tagNode = nodes.find((n) => n.id === 'tag' + tag.id);
+            
+            // Find the corresponding post node in the nodes array
+            const postNodeInGraph = nodes.find((n) => n.id === 'post' + node.id);
+    
+            // Ensure both the post node and the tag node exist before creating the link
+            if (tagNode && postNodeInGraph) {
+              links.push({ source: 'post' + node.id, target: 'tag' + tag.id });
+            }
+          });
         }
         if (isDecisionRelationEnabled) {
           if (node.is_decision) {
@@ -508,6 +511,7 @@ export default function GraphPage() {
 
     simulation.on('tick', ticked);
 
+
     const legend = d3.select(dssGraphRef.current)
     .append('g')
       .attr('class', 'legend')
@@ -518,21 +522,67 @@ export default function GraphPage() {
       .data(colorScale.domain())
       .enter()
       .append('g')
-        .attr('class', 'legend-item')
-        .attr('transform', (d, i) => `translate(0, ${i * 25})`); // spacing between legend items
+      .attr('class', 'legend-item')
+      .attr('transform', (d, i) => `translate(0, ${i * 35})`); 
 
     legendItem.append('rect')
-      .attr('width', 18)
-      .attr('height', 18)
+      .attr('width', 24)  // Increased rectangle size
+      .attr('height', 24)
       .attr('fill', colorScale);
 
     legendItem.append('text')
-      .attr('x', 24)
-      .attr('y', 9)
+      .attr('x', 34)  // Increased space between the box and text
+      .attr('y', 12)  // Centered text vertically
       .attr('dy', '.35em')
-      .style('font-size', '12px')
+      .style('font-size', '14px')  // Increased font size for better readability
       .style('font-family', 'Arial, sans-serif')
       .text(d => d);
+
+    legend.append('text')
+      .attr('x', 0)
+      .attr('y', -20)  // Position above the legend items
+      .style('font-size', '16px')  // Slightly larger for emphasis
+      .style('font-weight', 'bold')  // Make it bold
+      .text('Section Legend');
+
+    legendItem
+      .on('mouseover', function(event, sectionName) {
+        // Highlight all nodes with the hovered section name
+        nodeGroup.selectAll('circle').style('opacity', (d) => {
+          const sectionTag = d.tags.find(tag => tag.name === sectionName);
+          return sectionTag ? 1 : 0.2;  // Highlight nodes with this section
+        });
+    
+        link.style('opacity', 0.2);  // Dim all links
+      })
+      .on('mouseout', function() {
+        // Reset all nodes and links to full opacity
+        nodeGroup.selectAll('circle').style('opacity', 1);
+        nodeGroup.selectAll('text').style('opacity', 1);
+        link.style('opacity', 1);
+      });
+
+
+      const sectionCounts = {};
+      nodes.forEach(node => {
+        const sectionTag = node.tags.find(tag => tag.name.startsWith("Section"));
+        if (sectionTag) {
+          if (!sectionCounts[sectionTag.name]) {
+            sectionCounts[sectionTag.name] = 0;
+          }
+          sectionCounts[sectionTag.name]++;
+        }
+      });
+
+      legendItem.append('text')
+        .attr('x', 34)
+        .attr('y', 12)
+        .attr('dy', '.35em')
+        .style('font-size', '14px')
+        .style('font-family', 'Arial, sans-serif')
+
+
+    
 
     highlightTutorialNode();
 
@@ -562,7 +612,7 @@ export default function GraphPage() {
               </Switch>
             </div>
 
-            <div className="flex flex-col justify-center items-start py-3 pl-5">
+            {/* <div className="flex flex-col justify-center items-start py-3 pl-5">
               <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">Tag relation:</p>
               <Switch
                 checked={isTagRelationEnabled}
@@ -577,7 +627,7 @@ export default function GraphPage() {
                 />
               </Switch>
 
-            </div>
+            </div> */}
 
             <div className="pl-5 flex flex-col justify-center items-start py-3">
               <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">Disable child relation:</p>
