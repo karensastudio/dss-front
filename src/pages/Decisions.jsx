@@ -81,9 +81,9 @@ export default function DecisionsPage() {
                 <BsTrash3 className="h-4 w-4" />
                 {
                   isDecisionDeleting ? (
-                    <span className="animate-pulse">Deleting...</span>
+                    <span className="animate-pulse">Resetting...</span>
                   ) : (
-                    <span>Delete All</span>
+                    <span>Empty List</span>
                   )
                 }
               </button>
