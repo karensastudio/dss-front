@@ -29,6 +29,7 @@ export default function GraphPage() {
 
   const simulationRef = useRef(null);
   const dssGraphRef = useRef();
+  const zoomRef = useRef(null);
 
   // Collect tags from posts and append posts to tags
   function collectTagsfromPosts(posts) {
@@ -266,6 +267,12 @@ export default function GraphPage() {
       });
 
     svg.call(zoom);
+    zoomRef.current = zoom;
+
+    if (zoomRef.current.storedTransform) {
+      svg.call(zoom.transform, zoomRef.current.storedTransform);
+    }
+
 
     const sectionTags = new Set();
     nodes.forEach((node) => {
@@ -475,8 +482,27 @@ export default function GraphPage() {
     return () => {
       updateSimulation(distance);
       simulation.stop();
+      zoomRef.current.storedTransform = d3.zoomTransform(svg.node());
+      updateSimulation(distance);
+      simulation.stop();
     };
   }, [userPosts, distance, isDecisionRelationEnabled, window.innerWidth, window.innerHeight]);
+
+
+  const updateGraphWithoutZoomChange = () => {
+    const svg = d3.select(dssGraphRef.current);
+    const currentTransform = d3.zoomTransform(svg.node());
+  
+    // Trigger a re-render of the graph
+    setUserPosts([...userPosts]);
+  
+    // After the graph updates, restore the zoom state
+    setTimeout(() => {
+      if (zoomRef.current && currentTransform) {
+        svg.call(zoomRef.current.transform, currentTransform);
+      }
+    }, 0);
+  };
 
   return (
     <UserLayout pageTitle={'Graph'} hideSidebar fullWidth>
@@ -490,7 +516,10 @@ export default function GraphPage() {
                 </p>
                 <Switch
                   checked={isDecisionRelationEnabled}
-                  onChange={setDecisionRelationEnabled}
+                  onChange={(checked) => {
+                    setDecisionRelationEnabled(checked);
+                    updateGraphWithoutZoomChange();
+                  }}
                   className={`${
                     isDecisionRelationEnabled ? 'bg-blue-600' : 'bg-gray-200'
                   } relative inline-flex h-6 w-11 items-center rounded-full`}
