@@ -1,7 +1,7 @@
 import { Switch } from "@headlessui/react";
 import UserLayout from "../layouts/User";
-import { useEffect, useRef, useState } from "react";
-import { HiMinus, HiPlus } from "react-icons/hi";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { HiMinus, HiPlus, HiZoomIn, HiZoomOut } from "react-icons/hi";
 import { getUserGraphApi } from "../api/userPost";
 import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
 import * as d3 from 'd3';
@@ -30,6 +30,24 @@ export default function GraphPage() {
   const simulationRef = useRef(null);
   const dssGraphRef = useRef();
   const zoomRef = useRef(null);
+
+  const zoomStep = 0.2;  // Define the zoom step
+
+
+  const handleZoom = (zoomIn) => {
+    const svg = d3.select(dssGraphRef.current);
+    const currentTransform = d3.zoomTransform(svg.node());
+    const newScale = zoomIn 
+      ? currentTransform.k * (1 + zoomStep) 
+      : currentTransform.k / (1 + zoomStep);
+  
+    if (zoomRef.current) {
+      svg.transition().duration(300).call(
+        zoomRef.current.transform,
+        currentTransform.scale(newScale / currentTransform.k)
+      );
+    }
+  };
 
   // Collect tags from posts and append posts to tags
   function collectTagsfromPosts(posts) {
@@ -79,31 +97,58 @@ export default function GraphPage() {
     fetchUserPosts();
   }, []);
 
-  function changeDistance(type) {
-    if (type === 1) {
-      setDistance(prevDistance => {
-        const newDistance = Math.min(prevDistance + 200, -200);
-        updateSimulation(newDistance);
-        return newDistance;
-      });
-    }
-    if (type === -1) {
-      setDistance(prevDistance => {
-        const newDistance = Math.max(prevDistance - 200, -2000);
-        updateSimulation(newDistance);
-        return newDistance;
-      });
-    }
-  }
+  const changeDistance = (type) => {
+    setDistance(prevDistance => {
+      let newDistance;
+      if (type === 1) {
+        newDistance = Math.min(prevDistance + 200, -200);
+      } else {
+        newDistance = Math.max(prevDistance - 200, -2000);
+      }
+      updateSimulationWithoutZoomChange(newDistance);
+      return newDistance;
+    });
+  };
 
-  function updateSimulation(newDistance) {
+  const updateSimulationWithoutZoomChange = (newDistance) => {
+    const svg = d3.select(dssGraphRef.current);
+    const currentTransform = d3.zoomTransform(svg.node());
+  
     if (simulationRef.current) {
       simulationRef.current
         .force('charge', d3.forceManyBody().strength(newDistance))
         .alpha(1)
         .restart();
     }
-  }
+  
+    // Trigger a re-render of the graph
+    setUserPosts([...userPosts]);
+  
+    // After the graph updates, restore the zoom state
+    setTimeout(() => {
+      if (zoomRef.current && currentTransform) {
+        svg.call(zoomRef.current.transform, currentTransform);
+      }
+    }, 0);
+  };
+
+  // function updateSimulation(newDistance) {
+  //   if (simulationRef.current) {
+  //     simulationRef.current
+  //       .force('charge', d3.forceManyBody().strength(newDistance))
+  //       .alpha(1)
+  //       .restart();
+  //   }
+  // };
+
+  const updateSimulation = useCallback((newDistance) => {
+    if (simulationRef.current) {
+      simulationRef.current
+        .force('charge', d3.forceManyBody().strength(newDistance))
+        .alpha(1)
+        .restart();
+    }
+  }, []);
 
   useEffect(() => {
     if (!userPosts || userPosts.length === 0) {
@@ -229,7 +274,7 @@ export default function GraphPage() {
     const simulation = d3
       .forceSimulation(nodes)
       .force('link', d3.forceLink(links).id((d) => 'post' + d.id).distance(100).strength(1))
-      .force('charge', d3.forceManyBody().strength(-1000))
+      .force('charge', d3.forceManyBody().strength(distance))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collision', d3.forceCollide().radius(30))
       .force('x', d3.forceX(width / 2).strength(0.1))
@@ -480,13 +525,11 @@ export default function GraphPage() {
     highlightTutorialNode();
 
     return () => {
-      updateSimulation(distance);
-      simulation.stop();
       zoomRef.current.storedTransform = d3.zoomTransform(svg.node());
       updateSimulation(distance);
       simulation.stop();
     };
-  }, [userPosts, distance, isDecisionRelationEnabled, window.innerWidth, window.innerHeight]);
+  }, [userPosts, isDecisionRelationEnabled, window.innerWidth, window.innerHeight, distance]);
 
 
   const updateGraphWithoutZoomChange = () => {
@@ -512,7 +555,7 @@ export default function GraphPage() {
             {isAuthenticated() && (
               <div className="flex flex-col justify-center items-start py-3 pl-5">
                 <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">
-                  My decision relations:
+                  Only show my decisions:
                 </p>
                 <Switch
                   checked={isDecisionRelationEnabled}
@@ -560,7 +603,31 @@ export default function GraphPage() {
                 </button>
               </span>
             </div>
+            <div className="flex flex-col justify-center items-start py-3 pl-5">
+              <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">
+                Zoom:
+              </p>
+              <span className="isolate inline-flex rounded-md shadow-sm">
+                <button
+                  type="button"
+                  className="relative inline-flex items-center rounded-l-md bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+                  onClick={() => handleZoom(false)}
+                >
+                  <span className="sr-only">Zoom Out</span>
+                  <HiZoomOut className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+                  onClick={() => handleZoom(true)}
+                >
+                  <span className="sr-only">Zoom In</span>
+                  <HiZoomIn className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </span>
+            </div>
           </div>
+          
         </div>
 
         <div
