@@ -275,14 +275,56 @@ export default function GraphPage() {
 
     const { nodes, links } = flattenData(userPosts);
 
+    function hierarchicalCircularForce(nodes, links, center, radius) {
+  const tutorialNode = nodes.find(n => n.title === 'Tutorial');
+  const mainPosts = new Set(links
+    .filter(l => l.source === tutorialNode || l.target === tutorialNode)
+    .flatMap(l => [l.source, l.target])
+    .filter(n => n !== tutorialNode)
+  );
+
+  return function force(alpha) {
+    nodes.forEach(node => {
+      if (node === tutorialNode) {
+        // Keep Tutorial node at center
+        node.x = center.x;
+        node.y = center.y;
+      } else if (mainPosts.has(node)) {
+        // Position main posts in a circle around Tutorial
+        const angle = (Array.from(mainPosts).indexOf(node) / mainPosts.size) * 2 * Math.PI;
+        const targetX = center.x + Math.cos(angle) * radius;
+        const targetY = center.y + Math.sin(angle) * radius;
+        node.x += (targetX - node.x) * alpha;
+        node.y += (targetY - node.y) * alpha;
+      } else {
+        // Move other nodes outward
+        const dx = node.x - center.x;
+        const dy = node.y - center.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance > 0) {
+          const targetDistance = radius * 2;
+          const factor = ((targetDistance - distance) / distance) * alpha;
+          node.x += dx * factor;
+          node.y += dy * factor;
+        }
+      }
+    });
+  };
+}
+
+// Modify your existing simulation setup
+    const center = { x: width / 2, y: height / 2 };
+    const innerRadius = Math.min(width, height) * 0.2; // Adjust as needed
+
+
     const simulation = d3
-      .forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id((d) => 'post' + d.id).distance(100).strength(1))
-      .force('charge', d3.forceManyBody().strength(distance))
-      .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(30))
-      .force('x', d3.forceX(width / 2).strength(0.1))
-      .force('y', d3.forceY(height / 2).strength(0.1));
+    .forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id((d) => 'post' + d.id).distance(100).strength(0.3))
+    .force('charge', d3.forceManyBody().strength(d => d.title === 'Tutorial' ? 0 : -500))
+    .force('collision', d3.forceCollide().radius(30))
+    .force('hierarchical', hierarchicalCircularForce(nodes, links, center, innerRadius))
+    .alphaDecay(0.01)
+    .alphaMin(0.001);
 
 
 
@@ -431,13 +473,13 @@ export default function GraphPage() {
     function linkArc(d) {
       const dx = d.target.x - d.source.x;
       const dy = d.target.y - d.source.y;
-      const dr = Math.sqrt(dx * dx + dy * dy);
+      const dr = Math.sqrt(dx * dx + dy * dy) * 2; // Increase this multiplier for more pronounced curves
       return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
     }
 
     function ticked() {
       link.attr('d', linkArc);
-      nodeGroup.attr('transform', (d) => `translate(${d.x},${d.y})`);
+      nodeGroup.attr('transform', d => `translate(${d.x},${d.y})`);
     }
 
     
@@ -600,6 +642,17 @@ export default function GraphPage() {
       updateLegendSelection();
 
     highlightTutorialNode();
+
+    window.addEventListener('resize', () => {
+      const newWidth = window.innerWidth;
+      const newHeight = document.getElementById('graph-container').offsetHeight;
+      const newCenter = { x: newWidth / 2, y: newHeight / 2 };
+      const newInnerRadius = Math.min(newWidth, newHeight) * 0.2;
+
+      svg.attr('width', newWidth).attr('height', newHeight);
+      simulation.force('hierarchical', hierarchicalCircularForce(nodes, links, newCenter, newInnerRadius));
+      simulation.alpha(1).restart();
+    });
 
     return () => {
       zoomRef.current.storedTransform = d3.zoomTransform(svg.node());
