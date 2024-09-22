@@ -555,6 +555,7 @@ export default function GraphPage() {
         g.selectAll('.node')
           .style('opacity', (d) => {
             const nodeSectionTag = d.tags.find(tag => tag.name.startsWith('Section'))?.name;
+
             return nodeSectionTag === selectedSectionTag ? 1 : 0.2;
           });
   
