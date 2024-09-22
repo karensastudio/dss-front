@@ -118,7 +118,7 @@ export default function GraphPage() {
   
     if (simulationRef.current) {
       simulationRef.current
-        .force('charge', d3.forceManyBody().strength(newDistance))
+        .force('charge', d3.forceManyBody().strength(d => d.title === 'Tutorial' ? 0 : newDistance))
         .alpha(1)
         .restart();
     }
@@ -320,7 +320,7 @@ export default function GraphPage() {
     const simulation = d3
     .forceSimulation(nodes)
     .force('link', d3.forceLink(links).id((d) => 'post' + d.id).distance(100).strength(0.3))
-    .force('charge', d3.forceManyBody().strength(d => d.title === 'Tutorial' ? 0 : -500))
+    .force('charge', d3.forceManyBody().strength(d => d.title === 'Tutorial' ? 0 : distance))
     .force('collision', d3.forceCollide().radius(30))
     .force('hierarchical', hierarchicalCircularForce(nodes, links, center, innerRadius))
     .alphaDecay(0.01)
@@ -383,7 +383,10 @@ export default function GraphPage() {
     });
 
     const sortedSectionTags = Array.from(sectionTags).sort();
-    const colorScale = d3.scaleOrdinal(d3.schemeTableau10).domain(sortedSectionTags);
+    const colorScale = d3.scaleOrdinal(d3.schemeSet3).domain(sortedSectionTags);
+
+
+
 
 
     
@@ -396,7 +399,7 @@ export default function GraphPage() {
         if (sectionTag) {
           return colorScale(sectionTag.name);
         }
-        return '#9ca3af';
+        return '#cccccc';
       })
       .style('stroke', (d) => (d.is_decision ? '#FFD700' : 'none'))
       .style('stroke-width', (d) => (d.is_decision ? '4px' : '0'))
@@ -761,7 +764,7 @@ export default function GraphPage() {
         </div>
 
         <div
-          className="bg-gray-100 h-full flex items-center justify-center min-h-full grow"
+          className="bg-gray-50 h-full flex items-center justify-center min-h-full grow"
           id="graph-container"
         >
           {isPostsLoading ? (
