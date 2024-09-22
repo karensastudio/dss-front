@@ -20,6 +20,8 @@ export default function GraphPage() {
   const [tags, setTags] = useState([]);
   const [lastHoveredNode, setLastHoveredNode] = useState(null);
 
+  const [mainPosts, setMainPosts] = useState([]);
+
   const isAuthenticated = useIsAuthenticated();
   const authHeader = useAuthHeader();
 
@@ -166,6 +168,8 @@ export default function GraphPage() {
 
     const svg = d3.select(dssGraphRef.current);
 
+    const graphGroup = svg.append('g').attr('class', 'graph-content');
+
     const flattenData = (userPosts) => {
       const nodes = [];
       const links = [];
@@ -296,6 +300,14 @@ export default function GraphPage() {
       .attr('stroke-opacity', 0.3)
       .attr('fill', 'none');
 
+    const mainPostTitles = userPosts
+      .filter(post => /^[A-Z]:/.test(post.title))
+      .map(post => post.title)
+      .sort((a, b) => a.localeCompare(b));;
+    setMainPosts(mainPostTitles);
+
+    
+
     const nodeGroup = g
       .selectAll('g.node')
       .data(nodes)
@@ -329,7 +341,10 @@ export default function GraphPage() {
     });
 
     const sortedSectionTags = Array.from(sectionTags).sort();
-    const colorScale = d3.scaleOrdinal(d3.schemeTableau10).domain([...sortedSectionTags]);
+    const colorScale = d3.scaleOrdinal(d3.schemeTableau10).domain(sortedSectionTags);
+
+
+    
 
     nodeGroup
       .append('circle')
@@ -453,74 +468,135 @@ export default function GraphPage() {
 
     simulation.on('tick', ticked);
 
-    const legend = d3
-      .select(dssGraphRef.current)
+    const legendWidth = 250;
+    const legendPadding = 10;
+    const itemSpacing = 40; 
+    const legendContainer = svg
+      .append('g')
+      .attr('class', 'legend-container')
+      .attr('transform', `translate(${legendPadding}, ${legendPadding})`);
+
+
+      function wrap(text, width) {
+        text.each(function() {
+          var text = d3.select(this),
+              words = text.text().split(/\s+/).reverse(),
+              word,
+              line = [],
+              lineNumber = 0,
+              lineHeight = 1.2, // ems
+              y = text.attr("y"),
+              dy = parseFloat(text.attr("dy")),
+              tspan = text.text(null).append("tspan").attr("x", 34).attr("y", y).attr("dy", dy + "em");
+          while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            if (tspan.node().getComputedTextLength() > width - 40) {
+              line.pop();
+              tspan.text(line.join(" "));
+              line = [word];
+              tspan = text.append("tspan").attr("x", 34).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+            }
+          }
+        });
+      }
+
+    const legendHeight = mainPostTitles.length * itemSpacing + legendPadding * 2;
+
+    // Add a semi-transparent background to the legend
+    legendContainer
+      .append('rect')
+      .attr('width', legendWidth)
+      .attr('height', legendHeight)
+      .attr('fill', 'rgba(255, 255, 255, 0.9)')
+      .attr('rx', 5)
+      .attr('ry', 5);
+
+    // Create legend items
+    const legend = legendContainer
       .append('g')
       .attr('class', 'legend')
-      .attr('transform', 'translate(50, 50)');
+      .attr('transform', `translate(${legendPadding}, ${legendPadding})`);
 
     const legendItem = legend
       .selectAll('.legend-item')
-      .data(colorScale.domain())
+      .data(mainPostTitles)
       .enter()
       .append('g')
       .attr('class', 'legend-item')
-      .attr('transform', (d, i) => `translate(0, ${i * 35})`)
-      .style('cursor', 'pointer');  // Add cursor style to indicate clickable
+      .attr('transform', (d, i) => `translate(0, ${i * itemSpacing})`)
+      .style('cursor', 'pointer');
 
-    legendItem.append('rect')
+    legendItem
+      .append('rect')
       .attr('width', 24)
       .attr('height', 24)
-      .attr('fill', colorScale);
+      .attr('fill', (d) => {
+        const sectionTag = userPosts.find(post => post.title === d)?.tags.find(tag => tag.name.startsWith('Section'));
+        return sectionTag ? colorScale(sectionTag.name) : '#9ca3af';
+      });
 
-    legendItem.append('text')
+    legendItem
+      .append('text')
       .attr('x', 34)
       .attr('y', 12)
       .attr('dy', '.35em')
-      .style('font-size', '14px')
+      .style('font-size', '12px')
       .style('font-family', 'Arial, sans-serif')
-      .text((d) => d);
+      .text((d) => d)
+      .call(wrap, legendWidth - 40);
 
-
-    function highlightSection(sectionName) {
-      nodeGroup.selectAll('circle').style('opacity', (d) => {
-        const sectionTag = d.tags.find((tag) => tag.name === sectionName);
-        return sectionTag ? 1 : 0.2;
+      function highlightMainPostSection(mainPostTitle) {
+        const selectedPost = userPosts.find(post => post.title === mainPostTitle);
+        const selectedSectionTag = selectedPost?.tags.find(tag => tag.name.startsWith('Section'))?.name;
+  
+        if (!selectedSectionTag) return;
+  
+        g.selectAll('.node')
+          .style('opacity', (d) => {
+            const nodeSectionTag = d.tags.find(tag => tag.name.startsWith('Section'))?.name;
+            return nodeSectionTag === selectedSectionTag ? 1 : 0.2;
+          });
+  
+          link.style('opacity', (d) => {
+            const sourceSectionTag = d.source.tags.find(tag => tag.name.startsWith('Section'))?.name;
+            const targetSectionTag = d.target.tags.find(tag => tag.name.startsWith('Section'))?.name;
+            // Only show edge at full opacity if both nodes are in the selected section
+            return (sourceSectionTag === selectedSectionTag && targetSectionTag === selectedSectionTag) ? 1 : 0.1;
+          });
+      }
+  
+      function resetGraph() {
+        g.selectAll('.node').style('opacity', 1);
+        link.style('opacity', 1);
+      }
+  
+      legendItem.on('click', function(event, mainPostTitle) {
+        event.stopPropagation();
+        if (selectedSection === mainPostTitle) {
+          setSelectedSection(null);
+          resetGraph();
+        } else {
+          setSelectedSection(mainPostTitle);
+          highlightMainPostSection(mainPostTitle);
+        }
+        updateLegendSelection();
       });
-      nodeGroup.selectAll('text').style('opacity', (d) => {
-        const sectionTag = d.tags.find((tag) => tag.name === sectionName);
-        return sectionTag ? 1 : 0.2;
-      });
-      link.style('opacity', 0.2);
-    }
-
-    legendItem.on('click', function(event, sectionName) {
-      if (selectedSection === sectionName) {
+  
+      svg.on('click', () => {
         setSelectedSection(null);
         resetGraph();
-      } else {
-        setSelectedSection(sectionName);
-        highlightSection(sectionName);
+        updateLegendSelection();
+      });
+  
+      function updateLegendSelection() {
+        legendItem.select('rect')
+          .style('stroke', (d) => selectedSection === d ? '#000' : 'none')
+          .style('stroke-width', 2);
       }
-      event.stopPropagation();  // Prevent the click from propagating to the SVG
-    });
-
-    svg.on('click', () => {
-      setSelectedSection(null);
-      resetGraph();
-    });
-    
-    // Visual feedback for selected legend item
-    legendItem.select('rect')
-      .style('stroke', (d) => selectedSection === d ? '#000' : 'none')
-      .style('stroke-width', 2);
-
-
-    function resetGraph() {
-      nodeGroup.selectAll('circle').style('opacity', 1);
-      nodeGroup.selectAll('text').style('opacity', 1);
-      link.style('opacity', 1);
-    }
+  
+      // Initial call to set up legend selection
+      updateLegendSelection();
 
     highlightTutorialNode();
 
