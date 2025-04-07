@@ -16,6 +16,7 @@ import NoteCreatePage from "./pages/notes/Create";
 import DecisionPdfPage from "./pages/DecisionPdf";
 import SinglePostPage from "./pages/Single";
 import GraphPage from "./pages/Graph";
+import MindMapPage from "./pages/MindMap";
 import BookmarksPage from "./pages/Bookmarks";
 import SearchResultPage from "./pages/SearchResult";
 import DecisionsPage from "./pages/Decisions";
@@ -59,6 +60,13 @@ export const router = createBrowserRouter([
     {
         path: "/graph",
         element: <GraphPage />,
+        // errorElement: <ErrorPage />
+    },
+
+    // MindMap
+    {
+        path: "/mindmap",
+        element: <MindMapPage />,
         // errorElement: <ErrorPage />
     },
 

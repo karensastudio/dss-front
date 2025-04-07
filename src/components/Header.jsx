@@ -93,6 +93,16 @@ export default function Header() {
                                     >
                                         Graph
                                     </Link>
+                                    <Link
+                                        to="/mindmap"
+                                        className={clsx(
+                                            "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium",
+                                            currentPath === "/mindmap" && "border-b-blue-500 text-gray-900",
+                                            currentPath != "/mindmap" && "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                                        )}
+                                    >
+                                        MindMap
+                                    </Link>
                                     {
                                         isAuthenticated() &&
                                         <>
@@ -294,6 +304,16 @@ export default function Header() {
                                 )}
                             >
                                 Graph
+                            </Link>
+                            <Link
+                                to="/mindmap"
+                                className={clsx(
+                                    "block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium",
+                                    currentPath === "/mindmap" && "bg-blue-50 border-l-blue-500 text-blue-700",
+                                    currentPath != "/mindmap" && "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800",
+                                )}
+                            >
+                                MindMap
                             </Link>
                             {
                                 isAuthenticated() &&
