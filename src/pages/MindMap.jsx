@@ -1,132 +1,96 @@
-import { Switch } from "@headlessui/react";
-import UserLayout from "../layouts/User";
-import { useEffect, useRef, useState, useCallback } from "react";
-import { HiMinus, HiPlus, HiZoomIn, HiZoomOut } from "react-icons/hi";
-import { getUserGraphApi } from "../api/userPost";
-import { useAuthHeader, useIsAuthenticated } from "react-auth-kit";
-import * as d3 from 'd3';
-import { useNavigate } from "react-router-dom";
-import { CgSpinner } from "react-icons/cg";
-import MindMapRenderer, { RENDERERS } from "../components/mindmap/MindMapRenderer";
+import { useState, useEffect, useCallback } from 'react';
+import UserLayout from '../layouts/User';
+import { useAuthHeader, useIsAuthenticated } from 'react-auth-kit';
+import { getMindmapApi } from '../api/userPost';
+import { useNavigate } from 'react-router-dom';
+import { HiZoomIn, HiZoomOut } from 'react-icons/hi';
+import { Switch } from '@headlessui/react';
+import { CgSpinner } from 'react-icons/cg';
+import MindMapRenderer, { RENDERERS } from '../components/mindmap/MindMapRenderer';
 
 export default function MindMapPage() {
+  const [mindmapData, setMindmapData] = useState(null);
   const [isPostsLoading, setIsPostsLoading] = useState(true);
-  const [userPosts, setUserPosts] = useState([]);
   const [error, setError] = useState(null);
-  const [rootNodeId, setRootNodeId] = useState(null);
-  const [expandedNodes, setExpandedNodes] = useState(new Set());
-  const [containerDimensions, setContainerDimensions] = useState({ width: 0, height: 0 });
+  const [expandedNodes, setExpandedNodes] = useState(new Set(['4'])); // Start with Tutorial (ID: 4) expanded
+  const [zoomRef, setZoomRef] = useState(null);
+  const [isDecisionRelationEnabled, setDecisionRelationEnabled] = useState(false);
+  const [renderer, setRenderer] = useState(RENDERERS.REACT_FLOW);
   
-  // Default to D3 renderer, but can be changed in the future
-  const [renderer, setRenderer] = useState(RENDERERS.D3);
-
-  const containerRef = useRef(null);
-  const zoomRef = useRef(null);
-  
-  const isAuthenticated = useIsAuthenticated();
   const authHeader = useAuthHeader();
+  const isAuthenticated = useIsAuthenticated();
   const navigate = useNavigate();
   
-  const zoomStep = 0.2;
-
-  // Handle zoom functionality
-  const handleZoom = (zoomIn) => {
-    if (!zoomRef.current) return;
-    
-    const svg = d3.select('#mindmap-svg');
-    const currentTransform = d3.zoomTransform(svg.node());
-    const newScale = zoomIn 
-      ? currentTransform.k * (1 + zoomStep) 
-      : currentTransform.k / (1 + zoomStep);
-  
-    svg.transition().duration(300).call(
-      zoomRef.current.transform,
-      currentTransform.scale(newScale / currentTransform.k)
-    );
-  };
-
-  // Fetch user posts data from API
+  // Fetch mindmap data only once on component mount - fix the continuous loading issue
   useEffect(() => {
-    const fetchUserPosts = async () => {
+    let mounted = true;
+    
+    const fetchMindmapData = async () => {
+      if (!mounted) return;
+      
       try {
-        const response = await getUserGraphApi(authHeader());
+        const response = await getMindmapApi(authHeader());
+        
+        if (!mounted) return;
+        
         if (response.status === 'success') {
-          setUserPosts(response.response.posts);
-          
-          // Always find and use Tutorial as the root node, or first post if not found
-          const tutorialPost = response.response.posts.find(p => p.title === 'Tutorial');
-          if (tutorialPost) {
-            setRootNodeId(tutorialPost.id);
-            
-            // Auto-expand ONLY the tutorial node initially
-            const firstLevelNodePaths = new Set();
-            // Add just the root node path
-            firstLevelNodePaths.add(`${tutorialPost.id}`);
-            
-            setExpandedNodes(firstLevelNodePaths);
-          } else if (response.response.posts.length > 0) {
-            setRootNodeId(response.response.posts[0].id);
-          }
-          
+          setMindmapData(response.response.data);
           setError(null);
           setIsPostsLoading(false);
+          
+          // Log data for debugging
+          console.log('Fetched mindmap data:', response.response.data);
+          console.log('Tutorial node:', response.response.data.nodes.find(n => n.id === 4));
+          console.log('Tutorial edges:', response.response.data.edges.filter(e => e.source === 4));
+          
+          // Set expanded nodes based on hierarchy
+          const initialExpanded = new Set();
+          // Start with root and tutorial expanded
+          initialExpanded.add('4'); // Tutorial
+          
+          // Find all top-level nodes and expand them
+          response.response.data.edges.forEach(edge => {
+            if (edge.source === 4 && edge.type === 'parent-child') {
+              initialExpanded.add(`${edge.target}`);
+            }
+          });
+          
+          if (response.response.data.hierarchy) {
+            initialExpanded.add(`${response.response.data.hierarchy.id}`);
+          }
+          
+          console.log('Initial expanded nodes:', initialExpanded);
+          setExpandedNodes(initialExpanded);
         } else {
-          setError(response.message);
-          setUserPosts([]);
+          setError(response.message || 'Failed to fetch mindmap data');
+          setMindmapData(null);
           setIsPostsLoading(false);
         }
       } catch (error) {
-        console.error(error);
+        if (!mounted) return;
+        console.error('Error fetching mindmap data:', error);
         setError('An unexpected error occurred.');
-        setUserPosts([]);
+        setMindmapData(null);
         setIsPostsLoading(false);
       }
     };
 
-    fetchUserPosts();
-  }, []);
-
-  // Update container dimensions on resize
-  useEffect(() => {
-    const updateDimensions = () => {
-      if (containerRef.current) {
-        // Get actual dimensions of the container element
-        const rect = containerRef.current.getBoundingClientRect();
-        setContainerDimensions({
-          width: rect.width,
-          height: rect.height
-        });
-      }
-    };
-    
-    // Initial update
-    updateDimensions();
-    
-    // Add resize observer for more accurate size tracking
-    const resizeObserver = new ResizeObserver(updateDimensions);
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
-    
-    // Also listen for window resize as a fallback
-    window.addEventListener('resize', updateDimensions);
+    fetchMindmapData();
     
     return () => {
-      if (containerRef.current) {
-        resizeObserver.unobserve(containerRef.current);
-      }
-      resizeObserver.disconnect();
-      window.removeEventListener('resize', updateDimensions);
+      mounted = false;
     };
-  }, []);
-
-  // Handle node click
-  const handleNodeClick = (slug) => {
+  }, []); // Empty dependency array to run only once
+  
+  // Handle node click for navigation
+  const handleNodeClick = useCallback((slug) => {
+    console.log('Node clicked with slug:', slug);
     navigate(`/posts/${slug}`);
-  };
-
-  // Handle expanding/collapsing nodes
-  const handleToggleExpand = (nodePath) => {
+  }, [navigate]);
+  
+  // Handle toggle expand/collapse
+  const handleToggleExpand = useCallback((nodePath) => {
+    console.log('Toggling node:', nodePath);
     setExpandedNodes(prev => {
       const newSet = new Set(prev);
       if (newSet.has(nodePath)) {
@@ -134,34 +98,81 @@ export default function MindMapPage() {
       } else {
         newSet.add(nodePath);
       }
+      console.log('Updated expanded nodes:', newSet);
       return newSet;
     });
+  }, []);
+  
+  // Handle zoom controls
+  const handleZoom = (zoomIn) => {
+    if (zoomRef) {
+      if (zoomIn) {
+        zoomRef.zoomIn();
+      } else {
+        zoomRef.zoomOut();
+      }
+    }
   };
-
-  // Set zoom reference
-  const setZoomReference = (zoom) => {
-    zoomRef.current = zoom;
-  };
-
-  // No longer needed after removing the root node selection UI
-
+  
+  // Filter data based on decision flag if needed
+  const filteredData = isDecisionRelationEnabled && mindmapData
+    ? {
+        ...mindmapData,
+        nodes: mindmapData.nodes.filter(node => node.isDecision),
+        edges: mindmapData.edges.filter(edge => {
+          const sourceNode = mindmapData.nodes.find(n => n.id === edge.source);
+          const targetNode = mindmapData.nodes.find(n => n.id === edge.target);
+          return sourceNode?.isDecision && targetNode?.isDecision;
+        })
+      }
+    : mindmapData;
+  
   return (
-    <UserLayout pageTitle={'MindMap'} hideSidebar fullWidth>
+    <UserLayout pageTitle={'Mind Map'} hideSidebar fullWidth>
       <div className="w-full bg-white border-y shadow-sm flex flex-col min-h-full grow">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between px-[16px] md:px-0">
-          <div className="flex items-center justify-start gap-5">
-            <div className="flex flex-col justify-center items-start py-3">
+          <div className="flex items-center justify-start divide-x gap-5">
+            {isAuthenticated() && (
+              <div className="flex flex-col justify-center items-start py-3 pl-5">
+                <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">
+                  Only show my decisions:
+                </p>
+                <Switch
+                  checked={isDecisionRelationEnabled}
+                  onChange={(checked) => {
+                    setDecisionRelationEnabled(checked);
+                  }}
+                  className={`${
+                    isDecisionRelationEnabled ? 'bg-blue-600' : 'bg-gray-200'
+                  } relative inline-flex h-6 w-11 items-center rounded-full`}
+                >
+                  <span className="sr-only">Only show decisions</span>
+                  <span
+                    className={`${
+                      isDecisionRelationEnabled ? 'translate-x-6' : 'translate-x-1'
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                  />
+                </Switch>
+              </div>
+            )}
+            
+            <div className="flex flex-col justify-center items-start py-3 pl-5">
               <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">
-                MindMap Visualization
+                Renderer:
               </p>
-              <p className="text-gray-500 text-xs">
-                Hierarchical view of your content
-              </p>
+              <select
+                value={renderer}
+                onChange={(e) => setRenderer(e.target.value)}
+                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+              >
+                <option value={RENDERERS.REACT_FLOW}>React Flow</option>
+                <option value={RENDERERS.D3}>D3 Force</option>
+              </select>
             </div>
           </div>
 
           <div className="flex items-center justify-start divide-x gap-5">
-            <div className="flex flex-col justify-center items-start py-3 pl-5">
+            <div className="flex flex-col justify-center items-start py-3">
               <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">
                 Zoom:
               </p>
@@ -188,26 +199,30 @@ export default function MindMapPage() {
         </div>
 
         <div
-          ref={containerRef}
-          className="bg-gray-50 h-full flex items-center justify-center min-h-[75vh] grow"
+          className="bg-gray-50 h-full flex items-center justify-center min-h-full grow"
           id="mindmap-container"
-          style={{ height: 'calc(100vh - 200px)' }} /* Explicit height calculation */
+          style={{ height: 'calc(100vh - 200px)' }}
         >
           {isPostsLoading ? (
-            <CgSpinner className="animate-spin text-[48px] text-blue-600" />
+            <div className="flex items-center justify-center">
+              <CgSpinner className="animate-spin text-[48px] text-blue-600" />
+            </div>
           ) : error ? (
-            <p className="text-xl text-blue-600 font-bold">Error: {error}</p>
-          ) : userPosts.length === 0 ? (
-            <p>No posts found.</p>
+            <p className="text-xl text-red-600 font-bold">Error: {error}</p>
+          ) : !filteredData || filteredData.nodes.length === 0 ? (
+            <p>No data found.</p>
           ) : (
             <MindMapRenderer
-              data={userPosts}
-              rootNodeId={rootNodeId}
+              data={filteredData}
+              rootNodeId={4} // Use Tutorial node (ID: 4) as root
               expandedNodes={expandedNodes}
               onNodeClick={handleNodeClick}
               onToggleExpand={handleToggleExpand}
-              setZoomRef={setZoomReference}
-              containerDimensions={containerDimensions}
+              setZoomRef={setZoomRef}
+              containerDimensions={{
+                width: document.getElementById('mindmap-container')?.offsetWidth || 800,
+                height: document.getElementById('mindmap-container')?.offsetHeight || 600,
+              }}
               renderer={renderer}
             />
           )}

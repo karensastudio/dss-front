@@ -33,6 +33,7 @@
     "clsx": "^2.0.0",
     "d3": "^7.8.5",
     "d3-force": "^3.0.0",
+    "dagre": "^0.8.5",
     "editorjs-drag-drop": "^1.1.13",
     "editorjs-toggle-block": "https://github.com/ifarazir/editorjs-toggle-block.git",
     "html-react-parser": "^4.2.2",
@@ -53,6 +54,7 @@
     "react-select": "^5.7.4",
     "react-toastify": "^9.1.3",
     "react-tooltip": "^5.21.6",
+    "reactflow": "^11.11.4",
     "recoil": "^0.7.7",
     "sass": "^1.68.0",
     "sort-by": "^1.2.0"
