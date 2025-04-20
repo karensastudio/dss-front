@@ -225,3 +225,15 @@
 .react-flow__background pattern circle {
   fill: #ddd;
 }
+
+/* Text truncation */
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Better text contrast */
+.text-shadow {
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+}

@@ -16,9 +16,8 @@ const StandardNode = ({ data }) => {
   
   return (
     <div 
-      className="px-4 py-3 rounded-lg shadow-md flex items-center justify-between border-2 min-w-[180px] max-w-[240px] transition-all hover:shadow-lg"
+      className="px-4 py-3 rounded-lg shadow-md flex items-center justify-between border-2 min-w-[180px] max-w-[280px] transition-all hover:shadow-lg bg-white"
       style={{ 
-        backgroundColor: 'white',
         borderColor: sectionColor,
         opacity: 1,
       }}
@@ -29,13 +28,13 @@ const StandardNode = ({ data }) => {
         style={{ background: '#555' }}
       />
       
-      <div className="flex-1 flex items-center gap-2">
+      <div className="flex-1 flex items-center gap-2 min-w-0">
         <div 
           className="w-4 h-4 rounded-full flex-shrink-0"
           style={{ backgroundColor: sectionColor }}
         />
         <div 
-          className="text-sm font-medium cursor-pointer hover:underline flex-1 truncate"
+          className="text-sm font-medium cursor-pointer hover:underline truncate"
           onClick={handleNodeClick}
           title={label}
         >
@@ -45,11 +44,11 @@ const StandardNode = ({ data }) => {
       
       {hasChildren && (
         <div 
-          className="ml-2 w-6 h-6 flex items-center justify-center rounded-full bg-gray-200 cursor-pointer hover:bg-gray-300 flex-shrink-0 text-sm font-bold"
+          className="ml-2 w-7 h-7 flex items-center justify-center rounded-full cursor-pointer flex-shrink-0 text-sm font-bold bg-slate-800 text-white hover:bg-slate-700 transition-colors shadow-sm"
           onClick={handleExpandClick}
           title={isExpanded ? "Collapse" : "Expand"}
         >
-          {isExpanded ? '-' : '+'}
+          {isExpanded ? '−' : '+'}
         </div>
       )}
       

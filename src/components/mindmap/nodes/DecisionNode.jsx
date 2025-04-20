@@ -16,9 +16,8 @@ const DecisionNode = ({ data }) => {
   
   return (
     <div 
-      className="px-4 py-3 rounded-lg shadow-md flex items-center justify-between min-w-[180px] max-w-[240px] transition-all hover:shadow-lg"
+      className="px-4 py-3 rounded-lg shadow-md flex items-center justify-between min-w-[180px] max-w-[280px] transition-all hover:shadow-lg bg-white"
       style={{ 
-        backgroundColor: 'white',
         border: '3px solid #FFD700', // Gold border for decisions
         opacity: 1,
       }}
@@ -29,27 +28,30 @@ const DecisionNode = ({ data }) => {
         style={{ background: '#FFD700' }}
       />
       
-      <div className="flex-1 flex items-center gap-2">
+      <div className="flex-1 flex items-center gap-2 min-w-0">
         <div 
           className="w-4 h-4 rounded-full flex-shrink-0"
           style={{ backgroundColor: sectionColor }}
         />
-        <div 
-          className="text-sm font-medium cursor-pointer hover:underline flex-1 truncate"
-          onClick={handleNodeClick}
-          title={label}
-        >
-          {label}
-          <span className="ml-1 text-xs font-normal text-yellow-600">(Decision)</span>
+        <div className="flex flex-col min-w-0">
+          <div 
+            className="text-sm font-medium cursor-pointer hover:underline truncate"
+            onClick={handleNodeClick}
+            title={label}
+          >
+            {label}
+          </div>
+          <span className="text-xs font-normal text-yellow-600">Decision</span>
         </div>
       </div>
       
       {hasChildren && (
         <div 
-          className="ml-2 w-6 h-6 flex items-center justify-center rounded-full bg-yellow-100 cursor-pointer hover:bg-yellow-200 flex-shrink-0"
+          className="ml-2 w-7 h-7 flex items-center justify-center rounded-full cursor-pointer flex-shrink-0 text-sm font-bold bg-slate-800 text-white hover:bg-slate-700 transition-colors shadow-sm"
           onClick={handleExpandClick}
+          title={isExpanded ? "Collapse" : "Expand"}
         >
-          {isExpanded ? '-' : '+'}
+          {isExpanded ? '−' : '+'}
         </div>
       )}
       

@@ -30,8 +30,8 @@ const getHierarchicalLayout = (nodes, edges, rootId) => {
   // Set the layout options for better hierarchical visualization
   dagreGraph.setGraph({ 
     rankdir: 'TB',  // Top to bottom layout for better tree visualization
-    nodesep: 80,    // More horizontal space between nodes
-    ranksep: 100,   // More vertical space between levels
+    nodesep: 100,   // More horizontal space between nodes for longer titles
+    ranksep: 120,   // More vertical space between levels
     marginx: 50,
     marginy: 50,
     align: 'UL'
@@ -39,7 +39,7 @@ const getHierarchicalLayout = (nodes, edges, rootId) => {
 
   // Add nodes to the graph
   nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: 200, height: 70 });
+    dagreGraph.setNode(node.id, { width: 280, height: 70 }); // Increased width for longer titles
   });
 
   // Add edges to the graph
@@ -67,7 +67,7 @@ const getHierarchicalLayout = (nodes, edges, rootId) => {
     return {
       ...node,
       position: {
-        x: dagreNode.x - 100, // Center the node
+        x: dagreNode.x - 140, // Center the node (increased for wider nodes)
         y: dagreNode.y - 35,  // Center the node
       },
     };
