@@ -87,6 +87,7 @@ const ReactFlowRenderer = ({
   onToggleExpand,
   setZoomRef,
   containerDimensions,
+  edgeTypeFilter = { 'parent-child': true, 'related': true },
 }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -106,6 +107,7 @@ const ReactFlowRenderer = ({
     console.log('Nodes:', data.nodes);
     console.log('Edges:', data.edges);
     console.log('Expanded Nodes:', expandedNodes);
+    console.log('Edge Type Filter:', edgeTypeFilter);
 
     const transformData = () => {
       const flowNodes = [];
@@ -190,12 +192,13 @@ const ReactFlowRenderer = ({
       // Start traversal from root
       traverseHierarchy(rootNodeId);
       
-      // Create edges for the processed nodes
+      // Create edges for the processed nodes with edge type filtering
       data.edges.forEach(edge => {
         const sourceProcessed = processedNodes.has(edge.source);
         const targetProcessed = processedNodes.has(edge.target);
         
-        if (sourceProcessed && targetProcessed) {
+        // Only include edges that match the edge type filter
+        if (sourceProcessed && targetProcessed && edgeTypeFilter[edge.type]) {
           flowEdges.push({
             id: `edge-${edge.source}-${edge.target}`,
             source: `node-${edge.source}`,
@@ -208,8 +211,8 @@ const ReactFlowRenderer = ({
               strokeDasharray: edge.type === 'related' ? '5 5' : undefined,
             },
             label: edge.type === 'related' ? 'related' : undefined,
-            labelStyle: { fill: '#555', fontSize: 10 },
-            labelBgStyle: { fill: '#fff', fillOpacity: 0.7 },
+            labelStyle: { fill: '#333', fontSize: 11, fontWeight: 'bold' },
+            labelBgStyle: { fill: '#fff', fillOpacity: 0.8, padding: 2 },
             zIndex: edge.type === 'parent-child' ? 1 : 0, // Ensure parent-child edges are on top
           });
         }
@@ -236,7 +239,7 @@ const ReactFlowRenderer = ({
     setTimeout(() => {
       fitView({ padding: 0.2, duration: 400 });
     }, 100);
-  }, [data, rootNodeId, expandedNodes, onNodeClick, onToggleExpand, sectionColors, fitView]);
+  }, [data, rootNodeId, expandedNodes, onNodeClick, onToggleExpand, sectionColors, fitView, edgeTypeFilter]);
   
   // Export zoom reference for external control
   useEffect(() => {
@@ -299,7 +302,7 @@ const ReactFlowRenderer = ({
         <Panel position="top-right" className="bg-white p-2 rounded shadow">
           <div className="text-sm">
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-4 h-4 border-2 border-yellow-500 rounded"></div>
+              <div className="w-4 h-4 border-2 border-yellow-500 rounded" style={{ backgroundColor: '#FFFAF0' }}></div>
               <span>Decision</span>
             </div>
             <div className="flex items-center gap-2 mb-1">

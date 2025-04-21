@@ -16,9 +16,10 @@ const DecisionNode = ({ data }) => {
   
   return (
     <div 
-      className="px-4 py-3 rounded-lg shadow-md flex items-center justify-between min-w-[180px] max-w-[280px] transition-all hover:shadow-lg bg-white"
+      className="px-4 py-3 rounded-lg shadow-md flex items-center justify-between min-w-[180px] max-w-[280px] transition-all hover:shadow-lg"
       style={{ 
         border: '3px solid #FFD700', // Gold border for decisions
+        backgroundColor: '#FFFAF0', // Cream/soft yellow background for decisions
         opacity: 1,
       }}
     >

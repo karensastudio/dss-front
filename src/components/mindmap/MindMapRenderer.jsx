@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react';
-import D3Renderer from './D3Renderer';
 import ReactFlowRenderer from './ReactFlowRenderer';
 import { ReactFlowProvider } from 'reactflow';
 import { v4 as uuidv4 } from 'uuid'; // Add this import
 
 // Define possible rendering engines
 const RENDERERS = {
-  D3: 'D3',
-  REACT_FLOW: 'REACT_FLOW',
-  REACT_D3_TREE: 'REACT_D3_TREE'
+  REACT_FLOW: 'REACT_FLOW'
 };
 
 /**
@@ -23,6 +20,7 @@ const RENDERERS = {
  * @param {Function} props.setZoomRef - Function to set zoom reference externally
  * @param {Object} props.containerDimensions - {width, height} of the container
  * @param {string} props.renderer - Renderer type to use (defaults to REACT_FLOW)
+ * @param {Object} props.edgeTypeFilter - Filter for edge types {parent-child: bool, related: bool}
  */
 const MindMapRenderer = ({
   data,
@@ -32,7 +30,8 @@ const MindMapRenderer = ({
   onToggleExpand,
   setZoomRef,
   containerDimensions,
-  renderer = RENDERERS.REACT_FLOW
+  renderer = RENDERERS.REACT_FLOW,
+  edgeTypeFilter = { 'parent-child': true, 'related': true }
 }) => {
   const [error, setError] = useState(null);
   const [renderKey, setRenderKey] = useState(0);
@@ -58,41 +57,21 @@ const MindMapRenderer = ({
   // Generate a unique key to force re-render when necessary
   const key = `${renderer}-${renderKey}`;
 
-  // Render using the selected renderer
-  switch (renderer) {
-    case RENDERERS.D3:
-      return (
-        <D3Renderer
-          key={key}
-          data={data}
-          rootNodeId={rootNodeId}
-          expandedNodes={expandedNodes}
-          onNodeClick={onNodeClick}
-          onToggleExpand={onToggleExpand}
-          setZoomRef={setZoomRef}
-          containerDimensions={containerDimensions}
-        />
-      );
-    case RENDERERS.REACT_FLOW:
-      return (
-        <ReactFlowProvider key={key}>
-          <ReactFlowRenderer
-            data={data}
-            rootNodeId={rootNodeId}
-            expandedNodes={expandedNodes}
-            onNodeClick={onNodeClick}
-            onToggleExpand={onToggleExpand}
-            setZoomRef={setZoomRef}
-            containerDimensions={containerDimensions}
-          />
-        </ReactFlowProvider>
-      );
-    case RENDERERS.REACT_D3_TREE:
-      // Placeholder for future implementation
-      return <div>React D3 Tree renderer not implemented yet</div>;
-    default:
-      return <div>No renderer selected</div>;
-  }
+  // Always use ReactFlow
+  return (
+    <ReactFlowProvider key={key}>
+      <ReactFlowRenderer
+        data={data}
+        rootNodeId={rootNodeId}
+        expandedNodes={expandedNodes}
+        onNodeClick={onNodeClick}
+        onToggleExpand={onToggleExpand}
+        setZoomRef={setZoomRef}
+        containerDimensions={containerDimensions}
+        edgeTypeFilter={edgeTypeFilter}
+      />
+    </ReactFlowProvider>
+  );
 };
 
 export { RENDERERS };

@@ -14,8 +14,13 @@ export default function MindMapPage() {
   const [error, setError] = useState(null);
   const [expandedNodes, setExpandedNodes] = useState(new Set(['4'])); // Start with Tutorial (ID: 4) expanded
   const [zoomRef, setZoomRef] = useState(null);
-  const [isDecisionRelationEnabled, setDecisionRelationEnabled] = useState(false);
-  const [renderer, setRenderer] = useState(RENDERERS.REACT_FLOW);
+  // Add edge type filter state
+  const [edgeTypeFilter, setEdgeTypeFilter] = useState({
+    'parent-child': true,
+    'related': true
+  });
+  // Hardcoded to ReactFlow as the only renderer
+  const renderer = RENDERERS.REACT_FLOW;
   
   const authHeader = useAuthHeader();
   const isAuthenticated = useIsAuthenticated();
@@ -103,97 +108,57 @@ export default function MindMapPage() {
     });
   }, []);
   
-  // Handle zoom controls
-  const handleZoom = (zoomIn) => {
-    if (zoomRef) {
-      if (zoomIn) {
-        zoomRef.zoomIn();
-      } else {
-        zoomRef.zoomOut();
-      }
-    }
+  // Handle edge type filter changes
+  const handleEdgeTypeFilterChange = (type) => {
+    setEdgeTypeFilter(prev => ({
+      ...prev,
+      [type]: !prev[type]
+    }));
   };
   
-  // Filter data based on decision flag if needed
-  const filteredData = isDecisionRelationEnabled && mindmapData
-    ? {
-        ...mindmapData,
-        nodes: mindmapData.nodes.filter(node => node.isDecision),
-        edges: mindmapData.edges.filter(edge => {
-          const sourceNode = mindmapData.nodes.find(n => n.id === edge.source);
-          const targetNode = mindmapData.nodes.find(n => n.id === edge.target);
-          return sourceNode?.isDecision && targetNode?.isDecision;
-        })
-      }
-    : mindmapData;
+  // No filtering at this level - to be handled by edge type filter
+  const filteredData = mindmapData;
   
   return (
     <UserLayout pageTitle={'Mind Map'} hideSidebar fullWidth>
       <div className="w-full bg-white border-y shadow-sm flex flex-col min-h-full grow">
-        <div className="max-w-7xl mx-auto w-full flex items-center justify-between px-[16px] md:px-0">
-          <div className="flex items-center justify-start divide-x gap-5">
-            {isAuthenticated() && (
-              <div className="flex flex-col justify-center items-start py-3 pl-5">
-                <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">
-                  Only show my decisions:
-                </p>
-                <Switch
-                  checked={isDecisionRelationEnabled}
-                  onChange={(checked) => {
-                    setDecisionRelationEnabled(checked);
-                  }}
-                  className={`${
-                    isDecisionRelationEnabled ? 'bg-blue-600' : 'bg-gray-200'
-                  } relative inline-flex h-6 w-11 items-center rounded-full`}
-                >
-                  <span className="sr-only">Only show decisions</span>
-                  <span
-                    className={`${
-                      isDecisionRelationEnabled ? 'translate-x-6' : 'translate-x-1'
-                    } inline-block h-4 w-4 transform rounded-full bg-white transition`}
-                  />
-                </Switch>
-              </div>
-            )}
-            
-            <div className="flex flex-col justify-center items-start py-3 pl-5">
-              <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">
-                Renderer:
-              </p>
-              <select
-                value={renderer}
-                onChange={(e) => setRenderer(e.target.value)}
-                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+        {/* Edge type filter panel */}
+        <div className="p-3 border-b">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={edgeTypeFilter['parent-child']}
+                onChange={() => handleEdgeTypeFilterChange('parent-child')}
+                className={`${
+                  edgeTypeFilter['parent-child'] ? 'bg-blue-600' : 'bg-gray-200'
+                } relative inline-flex h-5 w-10 items-center rounded-full`}
               >
-                <option value={RENDERERS.REACT_FLOW}>React Flow</option>
-                <option value={RENDERERS.D3}>D3 Force</option>
-              </select>
+                <span className="sr-only">Show parent-child connections</span>
+                <span
+                  className={`${
+                    edgeTypeFilter['parent-child'] ? 'translate-x-5' : 'translate-x-1'
+                  } inline-block h-3 w-3 transform rounded-full bg-white transition`}
+                />
+              </Switch>
+              <span className="text-sm font-medium">Parent-Child</span>
             </div>
-          </div>
-
-          <div className="flex items-center justify-start divide-x gap-5">
-            <div className="flex flex-col justify-center items-start py-3">
-              <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">
-                Zoom:
-              </p>
-              <span className="isolate inline-flex rounded-md shadow-sm">
-                <button
-                  type="button"
-                  className="relative inline-flex items-center rounded-l-md bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
-                  onClick={() => handleZoom(false)}
-                >
-                  <span className="sr-only">Zoom Out</span>
-                  <HiZoomOut className="h-4 w-4" aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
-                  onClick={() => handleZoom(true)}
-                >
-                  <span className="sr-only">Zoom In</span>
-                  <HiZoomIn className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </span>
+            
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={edgeTypeFilter['related']}
+                onChange={() => handleEdgeTypeFilterChange('related')}
+                className={`${
+                  edgeTypeFilter['related'] ? 'bg-blue-600' : 'bg-gray-200'
+                } relative inline-flex h-5 w-10 items-center rounded-full`}
+              >
+                <span className="sr-only">Show related connections</span>
+                <span
+                  className={`${
+                    edgeTypeFilter['related'] ? 'translate-x-5' : 'translate-x-1'
+                  } inline-block h-3 w-3 transform rounded-full bg-white transition`}
+                />
+              </Switch>
+              <span className="text-sm font-medium">Related</span>
             </div>
           </div>
         </div>
@@ -201,7 +166,7 @@ export default function MindMapPage() {
         <div
           className="bg-gray-50 h-full flex items-center justify-center min-h-full grow"
           id="mindmap-container"
-          style={{ height: 'calc(100vh - 200px)' }}
+          style={{ height: 'calc(100vh - 150px)' }}
         >
           {isPostsLoading ? (
             <div className="flex items-center justify-center">
@@ -224,6 +189,7 @@ export default function MindMapPage() {
                 height: document.getElementById('mindmap-container')?.offsetHeight || 600,
               }}
               renderer={renderer}
+              edgeTypeFilter={edgeTypeFilter}
             />
           )}
         </div>
