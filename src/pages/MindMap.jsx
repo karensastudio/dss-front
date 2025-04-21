@@ -3,10 +3,10 @@ import UserLayout from '../layouts/User';
 import { useAuthHeader, useIsAuthenticated } from 'react-auth-kit';
 import { getMindmapApi } from '../api/userPost';
 import { useNavigate } from 'react-router-dom';
-import { HiZoomIn, HiZoomOut } from 'react-icons/hi';
 import { Switch } from '@headlessui/react';
 import { CgSpinner } from 'react-icons/cg';
 import MindMapRenderer, { RENDERERS } from '../components/mindmap/MindMapRenderer';
+import QuickViewPane from '../components/mindmap/quickview/QuickViewPane';
 
 export default function MindMapPage() {
   const [mindmapData, setMindmapData] = useState(null);
@@ -87,11 +87,32 @@ export default function MindMapPage() {
     };
   }, []); // Empty dependency array to run only once
   
-  // Handle node click for navigation
+  // State for selected node and quick view
+  const [selectedNodeSlug, setSelectedNodeSlug] = useState(null);
+  
+  // Handle node click for quick view instead of navigation
   const handleNodeClick = useCallback((slug) => {
     console.log('Node clicked with slug:', slug);
-    navigate(`/posts/${slug}`);
-  }, [navigate]);
+    
+    // Don't do anything if the slug is empty or not a string
+    if (!slug || typeof slug !== 'string') {
+      console.warn('Invalid slug provided to handleNodeClick:', slug);
+      return;
+    }
+    
+    // If the pane is already open with the same slug, close it (toggle behavior)
+    if (selectedNodeSlug === slug) {
+      setSelectedNodeSlug(null);
+    } else {
+      // Otherwise, open the pane with the selected slug
+      setSelectedNodeSlug(slug);
+    }
+  }, [selectedNodeSlug]);
+  
+  // Handle closing the quick view pane
+  const handleCloseQuickView = useCallback(() => {
+    setSelectedNodeSlug(null);
+  }, []);
   
   // Handle toggle expand/collapse
   const handleToggleExpand = useCallback((nodePath) => {
@@ -194,6 +215,14 @@ export default function MindMapPage() {
           )}
         </div>
       </div>
+      
+      {/* Quick View Pane */}
+      <QuickViewPane 
+        slug={selectedNodeSlug}
+        isOpen={Boolean(selectedNodeSlug)}
+        onClose={handleCloseQuickView}
+        onNodeClick={handleNodeClick}
+      />
     </UserLayout>
   );
 }
