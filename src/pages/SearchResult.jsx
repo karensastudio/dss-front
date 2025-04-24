@@ -3,7 +3,7 @@ import UserLayout from "../layouts/User";
 import { useEffect, useState } from "react";
 import { BsZoomIn, BsZoomOut } from "react-icons/bs";
 import { HiMinus, HiPlus } from "react-icons/hi";
-import { ForceGraph2D } from 'react-force-graph';
+import ForceGraph2D from 'react-force-graph-2d';
 import { useAuthHeader } from "react-auth-kit";
 import { ChevronRightIcon, EnvelopeIcon, ExclamationTriangleIcon, PhoneIcon } from "@heroicons/react/20/solid";
 import { getBookmarksApi } from "../api/bookmark";
