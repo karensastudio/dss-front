@@ -16,7 +16,7 @@ import NoteCreatePage from "./pages/notes/Create";
 import DecisionPdfPage from "./pages/DecisionPdf";
 import SinglePostPage from "./pages/Single";
 import GraphPage from "./pages/Graph";
-import MindMapPage from "./pages/Mindmap"; // Changed from "./pages/MindMap" to "./pages/Mindmap"
+import MindMapPage from "./pages/MindMap"; // Changed from "./pages/MindMap" to "./pages/Mindmap"
 import BookmarksPage from "./pages/Bookmarks";
 import SearchResultPage from "./pages/SearchResult";
 import DecisionsPage from "./pages/Decisions";
