@@ -46,23 +46,7 @@ export function ListOfContentSection() {
   
   async function PostChanger(slug) {
     setSinglePostLoading(true);
-    try {
-      const response = await getPostBySlugApi(authHeader(), slug);
-
-      if (response.status === 'success') {
-        setSinglePost(response.response.post);
-
-        // change url to /posts/:slug
-        navigate(`/posts/${slug}`);
-        setSinglePostLoading(false);
-      } else {
-        console.error(response.message);
-      }
-    } catch (error) {
-      console.error(error.message);
-    } finally {
-      setSinglePostLoading(false);
-    }
+    navigate(`/posts/${slug}`);
   }
 
   return (
@@ -118,14 +102,14 @@ export function ListOfContentSection() {
         <div className="text-red-500 p-4 rounded-md bg-red-50">{error}</div>
       )}
       
-      {singlePostLoading && (
+      {/* {singlePostLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div className="bg-white p-4 rounded-lg shadow-lg flex items-center space-x-3">
             <CgSpinner className="animate-spin text-blue-600 text-xl" />
             <span>Loading content...</span>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
