@@ -1,0 +1,65 @@
+/* Smooth transitions for sidebar items */
+.sidebar-item-transition {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Hover effects for items */
+.sidebar-item:hover {
+  background-color: rgba(243, 244, 246, 0.8);
+}
+
+/* Selected item styling */
+.sidebar-item-selected {
+  background-color: rgba(239, 246, 255, 0.8);
+}
+
+/* Tree line styles */
+.tree-line-vertical {
+  position: absolute;
+  left: 0.75rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: #e5e7eb;
+}
+
+.tree-line-horizontal {
+  position: absolute;
+  left: 0.75rem;
+  width: 0.75rem;
+  height: 1px;
+  background-color: #e5e7eb;
+}
+
+/* Collapse/expand animations */
+.sidebar-panel-enter {
+  max-height: 0;
+  overflow: hidden;
+}
+
+.sidebar-panel-enter-active {
+  max-height: 1000px;
+  transition: max-height 300ms ease-in-out;
+  overflow: hidden;
+}
+
+.sidebar-panel-exit {
+  max-height: 1000px;
+  overflow: hidden;
+}
+
+.sidebar-panel-exit-active {
+  max-height: 0;
+  transition: max-height 200ms ease-in-out;
+  overflow: hidden;
+}
+
+/* Decision item indicator */
+.decision-indicator {
+  border-left: 3px solid #fbbf24;
+}
+
+/* Section color indicators */
+.section-indicator {
+  transition: border-color 0.2s ease;
+}
