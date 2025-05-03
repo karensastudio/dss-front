@@ -574,6 +574,11 @@ export default function SinglePostPage() {
                                                 if (block.type == "toggle") {
                                                     return <ToggleComponent
                                                         block={block}
+                                                        postId={singlePost.id}
+                                                        postData={{ 
+                                                            title: singlePost.title,
+                                                            slug: singlePost.slug
+                                                        }}
                                                     />;
                                                 }
                                             })

@@ -9,9 +9,10 @@ import { PiWarningFill } from "react-icons/pi";
 import ParagraphComponent from './ParagraphComponent';
 import clsx from 'clsx';
 import TableComponent from './TableComponent';
+import AddSectionToDecisionButton from './AddSectionToDecisionButton';
 
 export default function ToggleComponent(props) {
-    const { block } = props;
+    const { block, postId, postData } = props;
 
     return (<Disclosure>
         {({ open }) => (
@@ -21,7 +22,21 @@ export default function ToggleComponent(props) {
                     "flex items-center justify-between text-black dark:text-white bg-gray-100 dark:bg-white dark:bg-opacity-10 text-start p-5 rounded-t-xl w-full font-medium",
                     open ? "border-b" : "rounded-b-xl"
                 )}>
-                    {parse(block.data.text)}
+                    <div className="flex items-center gap-4 flex-1">
+                        <div className="flex-1">{parse(block.data.text)}</div>
+                        {postId && (
+                            <AddSectionToDecisionButton
+                                postId={postId}
+                                sectionFk={block.id}
+                                sectionTitle={block.data.text.replace(/<[^>]*>/g, '')}
+                                sectionContent={Array.isArray(block.data.children) ? block.data.children : block}
+                                postData={{
+                                    ...postData,
+                                    slug: window.location.pathname.split('/').pop() // Add slug from URL
+                                }}
+                            />
+                        )}
+                    </div>
 
                     <div className="flex items-center justify-center w-8 h-8 rounded-full text-black dark:text-gray-200">
                         <BsChevronRight className={`text-[16px] ${open ? 'rotate-90' : 'rotate-0'}`} />
