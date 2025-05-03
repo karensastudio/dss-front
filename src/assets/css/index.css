@@ -176,3 +176,6 @@ input:checked+.slider:before {
 .cdx-notifies {
     color: #000;
 }
+
+/* Import print styles */
+@import url('./printStyles.css');

@@ -5,11 +5,13 @@ import { getDecisionsApi } from "../api/decision";
 import parse from 'html-react-parser';
 import { CgSpinner } from 'react-icons/cg';
 import { sectionDecisionStorage } from "../utils/sectionDecisionStorage";
+import { DocumentTextIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 
 export default function DecisionPdfPage() {
     const [decisions, setDecisions] = useState([]);
     const [sectionDecisions, setSectionDecisions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [reportDate] = useState(new Date());
     const navigate = useNavigate();
     const authHeader = useAuthHeader();
 
@@ -52,7 +54,11 @@ export default function DecisionPdfPage() {
             details.forEach((targetDetail) => {
                 targetDetail.setAttribute('open', '');
             });
-            window.print();
+            
+            // Give a brief moment for the report to render properly
+            setTimeout(() => {
+                window.print();
+            }, 500);
         }
     }, [decisions, sectionDecisions, loading]);
     
@@ -147,9 +153,60 @@ export default function DecisionPdfPage() {
         });
     };
 
+    // Helper function to create a table of contents
+    const generateTableOfContents = () => {
+        if (decisions.length === 0 && sectionDecisions.length === 0) return null;
+        
+        return (
+            <div className="print-toc">
+                <h2 className="print-toc-title">Table of Contents</h2>
+                
+                <div className="my-4">
+                    {decisions.length > 0 && (
+                        <>
+                            <div className="print-toc-item">
+                                <span className="print-toc-text font-semibold">Full Posts</span>
+                            </div>
+                            {decisions.map((decision, index) => (
+                                <div key={decision.id} className="print-toc-item pl-4">
+                                    <span className="print-toc-text">{decision.title}</span>
+                                </div>
+                            ))}
+                        </>
+                    )}
+                    
+                    {sectionDecisions.length > 0 && (
+                        <>
+                            <div className="print-toc-item mt-2">
+                                <span className="print-toc-text font-semibold">Section Decisions</span>
+                            </div>
+                            {sectionDecisions.map((section, index) => (
+                                <div key={section.id} className="print-toc-item pl-4">
+                                    <span className="print-toc-text">{section.section_data.section_title}</span>
+                                </div>
+                            ))}
+                        </>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    // Format the current date
+    const formatDate = (date) => {
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
     return (
-        <div className="container mx-auto p-8">
-            <h1 className="text-3xl font-bold mb-8 text-center">DSS Decision Report</h1>
+        <div className="container mx-auto p-8 print-container">
+            {/* Add watermark for printed version */}
+            <div className="print-watermark">DSS</div>
             
             {loading ? (
                 <div className="flex justify-center">
@@ -157,68 +214,104 @@ export default function DecisionPdfPage() {
                 </div>
             ) : (
                 <div>
-                    {/* Full Posts Section */}
-                    {decisions.length > 0 && (
-                        <div className="mb-10">
-                            <h2 className="text-2xl font-bold mb-4 border-b pb-2">Full Posts</h2>
-                            {decisions.map((decision) => (
-                                <div key={decision.id} className="p-5 mb-6 border-b">
-                                    <h3 className="text-xl font-semibold text-[#111315] mb-2">
-                                        {decision.title}
-                                    </h3>
-                                    {decision?.tags?.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mb-4">
-                                            {decision.tags.map(tag => (
-                                                <span key={tag.id} className="px-2 py-1 text-xs border border-gray-300 rounded-full">
-                                                    #{tag.name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-                                    <div className="text-[16px] leading-[24px] text-[#111315]">
-                                        {decision?.description && renderPostContent(JSON.parse(decision.description).blocks)}
-                                    </div>
-                                    {decision.notes?.length > 0 && (
-                                        <div className="border rounded p-3 mt-4 text-[16px] leading-[24px] text-[#111315]">
-                                            <h4 className="font-bold py-2">Notes:</h4>
-                                            <div className="flex flex-col space-y-2">
-                                                {decision.notes.map((note, index) => (
-                                                    <div key={index} className="py-2 border-t first:border-t-0">
-                                                        {note.note}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                    {/* Report Header */}
+                    <div className="print-header">
+                        <h1 className="print-title">Decision Support System Report</h1>
+                        <div className="print-subtitle">Document decisions and selected sections</div>
+                        <div className="print-date">Generated on {formatDate(reportDate)}</div>
+                    </div>
                     
-                    {/* Sections Section */}
-                    {sectionDecisions.length > 0 && (
-                        <div className="mb-10">
-                            <h2 className="text-2xl font-bold mb-4 border-b pb-2">Section Decisions</h2>
-                            {sectionDecisions.map((section) => (
-                                <div key={section.id} className="p-5 mb-6 border-b">
-                                    <h3 className="text-xl font-semibold text-[#111315] mb-2">
-                                        {section.section_data.section_title}
-                                    </h3>
-                                    <p className="text-gray-500 mb-3">
-                                        From: {section.post?.title || 'Unknown Post'}
-                                    </p>
-                                    <div className="border p-4 rounded-lg bg-gray-50">
-                                        {renderSectionContent(section)}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                    {/* Table of Contents */}
+                    {generateTableOfContents()}
                     
-                    {decisions.length === 0 && sectionDecisions.length === 0 && (
+                    {decisions.length === 0 && sectionDecisions.length === 0 ? (
                         <div className="text-center py-10">
                             <p className="text-lg text-gray-600">No decisions to display.</p>
                         </div>
+                    ) : (
+                        <>
+                            {/* Full Posts Section */}
+                            {decisions.length > 0 && (
+                                <div className="print-section">
+                                    <h2 className="print-section-title">
+                                        <DocumentTextIcon className="h-6 w-6 inline-block mr-2 mb-1" />
+                                        Full Posts
+                                    </h2>
+                                    
+                                    {decisions.map((decision) => (
+                                        <div key={decision.id} className="print-item">
+                                            <div className="print-item-header">
+                                                <h3 className="print-item-title">{decision.title}</h3>
+                                            </div>
+                                            
+                                            {decision?.tags?.length > 0 && (
+                                                <div className="print-tags">
+                                                    {decision.tags.map(tag => (
+                                                        <span key={tag.id} className="print-tag">
+                                                            #{tag.name}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            
+                                            <div className="print-item-content">
+                                                {decision?.description && renderPostContent(JSON.parse(decision.description).blocks)}
+                                            </div>
+                                            
+                                            {decision.notes?.length > 0 && (
+                                                <div className="print-notes">
+                                                    <h4 className="print-notes-title">Notes:</h4>
+                                                    <div>
+                                                        {decision.notes.map((note, index) => (
+                                                            <div key={index} className="print-note-item">
+                                                                {note.note}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            
+                            {/* Add a page break between sections if both exist */}
+                            {decisions.length > 0 && sectionDecisions.length > 0 && (
+                                <div className="page-break"></div>
+                            )}
+                            
+                            {/* Sections Section */}
+                            {sectionDecisions.length > 0 && (
+                                <div className="print-section">
+                                    <h2 className="print-section-title">
+                                        <ClipboardDocumentIcon className="h-6 w-6 inline-block mr-2 mb-1" />
+                                        Section Decisions
+                                    </h2>
+                                    
+                                    {sectionDecisions.map((section) => (
+                                        <div key={section.id} className="print-item">
+                                            <div className="print-item-header">
+                                                <h3 className="print-item-title">{section.section_data.section_title}</h3>
+                                            </div>
+                                            
+                                            <p className="print-item-source">
+                                                From: {section.post?.title || 'Unknown Post'}
+                                            </p>
+                                            
+                                            <div className="print-item-content">
+                                                {renderSectionContent(section)}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            
+                            {/* Footer */}
+                            <div className="print-footer">
+                                <div>Decision Support System</div>
+                                <div className="print-footer-page">Page </div>
+                            </div>
+                        </>
                     )}
                 </div>
             )}

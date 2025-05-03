@@ -1,0 +1,281 @@
+@media print {
+  /* General print styles */
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+  
+  /* Hide buttons and navigation elements when printing */
+  button, .no-print, nav, header, footer, .print-hidden {
+    display: none !important;
+  }
+  
+  body {
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    background-color: white;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+  
+  /* Report container */
+  .print-container {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+  
+  /* Report header */
+  .print-header {
+    margin-bottom: 1cm;
+    text-align: center;
+    border-bottom: 2px solid #2a5885;
+    padding-bottom: 0.5cm;
+    position: relative;
+  }
+  
+  .print-header::before {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: #2a5885;
+  }
+  
+  .print-title {
+    font-size: 24pt;
+    font-weight: bold;
+    color: #2a5885;
+    margin-bottom: 0.5cm;
+  }
+  
+  .print-subtitle {
+    font-size: 14pt;
+    color: #555;
+    margin-bottom: 0.3cm;
+  }
+  
+  .print-date {
+    font-size: 10pt;
+    color: #777;
+  }
+  
+  /* Section styles */
+  .print-section {
+    margin-bottom: 1cm;
+    page-break-inside: avoid;
+  }
+  
+  .print-section-title {
+    font-size: 18pt;
+    font-weight: bold;
+    color: #2a5885;
+    margin-bottom: 0.5cm;
+    page-break-after: avoid;
+    border-bottom: 2px solid #2a5885;
+    padding-bottom: 0.2cm;
+  }
+  
+  /* Item styles */
+  .print-item {
+    margin-bottom: 0.8cm;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  .print-item-header {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 0.3cm;
+    padding-bottom: 0.2cm;
+  }
+  
+  .print-item-title {
+    font-size: 16pt;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .print-item-source {
+    font-size: 10pt;
+    color: #666;
+    font-style: italic;
+    margin-bottom: 0.3cm;
+  }
+  
+  .print-item-content {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 0.5cm;
+    margin-bottom: 0.3cm;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  
+  /* Tag styles */
+  .print-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2cm;
+    margin-bottom: 0.3cm;
+  }
+  
+  .print-tag {
+    font-size: 9pt;
+    padding: 0.1cm 0.3cm;
+    background-color: #f0f7ff;
+    border: 1px solid #d0e3ff;
+    border-radius: 12px;
+    color: #2a5885;
+  }
+  
+  /* Notes styles */
+  .print-notes {
+    border: 1px solid #e6e9ed;
+    border-left: 4px solid #ffcb6b;
+    border-radius: 4px;
+    padding: 0.3cm;
+    margin-top: 0.3cm;
+    background-color: #fffdf7;
+  }
+  
+  .print-notes-title {
+    font-weight: bold;
+    margin-bottom: 0.2cm;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.1cm;
+  }
+  
+  .print-note-item {
+    padding: 0.2cm 0;
+    border-top: 1px solid #f5f5f5;
+  }
+  
+  .print-note-item:first-child {
+    border-top: none;
+  }
+  
+  /* Footer */
+  .print-footer {
+    text-align: center;
+    margin-top: 1cm;
+    padding-top: 0.3cm;
+    border-top: 2px solid #eee;
+    font-size: 9pt;
+    color: #999;
+    position: running(footer);
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+  }
+  
+  .print-footer-page::after {
+    content: counter(page);
+  }
+  
+  /* Page breaks */
+  .page-break {
+    page-break-after: always;
+    height: 0;
+    display: block;
+  }
+  
+  /* Typography improvements for printing */
+  p {
+    orphans: 3;
+    widows: 3;
+    text-align: justify;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  
+  img {
+    max-width: 100% !important;
+  }
+  
+  pre, blockquote {
+    border: 1px solid #ddd;
+    page-break-inside: avoid;
+    background-color: #f5f5f5 !important;
+    margin: 0.3cm 0;
+    padding: 0.2cm;
+  }
+  
+  /* Table of contents */
+  .print-toc {
+    margin-bottom: 1cm;
+    border: 1px solid #eee;
+    background-color: #f9f9f9;
+    padding: 0.5cm;
+    border-radius: 4px;
+  }
+  
+  .print-toc-title {
+    font-size: 16pt;
+    font-weight: bold;
+    margin-bottom: 0.3cm;
+    color: #2a5885;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.2cm;
+  }
+  
+  .print-toc-item {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px dotted #ddd;
+    margin-bottom: 0.2cm;
+    padding: 0.1cm 0;
+  }
+  
+  .print-toc-text {
+    font-size: 11pt;
+  }
+  
+  /* Code blocks */
+  pre, code {
+    background-color: #f5f5f5 !important;
+    border: 1px solid #ddd !important;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 10pt;
+  }
+  
+  /* List items */
+  ul, ol {
+    padding-left: 0.5cm;
+  }
+  
+  li {
+    margin-bottom: 0.1cm;
+  }
+  
+  /* Hero icons */
+  svg.h-6 {
+    height: 16pt;
+    width: 16pt;
+    vertical-align: middle;
+    margin-right: 0.2cm;
+    color: #2a5885;
+  }
+  
+  /* Add a watermark with company logo/name if needed */
+  .print-watermark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    opacity: 0.05;
+    font-size: 100pt;
+    font-weight: bold;
+    color: #000;
+    z-index: -1;
+    pointer-events: none;
+  }
+} 
