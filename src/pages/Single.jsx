@@ -71,7 +71,6 @@ export default function SinglePostPage() {
     const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
     const [singlePostDataJSON, setSinglePostDataJSON] = useState(null);
 
-    console.log(singlePostDataJSON)
 
     async function PostChanger(slug) {
         setSinglePost(null);
@@ -607,9 +606,6 @@ export default function SinglePostPage() {
                                                                 <h3 className="truncate text-base font-semibold text-gray-900">{post.title}</h3>
                                                             </div>
                                                             <div className="flex items-center justify-start gap-1">
-                                                                {
-                                                                    console.log(post)
-                                                                }
                                                             </div>
                                                         </div>
                                                         <div className="h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-gray-200 transition-all">

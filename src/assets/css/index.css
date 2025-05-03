@@ -1,7 +1,7 @@
+@import url('./printStyles.css');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 
 .light-mode {
     background-color: #ececec !important;
@@ -176,6 +176,3 @@ input:checked+.slider:before {
 .cdx-notifies {
     color: #000;
 }
-
-/* Import print styles */
-@import url('./printStyles.css');

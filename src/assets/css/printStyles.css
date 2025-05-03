@@ -2,7 +2,11 @@
   /* General print styles */
   @page {
     size: A4;
-    margin: 1.5cm;
+    margin: 1.5cm 1.5cm 2.5cm 1.5cm; /* Increase bottom margin to prevent overlap with footer */
+    /* Use CSS counter to display page numbers */
+    @bottom-center {
+      content: "Page " counter(page) " of " counter(pages);
+    }
   }
   
   /* Hide buttons and navigation elements when printing */
@@ -16,13 +20,16 @@
     background-color: white;
     font-size: 12pt;
     line-height: 1.5;
+    counter-reset: page;
+    margin: 0;
+    padding: 0;
   }
   
   /* Report container */
   .print-container {
     max-width: 100%;
     margin: 0;
-    padding: 0;
+    padding: 0 0 3cm 0; /* Increase bottom padding to ensure content doesn't overlap with footer */
     background: white;
   }
   
@@ -66,7 +73,15 @@
   /* Section styles */
   .print-section {
     margin-bottom: 1cm;
-    page-break-inside: avoid;
+    position: relative; /* Ensure proper positioning */
+  }
+  
+  /* Ensure no element comes too close to the footer by adding a min-height or spacer at the end of each page */
+  .print-section:after {
+    content: '';
+    display: block;
+    height: 1.5cm; /* Leave space for footer */
+    clear: both;
   }
   
   .print-section-title {
@@ -75,15 +90,17 @@
     color: #2a5885;
     margin-bottom: 0.5cm;
     page-break-after: avoid;
+    break-after: avoid;
     border-bottom: 2px solid #2a5885;
     padding-bottom: 0.2cm;
   }
   
   /* Item styles */
   .print-item {
-    margin-bottom: 0.8cm;
+    margin-bottom: 1cm; /* Increased from 0.8cm */
     break-inside: avoid;
     page-break-inside: avoid;
+    position: relative; /* Ensure proper positioning */
   }
   
   .print-item-header {
@@ -92,6 +109,8 @@
     border-bottom: 1px solid #ddd;
     margin-bottom: 0.3cm;
     padding-bottom: 0.2cm;
+    break-after: avoid;
+    page-break-after: avoid;
   }
   
   .print-item-title {
@@ -109,7 +128,7 @@
   
   .print-item-content {
     background-color: #f9f9f9;
-    border: 1px solid #eee;
+    /* border: 1px solid #eee; */
     border-radius: 4px;
     padding: 0.5cm;
     margin-bottom: 0.3cm;
@@ -160,29 +179,36 @@
     border-top: none;
   }
   
-  /* Footer */
+  /* Footer with page numbers - fixed position approach */
   .print-footer {
-    text-align: center;
-    margin-top: 1cm;
-    padding-top: 0.3cm;
-    border-top: 2px solid #eee;
-    font-size: 9pt;
-    color: #999;
-    position: running(footer);
     position: fixed;
-    bottom: 0;
-    width: 100%;
-  }
-  
-  .print-footer-page::after {
-    content: counter(page);
+    bottom: 1cm; /* Increased from 0.5cm to match page margin */
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 9pt;
+    color: #666;
+    border-top: 1px solid #eee;
+    padding-top: 0.2cm;
+    background-color: white;
+    height: 1cm; /* Define a fixed height */
+    z-index: 1000; /* Ensure it's above other content */
   }
   
   /* Page breaks */
   .page-break {
     page-break-after: always;
+    break-after: page;
     height: 0;
     display: block;
+    clear: both;
+  }
+  
+  /* End of page margin spacer */
+  .page-end-spacer {
+    height: 2cm;
+    display: block;
+    width: 100%;
   }
   
   /* Typography improvements for printing */
@@ -194,6 +220,7 @@
   
   h1, h2, h3, h4, h5, h6 {
     page-break-after: avoid;
+    break-after: avoid;
   }
   
   img {
@@ -210,17 +237,20 @@
   
   /* Table of contents */
   .print-toc {
-    margin-bottom: 1cm;
+    margin-bottom: 1.5cm;
     border: 1px solid #eee;
     background-color: #f9f9f9;
     padding: 0.5cm;
     border-radius: 4px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    position: relative; /* Ensure proper positioning */
   }
   
   .print-toc-title {
     font-size: 16pt;
     font-weight: bold;
-    margin-bottom: 0.3cm;
+    margin-bottom: 0.5cm;
     color: #2a5885;
     border-bottom: 1px solid #ddd;
     padding-bottom: 0.2cm;
@@ -230,12 +260,17 @@
     display: flex;
     justify-content: space-between;
     border-bottom: 1px dotted #ddd;
-    margin-bottom: 0.2cm;
-    padding: 0.1cm 0;
+    margin-bottom: 0.3cm;
+    padding: 0.15cm 0;
+    line-height: 1.3;
   }
   
   .print-toc-text {
     font-size: 11pt;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   /* Code blocks */
@@ -263,19 +298,5 @@
     vertical-align: middle;
     margin-right: 0.2cm;
     color: #2a5885;
-  }
-  
-  /* Add a watermark with company logo/name if needed */
-  .print-watermark {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-45deg);
-    opacity: 0.05;
-    font-size: 100pt;
-    font-weight: bold;
-    color: #000;
-    z-index: -1;
-    pointer-events: none;
   }
 } 

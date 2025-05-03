@@ -58,7 +58,7 @@ export default function DecisionPdfPage() {
             // Give a brief moment for the report to render properly
             setTimeout(() => {
                 window.print();
-            }, 500);
+            }, 1500); // Increased delay to ensure proper rendering
         }
     }, [decisions, sectionDecisions, loading]);
     
@@ -157,6 +157,12 @@ export default function DecisionPdfPage() {
     const generateTableOfContents = () => {
         if (decisions.length === 0 && sectionDecisions.length === 0) return null;
         
+        // Helper function to truncate long titles
+        const truncateTitle = (title, maxLength = 60) => {
+            if (title.length <= maxLength) return title;
+            return title.substring(0, maxLength) + '...';
+        };
+        
         return (
             <div className="print-toc">
                 <h2 className="print-toc-title">Table of Contents</h2>
@@ -169,7 +175,7 @@ export default function DecisionPdfPage() {
                             </div>
                             {decisions.map((decision, index) => (
                                 <div key={decision.id} className="print-toc-item pl-4">
-                                    <span className="print-toc-text">{decision.title}</span>
+                                    <span className="print-toc-text">{truncateTitle(decision.title)}</span>
                                 </div>
                             ))}
                         </>
@@ -182,12 +188,15 @@ export default function DecisionPdfPage() {
                             </div>
                             {sectionDecisions.map((section, index) => (
                                 <div key={section.id} className="print-toc-item pl-4">
-                                    <span className="print-toc-text">{section.section_data.section_title}</span>
+                                    <span className="print-toc-text">{truncateTitle(section.section_data.section_title)}</span>
                                 </div>
                             ))}
                         </>
                     )}
                 </div>
+                
+                {/* Add spacer after table of contents */}
+                <div className="page-end-spacer"></div>
             </div>
         );
     };
@@ -205,9 +214,6 @@ export default function DecisionPdfPage() {
 
     return (
         <div className="container mx-auto p-8 print-container">
-            {/* Add watermark for printed version */}
-            <div className="print-watermark">DSS</div>
-            
             {loading ? (
                 <div className="flex justify-center">
                     <CgSpinner className="animate-spin text-4xl" />
@@ -238,7 +244,7 @@ export default function DecisionPdfPage() {
                                         Full Posts
                                     </h2>
                                     
-                                    {decisions.map((decision) => (
+                                    {decisions.map((decision, index) => (
                                         <div key={decision.id} className="print-item">
                                             <div className="print-item-header">
                                                 <h3 className="print-item-title">{decision.title}</h3>
@@ -270,6 +276,9 @@ export default function DecisionPdfPage() {
                                                     </div>
                                                 </div>
                                             )}
+                                            
+                                            {/* Add spacer at the end of each item to prevent footer overlap */}
+                                            <div className="page-end-spacer"></div>
                                         </div>
                                     ))}
                                 </div>
@@ -288,7 +297,7 @@ export default function DecisionPdfPage() {
                                         Section Decisions
                                     </h2>
                                     
-                                    {sectionDecisions.map((section) => (
+                                    {sectionDecisions.map((section, index) => (
                                         <div key={section.id} className="print-item">
                                             <div className="print-item-header">
                                                 <h3 className="print-item-title">{section.section_data.section_title}</h3>
@@ -301,16 +310,18 @@ export default function DecisionPdfPage() {
                                             <div className="print-item-content">
                                                 {renderSectionContent(section)}
                                             </div>
+                                            
+                                            {/* Add spacer at the end of each item to prevent footer overlap */}
+                                            <div className="page-end-spacer"></div>
                                         </div>
                                     ))}
                                 </div>
                             )}
                             
                             {/* Footer */}
-                            <div className="print-footer">
-                                <div>Decision Support System</div>
-                                <div className="print-footer-page">Page </div>
-                            </div>
+                            {/* <div className="print-footer">
+                                <div>Decision Support System • {formatDate(reportDate)}</div>
+                            </div> */}
                         </>
                     )}
                 </div>
