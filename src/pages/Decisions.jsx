@@ -13,6 +13,7 @@ import clsx from "clsx";
 import DecisionTabView, { DecisionTab } from "../components/decisions/DecisionTabView";
 import SectionDecisionCard from "../components/decisions/SectionDecisionCard";
 import { sectionDecisionStorage } from "../utils/sectionDecisionStorage";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 
 export default function DecisionsPage() {
@@ -24,6 +25,10 @@ export default function DecisionsPage() {
 
   const [isDecisionDeleting, setIsDecisionDeleting] = useState(false);
   const [sectionDecisions, setSectionDecisions] = useState([]);
+  
+  // State for confirmation modals
+  const [showPostsConfirmation, setShowPostsConfirmation] = useState(false);
+  const [showSectionsConfirmation, setShowSectionsConfirmation] = useState(false);
 
   const authHeader = useAuthHeader();
 
@@ -61,11 +66,13 @@ export default function DecisionsPage() {
       await deleteAllDecisionApi(authHeader()).then(() => {
         setUserPosts([]);
         setIsDecisionDeleting(false);
+        setShowPostsConfirmation(false);
       });
 
     } catch (error) {
       console.error(error);
       setIsDecisionDeleting(false);
+      setShowPostsConfirmation(false);
     }
   };
   
@@ -74,9 +81,11 @@ export default function DecisionsPage() {
       const result = sectionDecisionStorage.clear();
       if (result.status === 'success') {
         setSectionDecisions([]);
+        setShowSectionsConfirmation(false);
       }
     } catch (error) {
       console.error('Error clearing section decisions:', error);
+      setShowSectionsConfirmation(false);
     }
   };
   
@@ -96,14 +105,10 @@ export default function DecisionsPage() {
               <button
                 type="button"
                 className={"relative inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm text-blue-600 shadow-sm hover:bg-blue-100 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"}
-                onClick={handleDecisionDeleteAll}
+                onClick={() => setShowPostsConfirmation(true)}
               >
                 <BsTrash3 className="h-4 w-4" />
-                {isDecisionDeleting ? (
-                  <span className="animate-pulse">Resetting Posts...</span>
-                ) : (
-                  <span>Clear Posts</span>
-                )}
+                <span>Clear Posts</span>
               </button>
             )}
             
@@ -111,7 +116,7 @@ export default function DecisionsPage() {
               <button
                 type="button"
                 className={"relative inline-flex items-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm text-blue-600 shadow-sm hover:bg-blue-100 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"}
-                onClick={handleClearSectionDecisions}
+                onClick={() => setShowSectionsConfirmation(true)}
               >
                 <BsTrash3 className="h-4 w-4" />
                 <span>Clear Sections</span>
@@ -119,6 +124,23 @@ export default function DecisionsPage() {
             )}
           </div>
         </div>
+        
+        {/* Confirmation Modals */}
+        <ConfirmationModal
+          isOpen={showPostsConfirmation}
+          onClose={() => setShowPostsConfirmation(false)}
+          onConfirm={handleDecisionDeleteAll}
+          title="Clear All Posts"
+          message="Are you sure you want to delete all posts? This action cannot be undone."
+        />
+        
+        <ConfirmationModal
+          isOpen={showSectionsConfirmation}
+          onClose={() => setShowSectionsConfirmation(false)}
+          onConfirm={handleClearSectionDecisions}
+          title="Clear All Sections"
+          message="Are you sure you want to delete all saved sections? This action cannot be undone."
+        />
         
         <DecisionTabView defaultTab="fullPosts">
           <DecisionTab name="fullPosts" label="Full Posts">
