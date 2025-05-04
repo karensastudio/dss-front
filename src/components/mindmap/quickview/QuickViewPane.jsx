@@ -358,7 +358,15 @@ const QuickViewPane = ({ slug, onClose, isOpen, onNodeClick }) => {
                         if (block.type === "table")
                           return <TableComponent key={block.id || `table-${index}`} block={block} />;
                         if (block.type === "toggle")
-                          return <ToggleComponent key={block.id || `toggle-${index}`} block={block} />;
+                          return <ToggleComponent 
+                            key={block.id || `toggle-${index}`} 
+                            block={block} 
+                            postId={post?.id} 
+                            postData={{ 
+                              title: post?.title,
+                              slug: post?.slug 
+                            }}
+                          />;
 
                         return <div key={`unknown-${index}`}>Unknown block type: {block.type} at index {index}</div>;
                       } catch (error) {

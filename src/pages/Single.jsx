@@ -71,7 +71,6 @@ export default function SinglePostPage() {
     const [singlePostLoading, setSinglePostLoading] = useRecoilState(SinglePostLoadingState);
     const [singlePostDataJSON, setSinglePostDataJSON] = useState(null);
 
-    console.log(singlePostDataJSON)
 
     async function PostChanger(slug) {
         setSinglePost(null);
@@ -404,7 +403,7 @@ export default function SinglePostPage() {
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="flex flex-shrink-0 gap-x-3">
+                                        <div className="flex flex-shrink-0 gap-x-1">
                                             {
                                                 isAuthenticated() && (
                                                     <HasAccess
@@ -415,7 +414,7 @@ export default function SinglePostPage() {
                                                             data-tooltip-content="Edit Post"
                                                             data-tooltip-place="top"
                                                             to={`/admin/posts/update/${singlePost?.id}`}
-                                                            className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                                                            className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900  hover:bg-gray-50"
                                                         >
                                                             <FiEdit2 className="h-5 w-5 text-gray-600" aria-hidden="true" />
                                                         </Link>
@@ -431,8 +430,8 @@ export default function SinglePostPage() {
                                                         data-tooltip-id="AddToDecisionButton"
                                                         data-tooltip-content="Add to Decision"
                                                         data-tooltip-place="top"
-                                                        className={clsx("relative inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset",
-                                                            isDecision ? "bg-blue-500 ring-blue-600 text-white hover:bg-blue-600" : "bg-white text-gray-600 ring-gray-300 hover:bg-gray-50"
+                                                        className={clsx("relative inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold ",
+                                                            isDecision ? "bg-blue-500 ring-blue-600 text-white hover:bg-blue-600" : "bg-white text-gray-600 hover:bg-gray-50"
                                                         )}
                                                         onClick={handleDecisionChange}
                                                     >
@@ -458,7 +457,7 @@ export default function SinglePostPage() {
                                                             data-tooltip-id="AddNoteButton"
                                                             data-tooltip-content="Add Note"
                                                             data-tooltip-place="top"
-                                                            className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                                                            className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900  hover:bg-gray-50"
                                                             onClick={() => openChat('note')}
                                                         >
                                                             <BsChatDots className="h-5 w-5 text-gray-600" aria-hidden="true" />
@@ -475,7 +474,7 @@ export default function SinglePostPage() {
                                                             data-tooltip-id="AddProposeButton"
                                                             data-tooltip-content="Propose To Editor"
                                                             data-tooltip-place="top"
-                                                            className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                                                            className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900  hover:bg-gray-50"
                                                             onClick={() => openChat('propose')}
                                                         >
                                                             <GoReport className="h-5 w-5 text-gray-600" aria-hidden="true" />
@@ -493,7 +492,7 @@ export default function SinglePostPage() {
                                                             data-tooltip-content="Bookmark"
                                                             data-tooltip-place="top"
                                                             type="button"
-                                                            className={clsx("relative inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm ring-1 ring-inset",
+                                                            className={clsx("relative inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold ",
                                                                 isBookmarked ? "bg-blue-500 ring-blue-500 text-white hover:bg-blue-600" : "bg-white ring-gray-300 hover:bg-gray-50 text-gray-600"
                                                             )}
                                                             onClick={handleBookmarkChange}
@@ -520,7 +519,7 @@ export default function SinglePostPage() {
                                                     data-tooltip-content="Share Post"
                                                     data-tooltip-place="top"
                                                     onClick={sharePost}
-                                                    className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                                                    className="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900  hover:bg-gray-50"
                                                 >
                                                     <HiShare className="h-5 w-5 text-gray-600" aria-hidden="true" />
                                                 </button>
@@ -534,17 +533,17 @@ export default function SinglePostPage() {
                                         {singlePostDataJSON &&
                                             singlePostDataJSON.blocks.map((block) => {
                                                 if (block.type == "paragraph")
-                                                    return <ParagraphComponent block={block} />;
+                                                    return <ParagraphComponent key={block.id} block={block} />;
                                                 if (block.type == "header")
                                                     return <div key={block.id} className="mb-3">
                                                         <HeadingComponentV2 element={block} />
                                                     </div>;
                                                 if (block.type == "Image")
-                                                    return <ImageComponent element={block} />;
+                                                    return <ImageComponent key={block.id} element={block} />;
                                                 if (block.type == "raw")
                                                     return <div key={block.id} className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
                                                 if (block.type == "linkTool") {
-                                                    return <LinkComponent block={block} />;
+                                                    return <LinkComponent key={block.id} block={block} />;
                                                 }
                                                 if (block.type == "warning")
                                                     return <div key={block.id} className="w-full rounded-[12px] bg-gray-500 bg-opacity-10 text-gray-700 dark:text-white p-4 mb-3">
@@ -564,16 +563,22 @@ export default function SinglePostPage() {
                                                 if (block.type == "list")
                                                     return <div key={block.id} className="w-full rounded-[12px] mb-3">
                                                         <ul className="list-decimal list-inside pl-5">
-                                                            {block.data.items.map((item) => {
-                                                                return <li className="mb-3 text-justify" key={item}>{parse(item)}</li>
+                                                            {block.data.items.map((item, index) => {
+                                                                return <li className="mb-3 text-justify" key={`${block.id}-item-${index}`}>{parse(item)}</li>
                                                             })}
                                                         </ul>
                                                     </div>;
                                                 if (block.type == "table")
-                                                    return <TableComponent block={block} />;
+                                                    return <TableComponent key={block.id} block={block} />;
                                                 if (block.type == "toggle") {
                                                     return <ToggleComponent
+                                                        key={block.id}
                                                         block={block}
+                                                        postId={singlePost.id}
+                                                        postData={{ 
+                                                            title: singlePost.title,
+                                                            slug: singlePost.slug
+                                                        }}
                                                     />;
                                                 }
                                             })
@@ -602,9 +607,6 @@ export default function SinglePostPage() {
                                                                 <h3 className="truncate text-base font-semibold text-gray-900">{post.title}</h3>
                                                             </div>
                                                             <div className="flex items-center justify-start gap-1">
-                                                                {
-                                                                    console.log(post)
-                                                                }
                                                             </div>
                                                         </div>
                                                         <div className="h-10 w-10 bg-gray-100 rounded-full flex items-center justify-center group-hover:bg-gray-200 transition-all">

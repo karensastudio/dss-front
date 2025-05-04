@@ -1,23 +1,19 @@
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthHeader } from "react-auth-kit";
 import { useNavigate } from "react-router-dom";
 import { getDecisionsApi } from "../api/decision";
 import parse from 'html-react-parser';
 import { CgSpinner } from 'react-icons/cg';
-import ToggleComponent from "../components/editor/ToggleComponent";
-import LinkComponent from "../components/editor/LinkComponent";
-import ImageComponent from "../components/editor/ImageComponent";
-import HeadingComponentV2 from "../components/editor/HeadingComponentV2";
-import ParagraphComponent from "../components/editor/ParagraphComponent";
-import TableComponent from "../components/editor/TableComponent";
+import { sectionDecisionStorage } from "../utils/sectionDecisionStorage";
+import { DocumentTextIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 
 export default function DecisionPdfPage() {
     const [decisions, setDecisions] = useState([]);
+    const [sectionDecisions, setSectionDecisions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [reportDate] = useState(new Date());
     const navigate = useNavigate();
     const authHeader = useAuthHeader();
-
-    console.log(decisions);
 
     useEffect(() => {
         const fetchDecisions = async () => {
@@ -28,6 +24,10 @@ export default function DecisionPdfPage() {
                 } else {
                     setDecisions([]);
                 }
+                
+                // Get section decisions
+                const { sections } = sectionDecisionStorage.getAll();
+                setSectionDecisions(sections);
             } catch (error) {
                 console.error(error);
                 setDecisions([]);
@@ -48,108 +48,284 @@ export default function DecisionPdfPage() {
     }, []);
 
     useEffect(() => {
-        if (decisions.length > 0) {
+        if ((decisions.length > 0 || sectionDecisions.length > 0) && !loading) {
+            // Expand all details elements
             const details = document.querySelectorAll('details');
             details.forEach((targetDetail) => {
                 targetDetail.setAttribute('open', '');
             });
-            window.print();
+            
+            // Give a brief moment for the report to render properly
+            setTimeout(() => {
+                window.print();
+            }, 1500); // Increased delay to ensure proper rendering
         }
+    }, [decisions, sectionDecisions, loading]);
+    
+    // Helper function to render section content
+    const renderSectionContent = (section) => {
+        if (!section.section_data.section_content) return null;
+        
+        if (typeof section.section_data.section_content === 'string') {
+            return <div>{parse(section.section_data.section_content)}</div>;
+        }
+        
+        if (Array.isArray(section.section_data.section_content)) {
+            return (
+                <div>
+                    {section.section_data.section_content.map((block, index) => {
+                        try {
+                            if (block.type === "paragraph")
+                                return <div key={index} className="mb-3">{parse(block.data?.text || '')}</div>;
+                            
+                            if (block.type === "header")
+                                return <div key={index} className="mb-3 font-bold">{parse(block.data?.text || '')}</div>;
+                            
+                            if (block.type === "list")
+                                return (
+                                    <div key={index} className="mb-3">
+                                        <ul className="list-disc list-inside ml-4">
+                                            {block.data?.items?.map((item, itemIndex) => (
+                                                <li className="mb-2" key={itemIndex}>{parse(item)}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                );
+                            
+                            if (block.type === "code")
+                                return (
+                                    <div key={index} className="mb-3 bg-gray-100 p-3 rounded font-mono text-sm">
+                                        <pre>{block.data?.code || ''}</pre>
+                                    </div>
+                                );
+                            
+                            if (block.type === "quote")
+                                return (
+                                    <div key={index} className="mb-3 border-l-4 border-gray-300 pl-4 italic">
+                                        {block.data?.text && <div>{parse(block.data.text)}</div>}
+                                    </div>
+                                );
 
-    }, [decisions]);
+                            return null;
+                        } catch (error) {
+                            console.error(`Error rendering block ${index}:`, error);
+                            return null;
+                        }
+                    })}
+                </div>
+            );
+        }
+        
+        return null;
+    };
+
+    // Helper function to render post content blocks
+    const renderPostContent = (blocks) => {
+        if (!blocks || !Array.isArray(blocks)) return null;
+        
+        return blocks.map((block, index) => {
+            if (block.type === "paragraph")
+                return <div key={index} className="mb-3">{parse(block.data?.text || '')}</div>;
+                
+            if (block.type === "header")
+                return <div key={index} className="mb-3 font-bold">{parse(block.data?.text || '')}</div>;
+                
+            if (block.type === "Image" && block.data?.url)
+                return (
+                    <div key={index} className="mb-3">
+                        <img src={block.data.url} alt={block.data.caption || ''} className="max-w-full h-auto" />
+                        {block.data.caption && <div className="text-sm text-center mt-1">{block.data.caption}</div>}
+                    </div>
+                );
+                
+            if (block.type === "list")
+                return (
+                    <div key={index} className="mb-3">
+                        <ul className="list-disc list-inside ml-4">
+                            {block.data?.items?.map((item, itemIndex) => (
+                                <li key={itemIndex} className="mb-2">{parse(item)}</li>
+                            ))}
+                        </ul>
+                    </div>
+                );
+                
+            return null;
+        });
+    };
+
+    // Helper function to create a table of contents
+    const generateTableOfContents = () => {
+        if (decisions.length === 0 && sectionDecisions.length === 0) return null;
+        
+        // Helper function to truncate long titles
+        const truncateTitle = (title, maxLength = 60) => {
+            if (title.length <= maxLength) return title;
+            return title.substring(0, maxLength) + '...';
+        };
+        
+        return (
+            <div className="print-toc">
+                <h2 className="print-toc-title">Table of Contents</h2>
+                
+                <div className="my-4">
+                    {decisions.length > 0 && (
+                        <>
+                            <div className="print-toc-item">
+                                <span className="print-toc-text font-semibold">Full Posts</span>
+                            </div>
+                            {decisions.map((decision, index) => (
+                                <div key={decision.id} className="print-toc-item pl-4">
+                                    <span className="print-toc-text">{truncateTitle(decision.title)}</span>
+                                </div>
+                            ))}
+                        </>
+                    )}
+                    
+                    {sectionDecisions.length > 0 && (
+                        <>
+                            <div className="print-toc-item mt-2">
+                                <span className="print-toc-text font-semibold">Section Decisions</span>
+                            </div>
+                            {sectionDecisions.map((section, index) => (
+                                <div key={section.id} className="print-toc-item pl-4">
+                                    <span className="print-toc-text">{truncateTitle(section.section_data.section_title)}</span>
+                                </div>
+                            ))}
+                        </>
+                    )}
+                </div>
+                
+                {/* Add spacer after table of contents */}
+                <div className="page-end-spacer"></div>
+            </div>
+        );
+    };
+
+    // Format the current date
+    const formatDate = (date) => {
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
 
     return (
-        <div className="bg-white aspect-1/1.4 max-w-5xl mx-auto border-black border-[2px] rounded-lg">
-            <div className="mx-3 mt-3 rounded-xl print:bg-black print:bg-opacity-25 bg-black bg-opacity-25 px-5 py-3 flex items-center justify-between">
-                <h1 className="text-black text-2xl font-black tracking-widest">DSS</h1>
-
-                <p className="text-black">Decision Report</p>
-            </div>
-            <div className="flex flex-col divide-black divide-y-4 divide-dotted">
-                {loading ? (
-                    <div className="flex items-center justify-center">
-                        <CgSpinner className="text-[20px] animate-spin" />
+        <div className="container mx-auto p-8 print-container">
+            {loading ? (
+                <div className="flex justify-center">
+                    <CgSpinner className="animate-spin text-4xl" />
+                </div>
+            ) : (
+                <div>
+                    {/* Report Header */}
+                    <div className="print-header">
+                        <h1 className="print-title">Decision Support System Report</h1>
+                        <div className="print-subtitle">Document decisions and selected sections</div>
+                        <div className="print-date">Generated on {formatDate(reportDate)}</div>
                     </div>
-                ) : (
-                    decisions.map((decision, index) => (
-                        <div key={decision.id} className={`p-5 decision-item`}>
-                            <span className="title-text text-[18px] font-[600] text-[#111315]">
-                                {decision.title}
-                            </span>
-                            <div className="pt-2 pb-5">
-                                <div className="flex items-center justify-start space-x-[8px]">
-                                    {decision?.tags?.map((tag) => (
-                                        <span key={tag.id} className='px-[12px] py-[2px] text-[12px] leading-[20px] rounded-full border-[1px] border-[#111315] text-black'>#{tag.name}</span>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="text-[16px] leading-[24px] text-[#111315]">
-                                {
-                                    JSON.parse(decision.description)?.blocks.map((block) => {
-                                        if (block.type == "paragraph")
-                                            return <ParagraphComponent block={block} />;
-                                        if (block.type == "header")
-                                            return <div key={block.id} className="mb-3">
-                                                <HeadingComponentV2 element={block} />
-                                            </div>;
-                                        if (block.type == "Image")
-                                            return <ImageComponent element={block} />;
-                                        if (block.type == "raw")
-                                            return <div key={block.id} className="w-full rounded-[12px] mb-3" dangerouslySetInnerHTML={{ __html: block.data.html }}></div>;
-                                        if (block.type == "linkTool") {
-                                            return <LinkComponent block={block} />;
-                                        }
-                                        if (block.type == "warning")
-                                            return <div key={block.id} className="w-full rounded-[12px] bg-gray-500 bg-opacity-10 text-gray-700 dark:text-white p-4 mb-3">
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center space-x-2">
-                                                        <div>
-                                                            <span className="text-[16px] leading-[20px] font-semibold">
-                                                                {parse(block.data.title)}
-                                                            </span>
-                                                            <p className="text-[14px]">
-                                                                {parse(block.data.message)}
-                                                            </p>
-                                                        </div>
+                    
+                    {/* Table of Contents */}
+                    {generateTableOfContents()}
+                    
+                    {decisions.length === 0 && sectionDecisions.length === 0 ? (
+                        <div className="text-center py-10">
+                            <p className="text-lg text-gray-600">No decisions to display.</p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Full Posts Section */}
+                            {decisions.length > 0 && (
+                                <div className="print-section">
+                                    <h2 className="print-section-title">
+                                        <DocumentTextIcon className="h-6 w-6 inline-block mr-2 mb-1" />
+                                        Full Posts
+                                    </h2>
+                                    
+                                    {decisions.map((decision, index) => (
+                                        <div key={decision.id} className="print-item">
+                                            <div className="print-item-header">
+                                                <h3 className="print-item-title">{decision.title}</h3>
+                                            </div>
+                                            
+                                            {decision?.tags?.length > 0 && (
+                                                <div className="print-tags">
+                                                    {decision.tags.map(tag => (
+                                                        <span key={tag.id} className="print-tag">
+                                                            #{tag.name}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            
+                                            <div className="print-item-content">
+                                                {decision?.description && renderPostContent(JSON.parse(decision.description).blocks)}
+                                            </div>
+                                            
+                                            {decision.notes?.length > 0 && (
+                                                <div className="print-notes">
+                                                    <h4 className="print-notes-title">Notes:</h4>
+                                                    <div>
+                                                        {decision.notes.map((note, index) => (
+                                                            <div key={index} className="print-note-item">
+                                                                {note.note}
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </div>
-                                            </div>;
-                                        if (block.type == "list")
-                                            return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                <ul className="list-disc list-inside">
-                                                    {block.data.items.map((item) => {
-                                                        return <li key={item}>{parse(item)}</li>
-                                                    })}
-                                                </ul>
-                                            </div>;
-                                        if (block.type == "table")
-                                            return <TableComponent block={block} />;
-                                        if (block.type == "toggle") {
-                                            return <ToggleComponent
-                                                block={block}
-                                            />;
-                                        }
-                                    })
-                                }
-                                {/* {decision?.description && parse(decision?.description)} */}
-                            </div>
-                            {decision.notes && decision.notes.length > 0 && (
-                                <div className="border rounded p-3 text-[16px] leading-[24px] text-[#111315]">
-                                    <h3 className="font-bold py-2">Notes:</h3>
-                                    <div className="flex flex-col divide-y ">
-                                    {decision.notes.map((note, index) => (
-                                        <div key={index} className="py-2">
-                                            <span>{note.note}</span>
-                                            {index !== decision.notes.length - 1 && <br />}
+                                            )}
+                                            
+                                            {/* Add spacer at the end of each item to prevent footer overlap */}
+                                            <div className="page-end-spacer"></div>
                                         </div>
                                     ))}
-                                    </div>
                                 </div>
                             )}
-                        </div>
-                    ))
-                )}
-            </div>
+                            
+                            {/* Add a page break between sections if both exist */}
+                            {decisions.length > 0 && sectionDecisions.length > 0 && (
+                                <div className="page-break"></div>
+                            )}
+                            
+                            {/* Sections Section */}
+                            {sectionDecisions.length > 0 && (
+                                <div className="print-section">
+                                    <h2 className="print-section-title">
+                                        <ClipboardDocumentIcon className="h-6 w-6 inline-block mr-2 mb-1" />
+                                        Section Decisions
+                                    </h2>
+                                    
+                                    {sectionDecisions.map((section, index) => (
+                                        <div key={section.id} className="print-item">
+                                            <div className="print-item-header">
+                                                <h3 className="print-item-title">{section.section_data.section_title}</h3>
+                                            </div>
+                                            
+                                            <p className="print-item-source">
+                                                From: {section.post?.title || 'Unknown Post'}
+                                            </p>
+                                            
+                                            <div className="print-item-content">
+                                                {renderSectionContent(section)}
+                                            </div>
+                                            
+                                            {/* Add spacer at the end of each item to prevent footer overlap */}
+                                            <div className="page-end-spacer"></div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            
+                            {/* Footer */}
+                            {/* <div className="print-footer">
+                                <div>Decision Support System • {formatDate(reportDate)}</div>
+                            </div> */}
+                        </>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
