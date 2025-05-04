@@ -25,6 +25,26 @@ export default function SearchResultPage() {
   let [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get('query');
 
+  // Search helper terms
+  const searchHelperTerms = [
+    "Project framework",
+    "Stakeholder Mapping",
+    "Monitoring",
+    "Evaluation",
+    "MERL",
+    "Communications",
+    "Raising awareness",
+    "Co-creation Team",
+    "Engagement",
+    "Co-creation",
+    "Co-design",
+    "Co-implementation",
+    "Conflict resolution",
+    "Co-governance",
+    "Upscaling",
+    "Post-project actions"
+  ];
+
   const fetchUserPosts = async (query) => {
     if (!query) return;
     
@@ -54,12 +74,36 @@ export default function SearchResultPage() {
     }
   }, [location.search]);
 
+  // Handle search helper term click
+  const handleHelperTermClick = (term) => {
+    setSearchParams({ query: term });
+  };
+
   return (
     <UserLayout pageTitle={'Search Results'} hideSidebar>
       <div className="w-full flex flex-col min-h-full grow text-black">
         <h1 className="text-lg text-neutral-900 mb-4 flex items-center">
           Search result for: <span className="ml-1 text-2xl font-bold capitalize">{searchQuery}</span>
         </h1>
+        
+        {/* Search Helper Terms */}
+        <div className="mb-6 overflow-x-auto pb-3 -mx-2 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <div className="flex space-x-2 min-w-max">
+            {searchHelperTerms.map((term, index) => (
+              <button
+                key={index}
+                onClick={() => handleHelperTermClick(term)}
+                className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-colors
+                  ${searchQuery === term 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-800 hover:bg-blue-200'}`}
+              >
+                {term}
+              </button>
+            ))}
+          </div>
+        </div>
+        
         <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {
             isPostsLoading ? (
