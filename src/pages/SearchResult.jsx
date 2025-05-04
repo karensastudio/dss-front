@@ -1,13 +1,13 @@
 import { Switch } from "@headlessui/react";
 import UserLayout from "../layouts/User";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { BsZoomIn, BsZoomOut } from "react-icons/bs";
 import { HiMinus, HiPlus } from "react-icons/hi";
 import ForceGraph2D from 'react-force-graph-2d';
 import { useAuthHeader } from "react-auth-kit";
 import { ChevronRightIcon, EnvelopeIcon, ExclamationTriangleIcon, PhoneIcon } from "@heroicons/react/20/solid";
 import { getBookmarksApi } from "../api/bookmark";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { searchAPI } from "../api/search";
 
 
@@ -17,41 +17,48 @@ export default function SearchResultPage() {
   const [isPostsLoading, setIsPostsLoading] = useState(true);
   const [userPosts, setUserPosts] = useState([]);
   const [error, setError] = useState(null);
-
+  
   const authHeader = useAuthHeader();
+  const location = useLocation();
 
   // get q parameter with react router
   let [searchParams, setSearchParams] = useSearchParams();
+  const searchQuery = searchParams.get('query');
 
-  useEffect(() => {
-    const fetchUserPosts = async () => {
-      try {
-        const response = await searchAPI(authHeader(), searchParams.get('query'));
-        if (response.status === 'success') {
-          setUserPosts(response.response.posts);
-          setError(null);
-          setIsPostsLoading(false);
-        } else {
-          setError(response.message);
-          setUserPosts([]);
-          setIsPostsLoading(false);
-        }
-      } catch (error) {
-        console.error(error);
-        setError('An unexpected error occurred.');
+  const fetchUserPosts = async (query) => {
+    if (!query) return;
+    
+    try {
+      setIsPostsLoading(true);
+      const response = await searchAPI(authHeader(), query);
+      if (response.status === 'success') {
+        setUserPosts(response.response.posts);
+        setError(null);
+      } else {
+        setError(response.message);
         setUserPosts([]);
-        setIsPostsLoading(false);
       }
-    };
+    } catch (error) {
+      console.error(error);
+      setError('An unexpected error occurred.');
+      setUserPosts([]);
+    } finally {
+      setIsPostsLoading(false);
+    }
+  };
 
-    fetchUserPosts();
-  }, []);
+  // Effect that runs on mount and whenever the URL search params change
+  useEffect(() => {
+    if (searchQuery) {
+      fetchUserPosts(searchQuery);
+    }
+  }, [location.search]);
 
   return (
-    <UserLayout pageTitle={'Bookmarks'} hideSidebar>
+    <UserLayout pageTitle={'Search Results'} hideSidebar>
       <div className="w-full flex flex-col min-h-full grow text-black">
         <h1 className="text-lg text-neutral-900 mb-4 flex items-center">
-          Search result for: <span className="ml-1 text-2xl font-bold capitalize">{searchParams.get('query')}</span>
+          Search result for: <span className="ml-1 text-2xl font-bold capitalize">{searchQuery}</span>
         </h1>
         <ul role="list" className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {
@@ -129,7 +136,7 @@ export default function SearchResultPage() {
             ) : (
               <div className="col-span-3 flex flex-col justify-center items-center bg-white py-10 shadow rounded-lg border-x-4 border-x-red-400">
                 <ExclamationTriangleIcon className="h-10 w-10 text-red-500 mb-3" aria-hidden="true" />
-                <p className="text-neutral-900 font-bold">You have no bookmarks.</p>
+                <p className="text-neutral-900 font-bold">No results found for your search.</p>
               </div>
             )
           }
