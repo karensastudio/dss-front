@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, memo } from 'react';
 import ReactFlowRenderer from './ReactFlowRenderer';
 import { ReactFlowProvider } from 'reactflow';
-import { v4 as uuidv4 } from 'uuid'; // Add this import
 
 // Define possible rendering engines
 const RENDERERS = {
@@ -36,11 +35,13 @@ const MindMapRenderer = ({
   nodeClickedState = null
 }) => {
   const [error, setError] = useState(null);
+  
+  // Refs for tracking state changes
   const dataRef = useRef(null);
   const shouldPreserveViewport = useRef(false);
 
+  // Validate renderer
   useEffect(() => {
-    // Validate renderer
     if (!Object.values(RENDERERS).includes(renderer)) {
       setError(`Invalid renderer: ${renderer}. Available renderers: ${Object.values(RENDERERS).join(', ')}`);
     } else {
@@ -48,28 +49,25 @@ const MindMapRenderer = ({
     }
   }, [renderer]);
 
-  // Check if this is just an expandedNodes change or if a node was clicked
+  // Determine when to preserve viewport
   useEffect(() => {
-    // If data hasn't changed but expandedNodes has,
-    // we should preserve viewport
+    // Case 1: Same data but expanded nodes changed - preserve viewport
+    // Case 2: Data changed but node was clicked - preserve viewport
+    // Case 3: Data changed and no node was clicked - don't preserve viewport
     if (dataRef.current === data) {
       shouldPreserveViewport.current = true;
     } else {
       dataRef.current = data;
-      // If a node was clicked, still preserve viewport even if data changed
       shouldPreserveViewport.current = nodeClickedState?.current || false;
     }
-    
-    // Log the state for debugging
-    console.log('shouldPreserveViewport:', shouldPreserveViewport.current);
-    console.log('nodeClickedState:', nodeClickedState?.current);
   }, [data, expandedNodes, nodeClickedState]);
 
+  // Show error if any
   if (error) {
     return <div className="text-red-500">Error: {error}</div>;
   }
 
-  // Always use ReactFlow
+  // Currently, only ReactFlow is supported
   return (
     <ReactFlowProvider>
       <ReactFlowRenderer
@@ -88,7 +86,7 @@ const MindMapRenderer = ({
   );
 };
 
-// Export memoized version of the component
+// Export memoized version of the component for better performance
 const MemoizedMindMapRenderer = memo(MindMapRenderer);
 
 export { RENDERERS };

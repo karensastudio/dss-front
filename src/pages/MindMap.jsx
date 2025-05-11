@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import UserLayout from '../layouts/User';
 import { useAuthHeader, useIsAuthenticated } from 'react-auth-kit';
 import { getMindmapApi } from '../api/userPost';
@@ -9,27 +9,61 @@ import MindMapRenderer, { RENDERERS } from '../components/mindmap/MindMapRendere
 import QuickViewPane from '../components/mindmap/quickview/QuickViewPane';
 
 export default function MindMapPage() {
+  // Main data state
   const [mindmapData, setMindmapData] = useState(null);
   const [isPostsLoading, setIsPostsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // UI state
   const [expandedNodes, setExpandedNodes] = useState(new Set(['4'])); // Start with Tutorial (ID: 4) expanded
-  const [zoomRef, setZoomRef] = useState(null);
-  // Add edge type filter state
+  const [selectedNodeSlug, setSelectedNodeSlug] = useState(null);
   const [edgeTypeFilter, setEdgeTypeFilter] = useState({
     'parent-child': true,
     'related': true
   });
-  // Hardcoded to ReactFlow as the only renderer
+  
+  // Refs
+  const zoomRef = useRef(null);
+  const nodeClickedRef = useRef(false); // Track node clicks for viewport preservation
+  
+  // Fixed configuration
   const renderer = RENDERERS.REACT_FLOW;
   
-  // Add a ref to track if we're currently dealing with a node click
-  const nodeClickedRef = useRef(false);
-  
+  // Hooks
   const authHeader = useAuthHeader();
   const isAuthenticated = useIsAuthenticated();
   const navigate = useNavigate();
   
-  // Fetch mindmap data only once on component mount - fix the continuous loading issue
+  // Memoize container dimensions to avoid recalculations
+  const [containerDimensions, setContainerDimensions] = useState({
+    width: 800,
+    height: 600
+  });
+  
+  // Update container dimensions when the component mounts or window resizes
+  useEffect(() => {
+    const updateDimensions = () => {
+      const container = document.getElementById('mindmap-container');
+      if (container) {
+        setContainerDimensions({
+          width: container.offsetWidth,
+          height: container.offsetHeight
+        });
+      }
+    };
+    
+    // Initial measurement
+    updateDimensions();
+    
+    // Update on resize
+    window.addEventListener('resize', updateDimensions);
+    
+    return () => {
+      window.removeEventListener('resize', updateDimensions);
+    };
+  }, []);
+  
+  // Fetch mindmap data only once on component mount
   useEffect(() => {
     let mounted = true;
     
@@ -46,15 +80,10 @@ export default function MindMapPage() {
           setError(null);
           setIsPostsLoading(false);
           
-          // Log data for debugging
-          console.log('Fetched mindmap data:', response.response.data);
-          console.log('Tutorial node:', response.response.data.nodes.find(n => n.id === 4));
-          console.log('Tutorial edges:', response.response.data.edges.filter(e => e.source === 4));
-          
           // Set expanded nodes based on hierarchy
           const initialExpanded = new Set();
-          // Start with root and tutorial expanded
-          initialExpanded.add('4'); // Tutorial
+          // Start with Tutorial expanded
+          initialExpanded.add('4');
           
           // Find all top-level nodes and expand them
           response.response.data.edges.forEach(edge => {
@@ -63,11 +92,11 @@ export default function MindMapPage() {
             }
           });
           
+          // Add hierarchy root if available
           if (response.response.data.hierarchy) {
             initialExpanded.add(`${response.response.data.hierarchy.id}`);
           }
           
-          console.log('Initial expanded nodes:', initialExpanded);
           setExpandedNodes(initialExpanded);
         } else {
           setError(response.message || 'Failed to fetch mindmap data');
@@ -90,63 +119,65 @@ export default function MindMapPage() {
     };
   }, []); // Empty dependency array to run only once
   
-  // State for selected node and quick view
-  const [selectedNodeSlug, setSelectedNodeSlug] = useState(null);
+  // Memoized callbacks for better performance
   
-  // Handle node click for quick view instead of navigation
+  // Handle node click for quick view
   const handleNodeClick = useCallback((slug) => {
-    console.log('Node clicked with slug:', slug);
-    
-    // Don't do anything if the slug is empty or not a string
     if (!slug || typeof slug !== 'string') {
-      console.warn('Invalid slug provided to handleNodeClick:', slug);
       return;
     }
     
-    // Set node clicked ref to true
+    // Set node clicked ref to true to preserve viewport
     nodeClickedRef.current = true;
     
-    // If the pane is already open with the same slug, close it (toggle behavior)
-    if (selectedNodeSlug === slug) {
-      setSelectedNodeSlug(null);
-    } else {
-      // Otherwise, open the pane with the selected slug
-      setSelectedNodeSlug(slug);
-    }
-  }, [selectedNodeSlug]);
+    // Toggle view: if already open with same slug, close it
+    setSelectedNodeSlug(prev => prev === slug ? null : slug);
+  }, []);
   
   // Handle closing the quick view pane
   const handleCloseQuickView = useCallback(() => {
     setSelectedNodeSlug(null);
   }, []);
   
-  // Handle toggle expand/collapse
+  // Handle toggle expand/collapse of nodes
   const handleToggleExpand = useCallback((nodePath) => {
-    console.log('Toggling node:', nodePath);
-    // Also set node clicked ref to true when expanding nodes
+    // Mark as clicked to preserve viewport
     nodeClickedRef.current = true;
+    
     setExpandedNodes(prev => {
+      // Create a copy of the Set to avoid reference equality issues
       const newSet = new Set(prev);
+      
+      // Toggle the node's expanded state
       if (newSet.has(nodePath)) {
         newSet.delete(nodePath);
       } else {
         newSet.add(nodePath);
       }
-      console.log('Updated expanded nodes:', newSet);
+      
       return newSet;
     });
   }, []);
   
   // Handle edge type filter changes
-  const handleEdgeTypeFilterChange = (type) => {
+  const handleEdgeTypeFilterChange = useCallback((type) => {
     setEdgeTypeFilter(prev => ({
       ...prev,
       [type]: !prev[type]
     }));
-  };
+  }, []);
   
-  // No filtering at this level - to be handled by edge type filter
-  const filteredData = mindmapData;
+  // Function for QuickViewPane node clicks (with preserved state)
+  const handleQuickViewNodeClick = useCallback((slug) => {
+    // Set the nodeClicked ref to ensure zoom is preserved
+    nodeClickedRef.current = true;
+    handleNodeClick(slug);
+  }, [handleNodeClick]);
+  
+  // Function to set zoom ref (used by the child component)
+  const setZoomRef = useCallback((ref) => {
+    zoomRef.current = ref;
+  }, []);
   
   return (
     <UserLayout pageTitle={'Mind Map'} hideSidebar fullWidth>
@@ -192,6 +223,7 @@ export default function MindMapPage() {
           </div>
         </div>
 
+        {/* Main mindmap container */}
         <div
           className="bg-gray-50 h-full flex items-center justify-center min-h-full grow"
           id="mindmap-container"
@@ -203,20 +235,17 @@ export default function MindMapPage() {
             </div>
           ) : error ? (
             <p className="text-xl text-red-600 font-bold">Error: {error}</p>
-          ) : !filteredData || filteredData.nodes.length === 0 ? (
+          ) : !mindmapData || mindmapData.nodes.length === 0 ? (
             <p>No data found.</p>
           ) : (
             <MindMapRenderer
-              data={filteredData}
+              data={mindmapData}
               rootNodeId={4} // Use Tutorial node (ID: 4) as root
               expandedNodes={expandedNodes}
               onNodeClick={handleNodeClick}
               onToggleExpand={handleToggleExpand}
               setZoomRef={setZoomRef}
-              containerDimensions={{
-                width: document.getElementById('mindmap-container')?.offsetWidth || 800,
-                height: document.getElementById('mindmap-container')?.offsetHeight || 600,
-              }}
+              containerDimensions={containerDimensions}
               renderer={renderer}
               edgeTypeFilter={edgeTypeFilter}
               key="mindmap-renderer" 
@@ -231,11 +260,7 @@ export default function MindMapPage() {
         slug={selectedNodeSlug}
         isOpen={Boolean(selectedNodeSlug)}
         onClose={handleCloseQuickView}
-        onNodeClick={(slug) => {
-          // Set the nodeClicked ref to ensure zoom is preserved
-          nodeClickedRef.current = true;
-          handleNodeClick(slug);
-        }}
+        onNodeClick={handleQuickViewNodeClick}
       />
     </UserLayout>
   );

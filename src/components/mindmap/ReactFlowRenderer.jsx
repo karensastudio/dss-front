@@ -22,7 +22,14 @@ const nodeTypes = {
   standard: StandardNode,
 };
 
-// Helper function to create a hierarchical tree layout
+/**
+ * Creates a hierarchical tree layout using the dagre library
+ * 
+ * @param {Array} nodes - The nodes to lay out
+ * @param {Array} edges - The edges connecting the nodes
+ * @param {string} rootId - The ID of the root node
+ * @returns {Object} Object containing layouted nodes and edges
+ */
 const getHierarchicalLayout = (nodes, edges, rootId) => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -95,11 +102,9 @@ const ReactFlowRenderer = ({
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { fitView, setViewport, getViewport } = useReactFlow();
   
-  // Add a ref to track if initial layout has been done
+  // Refs for tracking viewport state
   const initialLayoutDoneRef = useRef(false);
-  // Add a ref to track if a node has been clicked
   const nodeClickedRef = useRef(false);
-  // Add a ref to store current viewport state
   const viewportStateRef = useRef(null);
 
   // Color scale for section tags
@@ -107,6 +112,116 @@ const ReactFlowRenderer = ({
     '#8dd3c7', '#ffffb3', '#bebada', '#fb8072', '#80b1d3', 
     '#fdb462', '#b3de69', '#fccde5', '#d9d9d9', '#bc80bd'
   ], []);
+
+  /**
+   * Transform mindmap data into React Flow format
+   */
+  const transformData = useCallback(() => {
+    if (!data || !data.nodes || !data.edges) return { nodes: [], edges: [] };
+    
+    const flowNodes = [];
+    const flowEdges = [];
+    
+    // Create a map for quick node lookup
+    const nodeMap = new Map(data.nodes.map(node => [node.id, node]));
+    
+    // Process nodes and create a hierarchical structure
+    const processedNodes = new Set();
+    
+    // Count children for each node - consider both parent-child and related
+    const childrenCount = new Map();
+    data.edges.forEach(edge => {
+      if (edge.source === rootNodeId) { // For the root node, count all connections as children
+        childrenCount.set(edge.source, (childrenCount.get(edge.source) || 0) + 1);
+      } else if (edge.type === 'parent-child') {
+        childrenCount.set(edge.source, (childrenCount.get(edge.source) || 0) + 1);
+      }
+    });
+    
+    // Start from root node and traverse the hierarchy
+    const traverseHierarchy = (nodeId, parentId = null, level = 0) => {
+      if (processedNodes.has(nodeId)) return;
+      
+      const node = nodeMap.get(nodeId);
+      if (!node) return;
+      
+      // Add this node
+      processedNodes.add(nodeId);
+      
+      const sectionTag = node.tags?.find(tag => tag.name?.startsWith('Section'));
+      const isExpanded = expandedNodes.has(`${nodeId}`);
+      const hasChildren = childrenCount.get(nodeId) > 0;
+      
+      flowNodes.push({
+        id: `node-${nodeId}`,
+        type: node.isDecision ? 'decision' : 'standard',
+        data: {
+          label: node.title || 'Untitled',
+          slug: node.slug,
+          isExpanded: isExpanded,
+          hasChildren: hasChildren,
+          onToggleExpand: () => onToggleExpand(`${nodeId}`),
+          onNodeClick: () => onNodeClick(node.slug),
+          sectionColor: sectionTag ? sectionColors[sectionTag.name.charCodeAt(8) % sectionColors.length] : '#cccccc',
+          priority: node.priority,
+        },
+        position: { x: 0, y: 0 }, // Will be set by dagre
+      });
+      
+      // If this node is expanded or is the root, process its children
+      if (isExpanded || !parentId) {
+        // Find all connections - for root node, consider all connections
+        let childEdges;
+        if (nodeId === rootNodeId) {
+          childEdges = data.edges.filter(edge => edge.source === nodeId);
+        } else {
+          childEdges = data.edges.filter(edge => 
+            edge.source === nodeId && edge.type === 'parent-child'
+          );
+        }
+        
+        childEdges.forEach(edge => {
+          traverseHierarchy(edge.target, nodeId, level + 1);
+        });
+      }
+    };
+    
+    // Start traversal from root
+    traverseHierarchy(rootNodeId);
+    
+    // Create edges for the processed nodes with edge type filtering
+    data.edges.forEach(edge => {
+      const sourceProcessed = processedNodes.has(edge.source);
+      const targetProcessed = processedNodes.has(edge.target);
+      
+      // Only include edges that match the edge type filter
+      if (sourceProcessed && targetProcessed && edgeTypeFilter[edge.type]) {
+        flowEdges.push({
+          id: `edge-${edge.source}-${edge.target}`,
+          source: `node-${edge.source}`,
+          target: `node-${edge.target}`,
+          type: edge.type === 'parent-child' ? 'smoothstep' : 'straight',
+          animated: edge.type === 'related',
+          style: {
+            stroke: edge.type === 'parent-child' ? '#555' : '#999',
+            strokeWidth: edge.type === 'parent-child' ? 2 : 1,
+            strokeDasharray: edge.type === 'related' ? '5 5' : undefined,
+          },
+          label: edge.type === 'related' ? 'related' : undefined,
+          labelStyle: { fill: '#333', fontSize: 11, fontWeight: 'bold' },
+          labelBgStyle: { fill: '#fff', fillOpacity: 0.8, padding: 2 },
+          zIndex: edge.type === 'parent-child' ? 1 : 0, // Ensure parent-child edges are on top
+        });
+      }
+    });
+    
+    // Apply hierarchical layout
+    return getHierarchicalLayout(
+      flowNodes,
+      flowEdges,
+      `node-${rootNodeId}`
+    );
+  }, [data, rootNodeId, expandedNodes, onNodeClick, onToggleExpand, sectionColors, edgeTypeFilter]);
 
   // Transform data into React Flow format
   useEffect(() => {
@@ -117,136 +232,6 @@ const ReactFlowRenderer = ({
       viewportStateRef.current = getViewport();
     }
 
-    console.log('RootNodeId:', rootNodeId);
-    console.log('Nodes:', data.nodes);
-    console.log('Edges:', data.edges);
-    console.log('Expanded Nodes:', expandedNodes);
-    console.log('Edge Type Filter:', edgeTypeFilter);
-    console.log('Preserve Viewport:', preserveViewport);
-    console.log('Node Clicked (parent):', nodeClickedState?.current);
-
-    const transformData = () => {
-      const flowNodes = [];
-      const flowEdges = [];
-      
-      // Create a map for quick node lookup
-      const nodeMap = new Map(data.nodes.map(node => [node.id, node]));
-      
-      // Get all node IDs for debugging
-      console.log('All node IDs:', Array.from(nodeMap.keys()));
-      
-      // Process nodes and create a hierarchical structure
-      const processedNodes = new Set();
-      
-      // Count children for each node - consider both parent-child and related
-      const childrenCount = new Map();
-      data.edges.forEach(edge => {
-        if (edge.source === rootNodeId) { // For the root node, count all connections as children
-          childrenCount.set(edge.source, (childrenCount.get(edge.source) || 0) + 1);
-        } else if (edge.type === 'parent-child') {
-          childrenCount.set(edge.source, (childrenCount.get(edge.source) || 0) + 1);
-        }
-      });
-      
-      console.log('Children count map:', childrenCount);
-      
-      // Start from root node and traverse the hierarchy
-      const traverseHierarchy = (nodeId, parentId = null, level = 0) => {
-        if (processedNodes.has(nodeId)) return;
-        
-        const node = nodeMap.get(nodeId);
-        if (!node) {
-          console.log(`Node ${nodeId} not found in nodeMap`);
-          return;
-        }
-        
-        console.log(`Processing node ${nodeId} (${node.title}) at level ${level}`);
-        
-        // Add this node
-        processedNodes.add(nodeId);
-        
-        const sectionTag = node.tags?.find(tag => tag.name?.startsWith('Section'));
-        const isExpanded = expandedNodes.has(`${nodeId}`);
-        const hasChildren = childrenCount.get(nodeId) > 0;
-        
-        flowNodes.push({
-          id: `node-${nodeId}`,
-          type: node.isDecision ? 'decision' : 'standard',
-          data: {
-            label: node.title || 'Untitled',
-            slug: node.slug,
-            isExpanded: isExpanded,
-            hasChildren: hasChildren,
-            onToggleExpand: () => onToggleExpand(`${nodeId}`),
-            onNodeClick: () => onNodeClick(node.slug),
-            sectionColor: sectionTag ? sectionColors[sectionTag.name.charCodeAt(8) % sectionColors.length] : '#cccccc',
-            priority: node.priority,
-          },
-          position: { x: 0, y: 0 }, // Will be set by dagre
-        });
-        
-        // If this node is expanded or is the root, process its children
-        if (isExpanded || !parentId) {
-          // Find all connections - for root node, consider all connections
-          let childEdges;
-          if (nodeId === rootNodeId) {
-            childEdges = data.edges.filter(edge => edge.source === nodeId);
-          } else {
-            childEdges = data.edges.filter(edge => 
-              edge.source === nodeId && edge.type === 'parent-child'
-            );
-          }
-          
-          console.log(`Node ${nodeId} has ${childEdges.length} child edges`);
-          
-          childEdges.forEach(edge => {
-            traverseHierarchy(edge.target, nodeId, level + 1);
-          });
-        }
-      };
-      
-      // Start traversal from root
-      traverseHierarchy(rootNodeId);
-      
-      // Create edges for the processed nodes with edge type filtering
-      data.edges.forEach(edge => {
-        const sourceProcessed = processedNodes.has(edge.source);
-        const targetProcessed = processedNodes.has(edge.target);
-        
-        // Only include edges that match the edge type filter
-        if (sourceProcessed && targetProcessed && edgeTypeFilter[edge.type]) {
-          flowEdges.push({
-            id: `edge-${edge.source}-${edge.target}`,
-            source: `node-${edge.source}`,
-            target: `node-${edge.target}`,
-            type: edge.type === 'parent-child' ? 'smoothstep' : 'straight',
-            animated: edge.type === 'related',
-            style: {
-              stroke: edge.type === 'parent-child' ? '#555' : '#999',
-              strokeWidth: edge.type === 'parent-child' ? 2 : 1,
-              strokeDasharray: edge.type === 'related' ? '5 5' : undefined,
-            },
-            label: edge.type === 'related' ? 'related' : undefined,
-            labelStyle: { fill: '#333', fontSize: 11, fontWeight: 'bold' },
-            labelBgStyle: { fill: '#fff', fillOpacity: 0.8, padding: 2 },
-            zIndex: edge.type === 'parent-child' ? 1 : 0, // Ensure parent-child edges are on top
-          });
-        }
-      });
-      
-      console.log('Processed nodes:', flowNodes);
-      console.log('Processed edges:', flowEdges);
-      
-      // Apply hierarchical layout
-      const { nodes: layoutedNodes, edges: layoutedEdges } = getHierarchicalLayout(
-        flowNodes,
-        flowEdges,
-        `node-${rootNodeId}`
-      );
-      
-      return { nodes: layoutedNodes, edges: layoutedEdges };
-    };
-    
     const { nodes: newNodes, edges: newEdges } = transformData();
     setNodes(newNodes);
     setEdges(newEdges);
@@ -278,12 +263,12 @@ const ReactFlowRenderer = ({
         nodeClickedState.current = false;
       }
     }, 100);
-  }, [data, rootNodeId, expandedNodes, onNodeClick, onToggleExpand, sectionColors, fitView, edgeTypeFilter, getViewport, setViewport, preserveViewport, nodeClickedState]);
+  }, [data, rootNodeId, expandedNodes, fitView, getViewport, setViewport, preserveViewport, nodeClickedState, transformData]);
   
   // Export zoom reference for external control
   useEffect(() => {
     if (setZoomRef) {
-      setZoomRef({
+      const zoomControls = {
         zoomIn: () => {
           const currentViewport = getViewport();
           setViewport({ 
@@ -301,7 +286,10 @@ const ReactFlowRenderer = ({
           });
         },
         fitView: () => fitView({ padding: 0.2, duration: 400 }),
-      });
+      };
+      
+      // Pass zoom controls to parent via callback
+      setZoomRef(zoomControls);
     }
   }, [setZoomRef, getViewport, setViewport, fitView]);
   
