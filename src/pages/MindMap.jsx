@@ -7,6 +7,7 @@ import { Switch } from '@headlessui/react';
 import { CgSpinner } from 'react-icons/cg';
 import MindMapRenderer, { RENDERERS } from '../components/mindmap/MindMapRenderer';
 import QuickViewPane from '../components/mindmap/quickview/QuickViewPane';
+import { HiZoomIn, HiZoomOut } from 'react-icons/hi';
 
 export default function MindMapPage() {
   // Main data state
@@ -179,46 +180,85 @@ export default function MindMapPage() {
     zoomRef.current = ref;
   }, []);
   
+  // Handle zoom in/out button clicks
+  const handleZoom = useCallback((zoomIn) => {
+    if (zoomRef.current) {
+      if (zoomIn) {
+        zoomRef.current.zoomIn();
+      } else {
+        zoomRef.current.zoomOut();
+      }
+    }
+  }, []);
+  
   return (
     <UserLayout pageTitle={'Mind Map'} hideSidebar fullWidth>
       <div className="w-full bg-white border-y shadow-sm flex flex-col min-h-full grow">
-        {/* Edge type filter panel */}
+        {/* Control panel */}
         <div className="p-3 border-b">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={edgeTypeFilter['parent-child']}
-                onChange={() => handleEdgeTypeFilterChange('parent-child')}
-                className={`${
-                  edgeTypeFilter['parent-child'] ? 'bg-blue-600' : 'bg-gray-200'
-                } relative inline-flex h-5 w-10 items-center rounded-full`}
-              >
-                <span className="sr-only">Show parent-child connections</span>
-                <span
+          <div className="flex items-center justify-between">
+            {/* Edge type filters */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={edgeTypeFilter['parent-child']}
+                  onChange={() => handleEdgeTypeFilterChange('parent-child')}
                   className={`${
-                    edgeTypeFilter['parent-child'] ? 'translate-x-5' : 'translate-x-1'
-                  } inline-block h-3 w-3 transform rounded-full bg-white transition`}
-                />
-              </Switch>
-              <span className="text-sm font-medium">Parent-Child</span>
+                    edgeTypeFilter['parent-child'] ? 'bg-blue-600' : 'bg-gray-200'
+                  } relative inline-flex h-5 w-10 items-center rounded-full`}
+                >
+                  <span className="sr-only">Show parent-child connections</span>
+                  <span
+                    className={`${
+                      edgeTypeFilter['parent-child'] ? 'translate-x-5' : 'translate-x-1'
+                    } inline-block h-3 w-3 transform rounded-full bg-white transition`}
+                  />
+                </Switch>
+                <span className="text-sm font-medium">Parent-Child</span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={edgeTypeFilter['related']}
+                  onChange={() => handleEdgeTypeFilterChange('related')}
+                  className={`${
+                    edgeTypeFilter['related'] ? 'bg-blue-600' : 'bg-gray-200'
+                  } relative inline-flex h-5 w-10 items-center rounded-full`}
+                >
+                  <span className="sr-only">Show related connections</span>
+                  <span
+                    className={`${
+                      edgeTypeFilter['related'] ? 'translate-x-5' : 'translate-x-1'
+                    } inline-block h-3 w-3 transform rounded-full bg-white transition`}
+                  />
+                </Switch>
+                <span className="text-sm font-medium">Related</span>
+              </div>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={edgeTypeFilter['related']}
-                onChange={() => handleEdgeTypeFilterChange('related')}
-                className={`${
-                  edgeTypeFilter['related'] ? 'bg-blue-600' : 'bg-gray-200'
-                } relative inline-flex h-5 w-10 items-center rounded-full`}
-              >
-                <span className="sr-only">Show related connections</span>
-                <span
-                  className={`${
-                    edgeTypeFilter['related'] ? 'translate-x-5' : 'translate-x-1'
-                  } inline-block h-3 w-3 transform rounded-full bg-white transition`}
-                />
-              </Switch>
-              <span className="text-sm font-medium">Related</span>
+            {/* Zoom controls */}
+            <div className="flex flex-col justify-center items-start">
+              <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">
+                Zoom:
+              </p>
+              <span className="isolate inline-flex rounded-md shadow-sm">
+                <button
+                  type="button"
+                  className="relative inline-flex items-center rounded-l-md bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+                  onClick={() => handleZoom(false)}
+                >
+                  <span className="sr-only">Zoom Out</span>
+                  <HiZoomOut className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+                  onClick={() => handleZoom(true)}
+                >
+                  <span className="sr-only">Zoom In</span>
+                  <HiZoomIn className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </span>
             </div>
           </div>
         </div>
