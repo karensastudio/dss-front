@@ -84,6 +84,16 @@ export default function Header() {
                                         Home
                                     </Link>
                                     <Link
+                                        to="/mindmap"
+                                        className={clsx(
+                                            "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium",
+                                            currentPath === "/mindmap" && "border-b-blue-500 text-gray-900",
+                                            currentPath != "/mindmap" && "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+                                        )}
+                                    >
+                                        RoadMap
+                                    </Link>
+                                    <Link
                                         to="/graph"
                                         className={clsx(
                                             "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium",
@@ -92,16 +102,6 @@ export default function Header() {
                                         )}
                                     >
                                         Graph
-                                    </Link>
-                                    <Link
-                                        to="/mindmap"
-                                        className={clsx(
-                                            "inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium",
-                                            currentPath === "/mindmap" && "border-b-blue-500 text-gray-900",
-                                            currentPath != "/mindmap" && "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
-                                        )}
-                                    >
-                                        MindMap
                                     </Link>
                                     {
                                         isAuthenticated() &&
