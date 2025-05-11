@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, memo } from 'react';
 import ReactFlowRenderer from './ReactFlowRenderer';
 import { ReactFlowProvider } from 'reactflow';
 import { v4 as uuidv4 } from 'uuid'; // Add this import
@@ -21,6 +21,7 @@ const RENDERERS = {
  * @param {Object} props.containerDimensions - {width, height} of the container
  * @param {string} props.renderer - Renderer type to use (defaults to REACT_FLOW)
  * @param {Object} props.edgeTypeFilter - Filter for edge types {parent-child: bool, related: bool}
+ * @param {Object} props.nodeClickedState - Ref from parent to track if a node was clicked
  */
 const MindMapRenderer = ({
   data,
@@ -31,10 +32,12 @@ const MindMapRenderer = ({
   setZoomRef,
   containerDimensions,
   renderer = RENDERERS.REACT_FLOW,
-  edgeTypeFilter = { 'parent-child': true, 'related': true }
+  edgeTypeFilter = { 'parent-child': true, 'related': true },
+  nodeClickedState = null
 }) => {
   const [error, setError] = useState(null);
-  const [renderKey, setRenderKey] = useState(0);
+  const dataRef = useRef(null);
+  const shouldPreserveViewport = useRef(false);
 
   useEffect(() => {
     // Validate renderer
@@ -45,21 +48,30 @@ const MindMapRenderer = ({
     }
   }, [renderer]);
 
-  // Force re-render when data changes
+  // Check if this is just an expandedNodes change or if a node was clicked
   useEffect(() => {
-    setRenderKey(prev => prev + 1);
-  }, [data]);
+    // If data hasn't changed but expandedNodes has,
+    // we should preserve viewport
+    if (dataRef.current === data) {
+      shouldPreserveViewport.current = true;
+    } else {
+      dataRef.current = data;
+      // If a node was clicked, still preserve viewport even if data changed
+      shouldPreserveViewport.current = nodeClickedState?.current || false;
+    }
+    
+    // Log the state for debugging
+    console.log('shouldPreserveViewport:', shouldPreserveViewport.current);
+    console.log('nodeClickedState:', nodeClickedState?.current);
+  }, [data, expandedNodes, nodeClickedState]);
 
   if (error) {
     return <div className="text-red-500">Error: {error}</div>;
   }
 
-  // Generate a unique key to force re-render when necessary
-  const key = `${renderer}-${renderKey}`;
-
   // Always use ReactFlow
   return (
-    <ReactFlowProvider key={key}>
+    <ReactFlowProvider>
       <ReactFlowRenderer
         data={data}
         rootNodeId={rootNodeId}
@@ -69,10 +81,15 @@ const MindMapRenderer = ({
         setZoomRef={setZoomRef}
         containerDimensions={containerDimensions}
         edgeTypeFilter={edgeTypeFilter}
+        preserveViewport={shouldPreserveViewport.current || nodeClickedState?.current}
+        nodeClickedState={nodeClickedState}
       />
     </ReactFlowProvider>
   );
 };
 
+// Export memoized version of the component
+const MemoizedMindMapRenderer = memo(MindMapRenderer);
+
 export { RENDERERS };
-export default MindMapRenderer;
+export default MemoizedMindMapRenderer;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import UserLayout from '../layouts/User';
 import { useAuthHeader, useIsAuthenticated } from 'react-auth-kit';
 import { getMindmapApi } from '../api/userPost';
@@ -21,6 +21,9 @@ export default function MindMapPage() {
   });
   // Hardcoded to ReactFlow as the only renderer
   const renderer = RENDERERS.REACT_FLOW;
+  
+  // Add a ref to track if we're currently dealing with a node click
+  const nodeClickedRef = useRef(false);
   
   const authHeader = useAuthHeader();
   const isAuthenticated = useIsAuthenticated();
@@ -100,6 +103,9 @@ export default function MindMapPage() {
       return;
     }
     
+    // Set node clicked ref to true
+    nodeClickedRef.current = true;
+    
     // If the pane is already open with the same slug, close it (toggle behavior)
     if (selectedNodeSlug === slug) {
       setSelectedNodeSlug(null);
@@ -117,6 +123,8 @@ export default function MindMapPage() {
   // Handle toggle expand/collapse
   const handleToggleExpand = useCallback((nodePath) => {
     console.log('Toggling node:', nodePath);
+    // Also set node clicked ref to true when expanding nodes
+    nodeClickedRef.current = true;
     setExpandedNodes(prev => {
       const newSet = new Set(prev);
       if (newSet.has(nodePath)) {
@@ -211,6 +219,8 @@ export default function MindMapPage() {
               }}
               renderer={renderer}
               edgeTypeFilter={edgeTypeFilter}
+              key="mindmap-renderer" 
+              nodeClickedState={nodeClickedRef}
             />
           )}
         </div>
@@ -221,7 +231,11 @@ export default function MindMapPage() {
         slug={selectedNodeSlug}
         isOpen={Boolean(selectedNodeSlug)}
         onClose={handleCloseQuickView}
-        onNodeClick={handleNodeClick}
+        onNodeClick={(slug) => {
+          // Set the nodeClicked ref to ensure zoom is preserved
+          nodeClickedRef.current = true;
+          handleNodeClick(slug);
+        }}
       />
     </UserLayout>
   );

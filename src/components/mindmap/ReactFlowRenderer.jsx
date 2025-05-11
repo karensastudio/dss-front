@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo, useRef, memo } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -88,10 +88,19 @@ const ReactFlowRenderer = ({
   setZoomRef,
   containerDimensions,
   edgeTypeFilter = { 'parent-child': true, 'related': true },
+  preserveViewport = false,
+  nodeClickedState = null,
 }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { fitView, setViewport, getViewport } = useReactFlow();
+  
+  // Add a ref to track if initial layout has been done
+  const initialLayoutDoneRef = useRef(false);
+  // Add a ref to track if a node has been clicked
+  const nodeClickedRef = useRef(false);
+  // Add a ref to store current viewport state
+  const viewportStateRef = useRef(null);
 
   // Color scale for section tags
   const sectionColors = useMemo(() => [
@@ -103,11 +112,18 @@ const ReactFlowRenderer = ({
   useEffect(() => {
     if (!data || !data.nodes || !data.edges) return;
 
+    // Save current viewport state if we're not doing initial layout
+    if (initialLayoutDoneRef.current) {
+      viewportStateRef.current = getViewport();
+    }
+
     console.log('RootNodeId:', rootNodeId);
     console.log('Nodes:', data.nodes);
     console.log('Edges:', data.edges);
     console.log('Expanded Nodes:', expandedNodes);
     console.log('Edge Type Filter:', edgeTypeFilter);
+    console.log('Preserve Viewport:', preserveViewport);
+    console.log('Node Clicked (parent):', nodeClickedState?.current);
 
     const transformData = () => {
       const flowNodes = [];
@@ -235,11 +251,34 @@ const ReactFlowRenderer = ({
     setNodes(newNodes);
     setEdges(newEdges);
     
-    // Fit view with animation after nodes are set
+    // Decide whether to fit view or preserve viewport
     setTimeout(() => {
-      fitView({ padding: 0.2, duration: 400 });
+      // Check both local node clicked state and parent node clicked state
+      const isNodeClicked = nodeClickedRef.current || nodeClickedState?.current || false;
+      
+      if (!initialLayoutDoneRef.current) {
+        // Initial layout - fit view
+        fitView({ padding: 0.2, duration: 400 });
+        initialLayoutDoneRef.current = true;
+      } else if (isNodeClicked || preserveViewport) {
+        // Node clicked or explicit preserve - restore previous viewport
+        if (viewportStateRef.current) {
+          setViewport(viewportStateRef.current);
+        }
+      } else {
+        // Data changed due to filter or other reason - fit view
+        fitView({ padding: 0.2, duration: 400 });
+      }
+      
+      // Reset node clicked state after layout is done
+      nodeClickedRef.current = false;
+      
+      // Reset parent's node clicked state as well if we have access to it
+      if (nodeClickedState) {
+        nodeClickedState.current = false;
+      }
     }, 100);
-  }, [data, rootNodeId, expandedNodes, onNodeClick, onToggleExpand, sectionColors, fitView, edgeTypeFilter]);
+  }, [data, rootNodeId, expandedNodes, onNodeClick, onToggleExpand, sectionColors, fitView, edgeTypeFilter, getViewport, setViewport, preserveViewport, nodeClickedState]);
   
   // Export zoom reference for external control
   useEffect(() => {
@@ -269,9 +308,17 @@ const ReactFlowRenderer = ({
   // Handle node click
   const onNodeClickHandler = useCallback((event, node) => {
     if (node.data.slug) {
+      // Set the nodeClicked ref to true to prevent fitView from running
+      nodeClickedRef.current = true;
+      
+      // Also set the parent's nodeClicked ref if available
+      if (nodeClickedState) {
+        nodeClickedState.current = true;
+      }
+      
       onNodeClick(node.data.slug);
     }
-  }, [onNodeClick]);
+  }, [onNodeClick, nodeClickedState]);
   
   return (
     <div style={{ width: '100%', height: '100%' }}>
@@ -282,7 +329,7 @@ const ReactFlowRenderer = ({
         onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClickHandler}
         nodeTypes={nodeTypes}
-        fitView
+        fitView={!initialLayoutDoneRef.current}
         minZoom={0.2}
         maxZoom={4}
         attributionPosition="bottom-right"
@@ -320,4 +367,5 @@ const ReactFlowRenderer = ({
   );
 };
 
-export default ReactFlowRenderer;
+// Export the memoized component to prevent unnecessary re-renders
+export default memo(ReactFlowRenderer);
