@@ -19,7 +19,7 @@ export default function MindMapPage() {
   const [selectedNodeSlug, setSelectedNodeSlug] = useState(null);
   const [edgeTypeFilter, setEdgeTypeFilter] = useState({
     'parent-child': true,
-    'related': true
+    'related': false  // Default to off for related connections
   });
   
   // Refs
