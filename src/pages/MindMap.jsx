@@ -86,9 +86,10 @@ export default function MindMapPage() {
           setIsPostsLoading(false);
           
           // Identify root nodes (nodes without parents)
+          // A root node is a node that doesn't appear as a target in any parent-child relationship
           const nodesWithParents = new Set();
           
-          // First, find all nodes that have a parent (appear as targets in parent-child relationships)
+          // First, find all nodes that have a parent
           response.response.data.edges.forEach(edge => {
             if (edge.type === 'parent-child') {
               nodesWithParents.add(edge.target);
@@ -96,13 +97,23 @@ export default function MindMapPage() {
           });
           
           // Root nodes are those that don't have parents
-          const rootNodes = response.response.data.nodes
+          const rootNodeObjects = response.response.data.nodes
             .filter(node => !nodesWithParents.has(node.id))
-            .map(node => node.id);
+            .sort((a, b) => {
+              // Sort alphabetically by title (case-insensitive)
+              const titleA = (a.title || '').toLowerCase();
+              const titleB = (b.title || '').toLowerCase();
+              return titleA.localeCompare(titleB);
+            });
           
-          // If no root nodes were found, default to Tutorial node (ID: 4)
+          const rootNodes = rootNodeObjects.map(node => node.id);
+          
+          // If no root nodes were found, default to first node in the list or id 20
           if (rootNodes.length === 0) {
-            setRootNodeIds([4]);
+            const defaultNodeId = response.response.data.nodes.length > 0 
+              ? response.response.data.nodes[0].id 
+              : 20;
+            setRootNodeIds([defaultNodeId]);
           } else {
             setRootNodeIds(rootNodes);
           }
@@ -248,10 +259,14 @@ export default function MindMapPage() {
             
             {/* Layout controls */}
             <div className="flex items-center gap-4 ml-4">
+              {/* Layout toggle */}
               <div className="flex items-center gap-2">
                 <Switch
                   checked={horizontalLayout}
-                  onChange={() => setHorizontalLayout(prev => !prev)}
+                  onChange={() => {
+                    nodeClickedRef.current = false; // Reset node clicked state for proper fit view
+                    setHorizontalLayout(prev => !prev);
+                  }}
                   className={`${
                     horizontalLayout ? 'bg-blue-600' : 'bg-gray-200'
                   } relative inline-flex h-5 w-10 items-center rounded-full`}

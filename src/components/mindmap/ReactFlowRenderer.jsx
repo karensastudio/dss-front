@@ -59,6 +59,18 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
   // For root nodes without edges, ensure they are properly positioned
   const rootNodeIds = Array.isArray(rootIds) ? rootIds : [rootIds];
   
+  // Reserve special positions for root nodes to maintain their order
+  rootNodeIds.forEach((rootId, index) => {
+    const rootNodeId = typeof rootId === 'string' ? rootId : `node-${rootId}`;
+    dagreGraph.setNode(rootNodeId, { 
+      width: 280, 
+      height: 70,
+      // Set a rank to maintain ordering
+      rank: horizontalLayout ? 0 : index,  // All in same rank for horizontal, different ranks for vertical
+      order: horizontalLayout ? index : 0   // Ordering within rank
+    });
+  });
+  
   // Apply layout
   dagre.layout(dagreGraph);
 
@@ -91,20 +103,35 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
     };
   });
 
-  // If we have multiple root nodes with no connections, arrange them in a row
+  // Handle root nodes with no connections between them
   const rootNodes = layoutedNodes.filter(node => 
     rootNodeIds.includes(node.id.replace('node-', ''))
   );
   
-  if (rootNodes.length > 1 && edges.length === 0) {
-    // Simple horizontal or vertical arrangement when no edges
+  // If we have multiple root nodes with few or no edges, arrange them in a grid
+  if (rootNodes.length > 1 && edges.length < rootNodes.length) {
+    // Sort root nodes alphabetically by title
+    rootNodes.sort((a, b) => {
+      const titleA = a.data.label.toLowerCase();
+      const titleB = b.data.label.toLowerCase();
+      return titleA.localeCompare(titleB);
+    });
+    
+    // Calculate how many nodes per row based on layout direction
+    const nodesPerRow = horizontalLayout ? rootNodes.length : 4;  // Fixed width for vertical layout
+    
     rootNodes.forEach((node, index) => {
+      const row = Math.floor(index / nodesPerRow);
+      const col = index % nodesPerRow;
+      
       if (horizontalLayout) {
-        node.position.x = index * 350;
+        // Horizontal layout - arrange nodes in a row from left to right
+        node.position.x = col * 350;
         node.position.y = 100;
       } else {
-        node.position.x = 100;
-        node.position.y = index * 100;
+        // Vertical layout - arrange nodes in a grid from top to bottom
+        node.position.x = col * 350;
+        node.position.y = row * 120;
       }
     });
   }
@@ -158,7 +185,7 @@ const ReactFlowRenderer = ({
     // Process nodes and create a hierarchical structure
     const processedNodes = new Set();
     
-    // Count children for each node - consider both parent-child and related
+    // Count children for each node - consider only parent-child relationships
     const childrenCount = new Map();
     data.edges.forEach(edge => {
       if (edge.type === 'parent-child') {
@@ -168,6 +195,19 @@ const ReactFlowRenderer = ({
     
     // Handle rootNodeId as an array or single value
     const rootNodeIds = Array.isArray(rootNodeId) ? rootNodeId : [rootNodeId];
+    
+    // Get the root node objects and sort them alphabetically by title
+    const sortedRootNodes = rootNodeIds
+      .map(id => nodeMap.get(id))
+      .filter(node => node) // Filter out any undefined nodes
+      .sort((a, b) => {
+        const titleA = (a.title || '').toLowerCase();
+        const titleB = (b.title || '').toLowerCase();
+        return titleA.localeCompare(titleB);
+      });
+    
+    // Use sorted node IDs for traversal
+    const sortedRootNodeIds = sortedRootNodes.map(node => node.id);
     
     // Start from root node(s) and traverse the hierarchy
     const traverseHierarchy = (nodeId, parentId = null, level = 0) => {
@@ -199,7 +239,7 @@ const ReactFlowRenderer = ({
         position: { x: 0, y: 0 }, // Will be set by dagre
       });
       
-      // If this node is expanded, process its children
+      // Only process children if this node is expanded
       if (isExpanded) {
         // Find all parent-child connections
         const childEdges = data.edges.filter(edge => 
@@ -212,16 +252,22 @@ const ReactFlowRenderer = ({
       }
     };
     
-    // Start traversal from all root nodes
-    rootNodeIds.forEach(id => traverseHierarchy(id));
+    // Start traversal from all sorted root nodes
+    sortedRootNodeIds.forEach(id => traverseHierarchy(id));
     
-    // Create edges for the processed nodes with edge type filtering
+    // After all nodes are processed, create edges only for the processed nodes
+    // that match the edge type filter
     data.edges.forEach(edge => {
       const sourceProcessed = processedNodes.has(edge.source);
       const targetProcessed = processedNodes.has(edge.target);
       
-      // Only include edges that match the edge type filter
+      // Only include edges that match the edge type filter and connect processed nodes
       if (sourceProcessed && targetProcessed && edgeTypeFilter[edge.type]) {
+        // For parent-child relationships, only show edges when parent is expanded
+        if (edge.type === 'parent-child' && !expandedNodes.has(`${edge.source}`)) {
+          return; // Skip this edge if parent node is not expanded
+        }
+        
         flowEdges.push({
           id: `edge-${edge.source}-${edge.target}`,
           source: `node-${edge.source}`,
@@ -245,7 +291,7 @@ const ReactFlowRenderer = ({
     return getHierarchicalLayout(
       flowNodes,
       flowEdges,
-      rootNodeIds.map(id => `node-${id}`),
+      sortedRootNodeIds.map(id => `node-${id}`),
       horizontalLayout
     );
   }, [data, rootNodeId, expandedNodes, onNodeClick, onToggleExpand, sectionColors, edgeTypeFilter, horizontalLayout]);
@@ -270,7 +316,7 @@ const ReactFlowRenderer = ({
       
       if (!initialLayoutDoneRef.current) {
         // Initial layout - fit view
-        fitView({ padding: 0.2, duration: 400 });
+        fitView({ padding: 0.3, duration: 400 });
         initialLayoutDoneRef.current = true;
       } else if (isNodeClicked || preserveViewport) {
         // Node clicked or explicit preserve - restore previous viewport
@@ -279,7 +325,7 @@ const ReactFlowRenderer = ({
         }
       } else {
         // Data changed due to filter or other reason - fit view
-        fitView({ padding: 0.2, duration: 400 });
+        fitView({ padding: 0.3, duration: 400 });
       }
       
       // Reset node clicked state after layout is done
@@ -312,7 +358,7 @@ const ReactFlowRenderer = ({
             y: currentViewport.y 
           });
         },
-        fitView: () => fitView({ padding: 0.2, duration: 400 }),
+        fitView: () => fitView({ padding: 0.3, duration: 400 }),
       };
       
       // Pass zoom controls to parent via callback
