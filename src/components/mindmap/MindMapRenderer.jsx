@@ -12,7 +12,7 @@ const RENDERERS = {
  * 
  * @param {Object} props
  * @param {Object} props.data - Data to render in the mind map (nodes, edges, hierarchy)
- * @param {string|number} props.rootNodeId - ID of the root node
+ * @param {Array|string|number} props.rootNodeId - ID(s) of the root node(s), can be a single ID or an array of IDs
  * @param {Set} props.expandedNodes - Set of expanded node paths
  * @param {Function} props.onNodeClick - Click handler for nodes
  * @param {Function} props.onToggleExpand - Handler for expanding/collapsing nodes
@@ -21,6 +21,7 @@ const RENDERERS = {
  * @param {string} props.renderer - Renderer type to use (defaults to REACT_FLOW)
  * @param {Object} props.edgeTypeFilter - Filter for edge types {parent-child: bool, related: bool}
  * @param {Object} props.nodeClickedState - Ref from parent to track if a node was clicked
+ * @param {boolean} props.horizontalLayout - Whether to use horizontal layout (default: false)
  */
 const MindMapRenderer = ({
   data,
@@ -32,7 +33,8 @@ const MindMapRenderer = ({
   containerDimensions,
   renderer = RENDERERS.REACT_FLOW,
   edgeTypeFilter = { 'parent-child': true, 'related': true },
-  nodeClickedState = null
+  nodeClickedState = null,
+  horizontalLayout = false
 }) => {
   const [error, setError] = useState(null);
   
@@ -81,13 +83,44 @@ const MindMapRenderer = ({
         edgeTypeFilter={edgeTypeFilter}
         preserveViewport={shouldPreserveViewport.current || nodeClickedState?.current}
         nodeClickedState={nodeClickedState}
+        horizontalLayout={horizontalLayout}
       />
     </ReactFlowProvider>
   );
 };
 
 // Export memoized version of the component for better performance
-const MemoizedMindMapRenderer = memo(MindMapRenderer);
+// Add a special key for MemoizedMindMapRenderer to properly update when rootNodeId changes from scalar to array
+const MemoizedMindMapRenderer = memo(MindMapRenderer, (prevProps, nextProps) => {
+  // Check if rootNodeId changed from scalar to array or vice versa
+  const prevIsArray = Array.isArray(prevProps.rootNodeId);
+  const nextIsArray = Array.isArray(nextProps.rootNodeId);
+  
+  if (prevIsArray !== nextIsArray) {
+    return false; // Force update
+  }
+  
+  // For arrays, check if the content changed
+  if (prevIsArray && nextIsArray) {
+    if (prevProps.rootNodeId.length !== nextProps.rootNodeId.length) {
+      return false; // Force update
+    }
+    
+    for (let i = 0; i < prevProps.rootNodeId.length; i++) {
+      if (prevProps.rootNodeId[i] !== nextProps.rootNodeId[i]) {
+        return false; // Force update
+      }
+    }
+  }
+  
+  // For scalar values, simple comparison
+  if (!prevIsArray && !nextIsArray && prevProps.rootNodeId !== nextProps.rootNodeId) {
+    return false; // Force update
+  }
+  
+  // Let React's default memoization handle other props
+  return undefined;
+});
 
 export { RENDERERS };
 export default MemoizedMindMapRenderer;

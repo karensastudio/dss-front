@@ -16,12 +16,13 @@ export default function MindMapPage() {
   const [error, setError] = useState(null);
   
   // UI state
-  const [expandedNodes, setExpandedNodes] = useState(new Set(['4'])); // Start with Tutorial (ID: 4) expanded
+  const [expandedNodes, setExpandedNodes] = useState(new Set([])); // Start with no nodes expanded
   const [selectedNodeSlug, setSelectedNodeSlug] = useState(null);
   const [edgeTypeFilter, setEdgeTypeFilter] = useState({
     'parent-child': true,
     'related': false  // Default to off for related connections
   });
+  const [horizontalLayout, setHorizontalLayout] = useState(false); // Default to vertical layout
   
   // Refs
   const zoomRef = useRef(null);
@@ -64,6 +65,9 @@ export default function MindMapPage() {
     };
   }, []);
   
+  // State for root nodes
+  const [rootNodeIds, setRootNodeIds] = useState([4]); // Default to Tutorial node
+  
   // Fetch mindmap data only once on component mount
   useEffect(() => {
     let mounted = true;
@@ -81,24 +85,30 @@ export default function MindMapPage() {
           setError(null);
           setIsPostsLoading(false);
           
-          // Set expanded nodes based on hierarchy
-          const initialExpanded = new Set();
-          // Start with Tutorial expanded
-          initialExpanded.add('4');
+          // Identify root nodes (nodes without parents)
+          const nodesWithParents = new Set();
           
-          // Find all top-level nodes and expand them
+          // First, find all nodes that have a parent (appear as targets in parent-child relationships)
           response.response.data.edges.forEach(edge => {
-            if (edge.source === 4 && edge.type === 'parent-child') {
-              initialExpanded.add(`${edge.target}`);
+            if (edge.type === 'parent-child') {
+              nodesWithParents.add(edge.target);
             }
           });
           
-          // Add hierarchy root if available
-          if (response.response.data.hierarchy) {
-            initialExpanded.add(`${response.response.data.hierarchy.id}`);
+          // Root nodes are those that don't have parents
+          const rootNodes = response.response.data.nodes
+            .filter(node => !nodesWithParents.has(node.id))
+            .map(node => node.id);
+          
+          // If no root nodes were found, default to Tutorial node (ID: 4)
+          if (rootNodes.length === 0) {
+            setRootNodeIds([4]);
+          } else {
+            setRootNodeIds(rootNodes);
           }
           
-          setExpandedNodes(initialExpanded);
+          // Start with no nodes expanded
+          setExpandedNodes(new Set());
         } else {
           setError(response.message || 'Failed to fetch mindmap data');
           setMindmapData(null);
@@ -236,8 +246,29 @@ export default function MindMapPage() {
               </div>
             </div>
             
+            {/* Layout controls */}
+            <div className="flex items-center gap-4 ml-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={horizontalLayout}
+                  onChange={() => setHorizontalLayout(prev => !prev)}
+                  className={`${
+                    horizontalLayout ? 'bg-blue-600' : 'bg-gray-200'
+                  } relative inline-flex h-5 w-10 items-center rounded-full`}
+                >
+                  <span className="sr-only">Toggle horizontal layout</span>
+                  <span
+                    className={`${
+                      horizontalLayout ? 'translate-x-5' : 'translate-x-1'
+                    } inline-block h-3 w-3 transform rounded-full bg-white transition`}
+                  />
+                </Switch>
+                <span className="text-sm font-medium">Horizontal Layout</span>
+              </div>
+            </div>
+            
             {/* Zoom controls */}
-            <div className="flex flex-col justify-center items-start">
+            <div className="flex flex-col justify-center items-start ml-auto">
               <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">
                 Zoom:
               </p>
@@ -280,7 +311,7 @@ export default function MindMapPage() {
           ) : (
             <MindMapRenderer
               data={mindmapData}
-              rootNodeId={4} // Use Tutorial node (ID: 4) as root
+              rootNodeId={rootNodeIds} // Use all identified root nodes
               expandedNodes={expandedNodes}
               onNodeClick={handleNodeClick}
               onToggleExpand={handleToggleExpand}
@@ -290,6 +321,7 @@ export default function MindMapPage() {
               edgeTypeFilter={edgeTypeFilter}
               key="mindmap-renderer" 
               nodeClickedState={nodeClickedRef}
+              horizontalLayout={horizontalLayout} // Use the state variable
             />
           )}
         </div>

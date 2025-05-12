@@ -27,18 +27,19 @@ const nodeTypes = {
  * 
  * @param {Array} nodes - The nodes to lay out
  * @param {Array} edges - The edges connecting the nodes
- * @param {string} rootId - The ID of the root node
+ * @param {Array|string} rootIds - The ID(s) of the root node(s), can be a single ID or an array of IDs
+ * @param {boolean} horizontalLayout - Whether to use horizontal layout
  * @returns {Object} Object containing layouted nodes and edges
  */
-const getHierarchicalLayout = (nodes, edges, rootId) => {
+const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   
   // Set the layout options for better hierarchical visualization
   dagreGraph.setGraph({ 
-    rankdir: 'TB',  // Top to bottom layout for better tree visualization
-    nodesep: 100,   // More horizontal space between nodes for longer titles
-    ranksep: 120,   // More vertical space between levels
+    rankdir: horizontalLayout ? 'LR' : 'TB',  // Left to right for horizontal layout, Top to bottom for vertical
+    nodesep: horizontalLayout ? 150 : 120,    // More horizontal space between nodes for longer titles
+    ranksep: horizontalLayout ? 120 : 100,    // More vertical space between levels
     marginx: 50,
     marginy: 50,
     align: 'UL'
@@ -55,6 +56,9 @@ const getHierarchicalLayout = (nodes, edges, rootId) => {
     dagreGraph.setEdge(edge.source, edge.target);
   });
 
+  // For root nodes without edges, ensure they are properly positioned
+  const rootNodeIds = Array.isArray(rootIds) ? rootIds : [rootIds];
+  
   // Apply layout
   dagre.layout(dagreGraph);
 
@@ -68,8 +72,15 @@ const getHierarchicalLayout = (nodes, edges, rootId) => {
         position: { x: 0, y: 0 }
       };
     }
-    node.targetPosition = 'top';
-    node.sourcePosition = 'bottom';
+    
+    // Set the source and target positions based on the layout direction
+    if (horizontalLayout) {
+      node.targetPosition = 'left';
+      node.sourcePosition = 'right';
+    } else {
+      node.targetPosition = 'top';
+      node.sourcePosition = 'bottom';
+    }
     
     return {
       ...node,
@@ -79,6 +90,24 @@ const getHierarchicalLayout = (nodes, edges, rootId) => {
       },
     };
   });
+
+  // If we have multiple root nodes with no connections, arrange them in a row
+  const rootNodes = layoutedNodes.filter(node => 
+    rootNodeIds.includes(node.id.replace('node-', ''))
+  );
+  
+  if (rootNodes.length > 1 && edges.length === 0) {
+    // Simple horizontal or vertical arrangement when no edges
+    rootNodes.forEach((node, index) => {
+      if (horizontalLayout) {
+        node.position.x = index * 350;
+        node.position.y = 100;
+      } else {
+        node.position.x = 100;
+        node.position.y = index * 100;
+      }
+    });
+  }
 
   return { nodes: layoutedNodes, edges };
 };
@@ -97,6 +126,7 @@ const ReactFlowRenderer = ({
   edgeTypeFilter = { 'parent-child': true, 'related': true },
   preserveViewport = false,
   nodeClickedState = null,
+  horizontalLayout = false,
 }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -131,14 +161,15 @@ const ReactFlowRenderer = ({
     // Count children for each node - consider both parent-child and related
     const childrenCount = new Map();
     data.edges.forEach(edge => {
-      if (edge.source === rootNodeId) { // For the root node, count all connections as children
-        childrenCount.set(edge.source, (childrenCount.get(edge.source) || 0) + 1);
-      } else if (edge.type === 'parent-child') {
+      if (edge.type === 'parent-child') {
         childrenCount.set(edge.source, (childrenCount.get(edge.source) || 0) + 1);
       }
     });
     
-    // Start from root node and traverse the hierarchy
+    // Handle rootNodeId as an array or single value
+    const rootNodeIds = Array.isArray(rootNodeId) ? rootNodeId : [rootNodeId];
+    
+    // Start from root node(s) and traverse the hierarchy
     const traverseHierarchy = (nodeId, parentId = null, level = 0) => {
       if (processedNodes.has(nodeId)) return;
       
@@ -168,17 +199,12 @@ const ReactFlowRenderer = ({
         position: { x: 0, y: 0 }, // Will be set by dagre
       });
       
-      // If this node is expanded or is the root, process its children
-      if (isExpanded || !parentId) {
-        // Find all connections - for root node, consider all connections
-        let childEdges;
-        if (nodeId === rootNodeId) {
-          childEdges = data.edges.filter(edge => edge.source === nodeId);
-        } else {
-          childEdges = data.edges.filter(edge => 
-            edge.source === nodeId && edge.type === 'parent-child'
-          );
-        }
+      // If this node is expanded, process its children
+      if (isExpanded) {
+        // Find all parent-child connections
+        const childEdges = data.edges.filter(edge => 
+          edge.source === nodeId && edge.type === 'parent-child'
+        );
         
         childEdges.forEach(edge => {
           traverseHierarchy(edge.target, nodeId, level + 1);
@@ -186,8 +212,8 @@ const ReactFlowRenderer = ({
       }
     };
     
-    // Start traversal from root
-    traverseHierarchy(rootNodeId);
+    // Start traversal from all root nodes
+    rootNodeIds.forEach(id => traverseHierarchy(id));
     
     // Create edges for the processed nodes with edge type filtering
     data.edges.forEach(edge => {
@@ -219,9 +245,10 @@ const ReactFlowRenderer = ({
     return getHierarchicalLayout(
       flowNodes,
       flowEdges,
-      `node-${rootNodeId}`
+      rootNodeIds.map(id => `node-${id}`),
+      horizontalLayout
     );
-  }, [data, rootNodeId, expandedNodes, onNodeClick, onToggleExpand, sectionColors, edgeTypeFilter]);
+  }, [data, rootNodeId, expandedNodes, onNodeClick, onToggleExpand, sectionColors, edgeTypeFilter, horizontalLayout]);
 
   // Transform data into React Flow format
   useEffect(() => {
