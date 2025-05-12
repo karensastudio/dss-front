@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import UserLayout from '../layouts/User';
 import { useAuthHeader, useIsAuthenticated } from 'react-auth-kit';
 import { getMindmapApi } from '../api/userPost';
@@ -7,26 +7,68 @@ import { Switch } from '@headlessui/react';
 import { CgSpinner } from 'react-icons/cg';
 import MindMapRenderer, { RENDERERS } from '../components/mindmap/MindMapRenderer';
 import QuickViewPane from '../components/mindmap/quickview/QuickViewPane';
+import { HiZoomIn, HiZoomOut } from 'react-icons/hi';
 
 export default function MindMapPage() {
+  // Main data state
   const [mindmapData, setMindmapData] = useState(null);
   const [isPostsLoading, setIsPostsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expandedNodes, setExpandedNodes] = useState(new Set(['4'])); // Start with Tutorial (ID: 4) expanded
-  const [zoomRef, setZoomRef] = useState(null);
-  // Add edge type filter state
+  
+  // UI state
+  const [expandedNodes, setExpandedNodes] = useState(new Set([])); // Start with no nodes expanded
+  const [selectedNodeSlug, setSelectedNodeSlug] = useState(null);
   const [edgeTypeFilter, setEdgeTypeFilter] = useState({
     'parent-child': true,
-    'related': true
+    'related': false  // Default to off for related connections
   });
-  // Hardcoded to ReactFlow as the only renderer
+  const [horizontalLayout, setHorizontalLayout] = useState(false); // Default to vertical layout
+  
+  // Refs
+  const zoomRef = useRef(null);
+  const nodeClickedRef = useRef(false); // Track node clicks for viewport preservation
+  
+  // Fixed configuration
   const renderer = RENDERERS.REACT_FLOW;
   
+  // Hooks
   const authHeader = useAuthHeader();
   const isAuthenticated = useIsAuthenticated();
   const navigate = useNavigate();
   
-  // Fetch mindmap data only once on component mount - fix the continuous loading issue
+  // Memoize container dimensions to avoid recalculations
+  const [containerDimensions, setContainerDimensions] = useState({
+    width: 800,
+    height: 600
+  });
+  
+  // Update container dimensions when the component mounts or window resizes
+  useEffect(() => {
+    const updateDimensions = () => {
+      const container = document.getElementById('mindmap-container');
+      if (container) {
+        setContainerDimensions({
+          width: container.offsetWidth,
+          height: container.offsetHeight
+        });
+      }
+    };
+    
+    // Initial measurement
+    updateDimensions();
+    
+    // Update on resize
+    window.addEventListener('resize', updateDimensions);
+    
+    return () => {
+      window.removeEventListener('resize', updateDimensions);
+    };
+  }, []);
+  
+  // State for root nodes
+  const [rootNodeIds, setRootNodeIds] = useState([4]); // Default to Tutorial node
+  
+  // Fetch mindmap data only once on component mount
   useEffect(() => {
     let mounted = true;
     
@@ -43,29 +85,41 @@ export default function MindMapPage() {
           setError(null);
           setIsPostsLoading(false);
           
-          // Log data for debugging
-          console.log('Fetched mindmap data:', response.response.data);
-          console.log('Tutorial node:', response.response.data.nodes.find(n => n.id === 4));
-          console.log('Tutorial edges:', response.response.data.edges.filter(e => e.source === 4));
+          // Identify root nodes (nodes without parents)
+          // A root node is a node that doesn't appear as a target in any parent-child relationship
+          const nodesWithParents = new Set();
           
-          // Set expanded nodes based on hierarchy
-          const initialExpanded = new Set();
-          // Start with root and tutorial expanded
-          initialExpanded.add('4'); // Tutorial
-          
-          // Find all top-level nodes and expand them
+          // First, find all nodes that have a parent
           response.response.data.edges.forEach(edge => {
-            if (edge.source === 4 && edge.type === 'parent-child') {
-              initialExpanded.add(`${edge.target}`);
+            if (edge.type === 'parent-child') {
+              nodesWithParents.add(edge.target);
             }
           });
           
-          if (response.response.data.hierarchy) {
-            initialExpanded.add(`${response.response.data.hierarchy.id}`);
+          // Root nodes are those that don't have parents
+          const rootNodeObjects = response.response.data.nodes
+            .filter(node => !nodesWithParents.has(node.id))
+            .sort((a, b) => {
+              // Sort alphabetically by title (case-insensitive)
+              const titleA = (a.title || '').toLowerCase();
+              const titleB = (b.title || '').toLowerCase();
+              return titleA.localeCompare(titleB);
+            });
+          
+          const rootNodes = rootNodeObjects.map(node => node.id);
+          
+          // If no root nodes were found, default to first node in the list or id 20
+          if (rootNodes.length === 0) {
+            const defaultNodeId = response.response.data.nodes.length > 0 
+              ? response.response.data.nodes[0].id 
+              : 20;
+            setRootNodeIds([defaultNodeId]);
+          } else {
+            setRootNodeIds(rootNodes);
           }
           
-          console.log('Initial expanded nodes:', initialExpanded);
-          setExpandedNodes(initialExpanded);
+          // Start with no nodes expanded
+          setExpandedNodes(new Set());
         } else {
           setError(response.message || 'Failed to fetch mindmap data');
           setMindmapData(null);
@@ -87,103 +141,175 @@ export default function MindMapPage() {
     };
   }, []); // Empty dependency array to run only once
   
-  // State for selected node and quick view
-  const [selectedNodeSlug, setSelectedNodeSlug] = useState(null);
+  // Memoized callbacks for better performance
   
-  // Handle node click for quick view instead of navigation
+  // Handle node click for quick view
   const handleNodeClick = useCallback((slug) => {
-    console.log('Node clicked with slug:', slug);
-    
-    // Don't do anything if the slug is empty or not a string
     if (!slug || typeof slug !== 'string') {
-      console.warn('Invalid slug provided to handleNodeClick:', slug);
       return;
     }
     
-    // If the pane is already open with the same slug, close it (toggle behavior)
-    if (selectedNodeSlug === slug) {
-      setSelectedNodeSlug(null);
-    } else {
-      // Otherwise, open the pane with the selected slug
-      setSelectedNodeSlug(slug);
-    }
-  }, [selectedNodeSlug]);
+    // Set node clicked ref to true to preserve viewport
+    nodeClickedRef.current = true;
+    
+    // Toggle view: if already open with same slug, close it
+    setSelectedNodeSlug(prev => prev === slug ? null : slug);
+  }, []);
   
   // Handle closing the quick view pane
   const handleCloseQuickView = useCallback(() => {
     setSelectedNodeSlug(null);
   }, []);
   
-  // Handle toggle expand/collapse
+  // Handle toggle expand/collapse of nodes
   const handleToggleExpand = useCallback((nodePath) => {
-    console.log('Toggling node:', nodePath);
+    // Mark as clicked to preserve viewport
+    nodeClickedRef.current = true;
+    
     setExpandedNodes(prev => {
+      // Create a copy of the Set to avoid reference equality issues
       const newSet = new Set(prev);
+      
+      // Toggle the node's expanded state
       if (newSet.has(nodePath)) {
         newSet.delete(nodePath);
       } else {
         newSet.add(nodePath);
       }
-      console.log('Updated expanded nodes:', newSet);
+      
       return newSet;
     });
   }, []);
   
   // Handle edge type filter changes
-  const handleEdgeTypeFilterChange = (type) => {
+  const handleEdgeTypeFilterChange = useCallback((type) => {
     setEdgeTypeFilter(prev => ({
       ...prev,
       [type]: !prev[type]
     }));
-  };
+  }, []);
   
-  // No filtering at this level - to be handled by edge type filter
-  const filteredData = mindmapData;
+  // Function for QuickViewPane node clicks (with preserved state)
+  const handleQuickViewNodeClick = useCallback((slug) => {
+    // Set the nodeClicked ref to ensure zoom is preserved
+    nodeClickedRef.current = true;
+    handleNodeClick(slug);
+  }, [handleNodeClick]);
+  
+  // Function to set zoom ref (used by the child component)
+  const setZoomRef = useCallback((ref) => {
+    zoomRef.current = ref;
+  }, []);
+  
+  // Handle zoom in/out button clicks
+  const handleZoom = useCallback((zoomIn) => {
+    if (zoomRef.current) {
+      if (zoomIn) {
+        zoomRef.current.zoomIn();
+      } else {
+        zoomRef.current.zoomOut();
+      }
+    }
+  }, []);
   
   return (
     <UserLayout pageTitle={'Mind Map'} hideSidebar fullWidth>
       <div className="w-full bg-white border-y shadow-sm flex flex-col min-h-full grow">
-        {/* Edge type filter panel */}
+        {/* Control panel */}
         <div className="p-3 border-b">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={edgeTypeFilter['parent-child']}
-                onChange={() => handleEdgeTypeFilterChange('parent-child')}
-                className={`${
-                  edgeTypeFilter['parent-child'] ? 'bg-blue-600' : 'bg-gray-200'
-                } relative inline-flex h-5 w-10 items-center rounded-full`}
-              >
-                <span className="sr-only">Show parent-child connections</span>
-                <span
+          <div className="flex items-center justify-between">
+            {/* Edge type filters */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={edgeTypeFilter['parent-child']}
+                  onChange={() => handleEdgeTypeFilterChange('parent-child')}
                   className={`${
-                    edgeTypeFilter['parent-child'] ? 'translate-x-5' : 'translate-x-1'
-                  } inline-block h-3 w-3 transform rounded-full bg-white transition`}
-                />
-              </Switch>
-              <span className="text-sm font-medium">Parent-Child</span>
+                    edgeTypeFilter['parent-child'] ? 'bg-blue-600' : 'bg-gray-200'
+                  } relative inline-flex h-5 w-10 items-center rounded-full`}
+                >
+                  <span className="sr-only">Show parent-child connections</span>
+                  <span
+                    className={`${
+                      edgeTypeFilter['parent-child'] ? 'translate-x-5' : 'translate-x-1'
+                    } inline-block h-3 w-3 transform rounded-full bg-white transition`}
+                  />
+                </Switch>
+                <span className="text-sm font-medium">Parent-Child</span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={edgeTypeFilter['related']}
+                  onChange={() => handleEdgeTypeFilterChange('related')}
+                  className={`${
+                    edgeTypeFilter['related'] ? 'bg-blue-600' : 'bg-gray-200'
+                  } relative inline-flex h-5 w-10 items-center rounded-full`}
+                >
+                  <span className="sr-only">Show related connections</span>
+                  <span
+                    className={`${
+                      edgeTypeFilter['related'] ? 'translate-x-5' : 'translate-x-1'
+                    } inline-block h-3 w-3 transform rounded-full bg-white transition`}
+                  />
+                </Switch>
+                <span className="text-sm font-medium">Related</span>
+              </div>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={edgeTypeFilter['related']}
-                onChange={() => handleEdgeTypeFilterChange('related')}
-                className={`${
-                  edgeTypeFilter['related'] ? 'bg-blue-600' : 'bg-gray-200'
-                } relative inline-flex h-5 w-10 items-center rounded-full`}
-              >
-                <span className="sr-only">Show related connections</span>
-                <span
+            {/* Layout controls */}
+            <div className="flex items-center gap-4 ml-4">
+              {/* Layout toggle */}
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={horizontalLayout}
+                  onChange={() => {
+                    nodeClickedRef.current = false; // Reset node clicked state for proper fit view
+                    setHorizontalLayout(prev => !prev);
+                  }}
                   className={`${
-                    edgeTypeFilter['related'] ? 'translate-x-5' : 'translate-x-1'
-                  } inline-block h-3 w-3 transform rounded-full bg-white transition`}
-                />
-              </Switch>
-              <span className="text-sm font-medium">Related</span>
+                    horizontalLayout ? 'bg-blue-600' : 'bg-gray-200'
+                  } relative inline-flex h-5 w-10 items-center rounded-full`}
+                >
+                  <span className="sr-only">Toggle horizontal layout</span>
+                  <span
+                    className={`${
+                      horizontalLayout ? 'translate-x-5' : 'translate-x-1'
+                    } inline-block h-3 w-3 transform rounded-full bg-white transition`}
+                  />
+                </Switch>
+                <span className="text-sm font-medium">Horizontal Layout</span>
+              </div>
+            </div>
+            
+            {/* Zoom controls */}
+            <div className="flex flex-col justify-center items-start ml-auto">
+              <p className="text-neutral-900 text-xs md:text-sm font-semibold mb-1">
+                Zoom:
+              </p>
+              <span className="isolate inline-flex rounded-md shadow-sm">
+                <button
+                  type="button"
+                  className="relative inline-flex items-center rounded-l-md bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+                  onClick={() => handleZoom(false)}
+                >
+                  <span className="sr-only">Zoom Out</span>
+                  <HiZoomOut className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className="relative -ml-px inline-flex items-center rounded-r-md bg-white px-4 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-10"
+                  onClick={() => handleZoom(true)}
+                >
+                  <span className="sr-only">Zoom In</span>
+                  <HiZoomIn className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </span>
             </div>
           </div>
         </div>
 
+        {/* Main mindmap container */}
         <div
           className="bg-gray-50 h-full flex items-center justify-center min-h-full grow"
           id="mindmap-container"
@@ -195,22 +321,22 @@ export default function MindMapPage() {
             </div>
           ) : error ? (
             <p className="text-xl text-red-600 font-bold">Error: {error}</p>
-          ) : !filteredData || filteredData.nodes.length === 0 ? (
+          ) : !mindmapData || mindmapData.nodes.length === 0 ? (
             <p>No data found.</p>
           ) : (
             <MindMapRenderer
-              data={filteredData}
-              rootNodeId={4} // Use Tutorial node (ID: 4) as root
+              data={mindmapData}
+              rootNodeId={rootNodeIds} // Use all identified root nodes
               expandedNodes={expandedNodes}
               onNodeClick={handleNodeClick}
               onToggleExpand={handleToggleExpand}
               setZoomRef={setZoomRef}
-              containerDimensions={{
-                width: document.getElementById('mindmap-container')?.offsetWidth || 800,
-                height: document.getElementById('mindmap-container')?.offsetHeight || 600,
-              }}
+              containerDimensions={containerDimensions}
               renderer={renderer}
               edgeTypeFilter={edgeTypeFilter}
+              key="mindmap-renderer" 
+              nodeClickedState={nodeClickedRef}
+              horizontalLayout={horizontalLayout} // Use the state variable
             />
           )}
         </div>
@@ -221,7 +347,7 @@ export default function MindMapPage() {
         slug={selectedNodeSlug}
         isOpen={Boolean(selectedNodeSlug)}
         onClose={handleCloseQuickView}
-        onNodeClick={handleNodeClick}
+        onNodeClick={handleQuickViewNodeClick}
       />
     </UserLayout>
   );

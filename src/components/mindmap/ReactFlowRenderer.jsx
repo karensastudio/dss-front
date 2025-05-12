@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo, useRef, memo } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -22,16 +22,24 @@ const nodeTypes = {
   standard: StandardNode,
 };
 
-// Helper function to create a hierarchical tree layout
-const getHierarchicalLayout = (nodes, edges, rootId) => {
+/**
+ * Creates a hierarchical tree layout using the dagre library
+ * 
+ * @param {Array} nodes - The nodes to lay out
+ * @param {Array} edges - The edges connecting the nodes
+ * @param {Array|string} rootIds - The ID(s) of the root node(s), can be a single ID or an array of IDs
+ * @param {boolean} horizontalLayout - Whether to use horizontal layout
+ * @returns {Object} Object containing layouted nodes and edges
+ */
+const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   
   // Set the layout options for better hierarchical visualization
   dagreGraph.setGraph({ 
-    rankdir: 'TB',  // Top to bottom layout for better tree visualization
-    nodesep: 100,   // More horizontal space between nodes for longer titles
-    ranksep: 120,   // More vertical space between levels
+    rankdir: horizontalLayout ? 'LR' : 'TB',  // Left to right for horizontal layout, Top to bottom for vertical
+    nodesep: horizontalLayout ? 150 : 120,    // More horizontal space between nodes for longer titles
+    ranksep: horizontalLayout ? 120 : 100,    // More vertical space between levels
     marginx: 50,
     marginy: 50,
     align: 'UL'
@@ -48,6 +56,21 @@ const getHierarchicalLayout = (nodes, edges, rootId) => {
     dagreGraph.setEdge(edge.source, edge.target);
   });
 
+  // For root nodes without edges, ensure they are properly positioned
+  const rootNodeIds = Array.isArray(rootIds) ? rootIds : [rootIds];
+  
+  // Reserve special positions for root nodes to maintain their order
+  rootNodeIds.forEach((rootId, index) => {
+    const rootNodeId = typeof rootId === 'string' ? rootId : `node-${rootId}`;
+    dagreGraph.setNode(rootNodeId, { 
+      width: 280, 
+      height: 70,
+      // Set a rank to maintain ordering
+      rank: horizontalLayout ? 0 : index,  // All in same rank for horizontal, different ranks for vertical
+      order: horizontalLayout ? index : 0   // Ordering within rank
+    });
+  });
+  
   // Apply layout
   dagre.layout(dagreGraph);
 
@@ -61,8 +84,15 @@ const getHierarchicalLayout = (nodes, edges, rootId) => {
         position: { x: 0, y: 0 }
       };
     }
-    node.targetPosition = 'top';
-    node.sourcePosition = 'bottom';
+    
+    // Set the source and target positions based on the layout direction
+    if (horizontalLayout) {
+      node.targetPosition = 'left';
+      node.sourcePosition = 'right';
+    } else {
+      node.targetPosition = 'top';
+      node.sourcePosition = 'bottom';
+    }
     
     return {
       ...node,
@@ -72,6 +102,39 @@ const getHierarchicalLayout = (nodes, edges, rootId) => {
       },
     };
   });
+
+  // Handle root nodes with no connections between them
+  const rootNodes = layoutedNodes.filter(node => 
+    rootNodeIds.includes(node.id.replace('node-', ''))
+  );
+  
+  // If we have multiple root nodes with few or no edges, arrange them in a grid
+  if (rootNodes.length > 1 && edges.length < rootNodes.length) {
+    // Sort root nodes alphabetically by title
+    rootNodes.sort((a, b) => {
+      const titleA = a.data.label.toLowerCase();
+      const titleB = b.data.label.toLowerCase();
+      return titleA.localeCompare(titleB);
+    });
+    
+    // Calculate how many nodes per row based on layout direction
+    const nodesPerRow = horizontalLayout ? rootNodes.length : 4;  // Fixed width for vertical layout
+    
+    rootNodes.forEach((node, index) => {
+      const row = Math.floor(index / nodesPerRow);
+      const col = index % nodesPerRow;
+      
+      if (horizontalLayout) {
+        // Horizontal layout - arrange nodes in a row from left to right
+        node.position.x = col * 350;
+        node.position.y = 100;
+      } else {
+        // Vertical layout - arrange nodes in a grid from top to bottom
+        node.position.x = col * 350;
+        node.position.y = row * 120;
+      }
+    });
+  }
 
   return { nodes: layoutedNodes, edges };
 };
@@ -88,10 +151,18 @@ const ReactFlowRenderer = ({
   setZoomRef,
   containerDimensions,
   edgeTypeFilter = { 'parent-child': true, 'related': true },
+  preserveViewport = false,
+  nodeClickedState = null,
+  horizontalLayout = false,
 }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { fitView, setViewport, getViewport } = useReactFlow();
+  
+  // Refs for tracking viewport state
+  const initialLayoutDoneRef = useRef(false);
+  const nodeClickedRef = useRef(false);
+  const viewportStateRef = useRef(null);
 
   // Color scale for section tags
   const sectionColors = useMemo(() => [
@@ -99,152 +170,178 @@ const ReactFlowRenderer = ({
     '#fdb462', '#b3de69', '#fccde5', '#d9d9d9', '#bc80bd'
   ], []);
 
+  /**
+   * Transform mindmap data into React Flow format
+   */
+  const transformData = useCallback(() => {
+    if (!data || !data.nodes || !data.edges) return { nodes: [], edges: [] };
+    
+    const flowNodes = [];
+    const flowEdges = [];
+    
+    // Create a map for quick node lookup
+    const nodeMap = new Map(data.nodes.map(node => [node.id, node]));
+    
+    // Process nodes and create a hierarchical structure
+    const processedNodes = new Set();
+    
+    // Count children for each node - consider only parent-child relationships
+    const childrenCount = new Map();
+    data.edges.forEach(edge => {
+      if (edge.type === 'parent-child') {
+        childrenCount.set(edge.source, (childrenCount.get(edge.source) || 0) + 1);
+      }
+    });
+    
+    // Handle rootNodeId as an array or single value
+    const rootNodeIds = Array.isArray(rootNodeId) ? rootNodeId : [rootNodeId];
+    
+    // Get the root node objects and sort them alphabetically by title
+    const sortedRootNodes = rootNodeIds
+      .map(id => nodeMap.get(id))
+      .filter(node => node) // Filter out any undefined nodes
+      .sort((a, b) => {
+        const titleA = (a.title || '').toLowerCase();
+        const titleB = (b.title || '').toLowerCase();
+        return titleA.localeCompare(titleB);
+      });
+    
+    // Use sorted node IDs for traversal
+    const sortedRootNodeIds = sortedRootNodes.map(node => node.id);
+    
+    // Start from root node(s) and traverse the hierarchy
+    const traverseHierarchy = (nodeId, parentId = null, level = 0) => {
+      if (processedNodes.has(nodeId)) return;
+      
+      const node = nodeMap.get(nodeId);
+      if (!node) return;
+      
+      // Add this node
+      processedNodes.add(nodeId);
+      
+      const sectionTag = node.tags?.find(tag => tag.name?.startsWith('Section'));
+      const isExpanded = expandedNodes.has(`${nodeId}`);
+      const hasChildren = childrenCount.get(nodeId) > 0;
+      
+      flowNodes.push({
+        id: `node-${nodeId}`,
+        type: node.isDecision ? 'decision' : 'standard',
+        data: {
+          label: node.title || 'Untitled',
+          slug: node.slug,
+          isExpanded: isExpanded,
+          hasChildren: hasChildren,
+          onToggleExpand: () => onToggleExpand(`${nodeId}`),
+          onNodeClick: () => onNodeClick(node.slug),
+          sectionColor: sectionTag ? sectionColors[sectionTag.name.charCodeAt(8) % sectionColors.length] : '#cccccc',
+          priority: node.priority,
+        },
+        position: { x: 0, y: 0 }, // Will be set by dagre
+      });
+      
+      // Only process children if this node is expanded
+      if (isExpanded) {
+        // Find all parent-child connections
+        const childEdges = data.edges.filter(edge => 
+          edge.source === nodeId && edge.type === 'parent-child'
+        );
+        
+        childEdges.forEach(edge => {
+          traverseHierarchy(edge.target, nodeId, level + 1);
+        });
+      }
+    };
+    
+    // Start traversal from all sorted root nodes
+    sortedRootNodeIds.forEach(id => traverseHierarchy(id));
+    
+    // After all nodes are processed, create edges only for the processed nodes
+    // that match the edge type filter
+    data.edges.forEach(edge => {
+      const sourceProcessed = processedNodes.has(edge.source);
+      const targetProcessed = processedNodes.has(edge.target);
+      
+      // Only include edges that match the edge type filter and connect processed nodes
+      if (sourceProcessed && targetProcessed && edgeTypeFilter[edge.type]) {
+        // For parent-child relationships, only show edges when parent is expanded
+        if (edge.type === 'parent-child' && !expandedNodes.has(`${edge.source}`)) {
+          return; // Skip this edge if parent node is not expanded
+        }
+        
+        flowEdges.push({
+          id: `edge-${edge.source}-${edge.target}`,
+          source: `node-${edge.source}`,
+          target: `node-${edge.target}`,
+          type: edge.type === 'parent-child' ? 'smoothstep' : 'straight',
+          animated: edge.type === 'related',
+          style: {
+            stroke: edge.type === 'parent-child' ? '#555' : '#999',
+            strokeWidth: edge.type === 'parent-child' ? 2 : 1,
+            strokeDasharray: edge.type === 'related' ? '5 5' : undefined,
+          },
+          label: edge.type === 'related' ? 'related' : undefined,
+          labelStyle: { fill: '#333', fontSize: 11, fontWeight: 'bold' },
+          labelBgStyle: { fill: '#fff', fillOpacity: 0.8, padding: 2 },
+          zIndex: edge.type === 'parent-child' ? 1 : 0, // Ensure parent-child edges are on top
+        });
+      }
+    });
+    
+    // Apply hierarchical layout
+    return getHierarchicalLayout(
+      flowNodes,
+      flowEdges,
+      sortedRootNodeIds.map(id => `node-${id}`),
+      horizontalLayout
+    );
+  }, [data, rootNodeId, expandedNodes, onNodeClick, onToggleExpand, sectionColors, edgeTypeFilter, horizontalLayout]);
+
   // Transform data into React Flow format
   useEffect(() => {
     if (!data || !data.nodes || !data.edges) return;
 
-    console.log('RootNodeId:', rootNodeId);
-    console.log('Nodes:', data.nodes);
-    console.log('Edges:', data.edges);
-    console.log('Expanded Nodes:', expandedNodes);
-    console.log('Edge Type Filter:', edgeTypeFilter);
+    // Save current viewport state if we're not doing initial layout
+    if (initialLayoutDoneRef.current) {
+      viewportStateRef.current = getViewport();
+    }
 
-    const transformData = () => {
-      const flowNodes = [];
-      const flowEdges = [];
-      
-      // Create a map for quick node lookup
-      const nodeMap = new Map(data.nodes.map(node => [node.id, node]));
-      
-      // Get all node IDs for debugging
-      console.log('All node IDs:', Array.from(nodeMap.keys()));
-      
-      // Process nodes and create a hierarchical structure
-      const processedNodes = new Set();
-      
-      // Count children for each node - consider both parent-child and related
-      const childrenCount = new Map();
-      data.edges.forEach(edge => {
-        if (edge.source === rootNodeId) { // For the root node, count all connections as children
-          childrenCount.set(edge.source, (childrenCount.get(edge.source) || 0) + 1);
-        } else if (edge.type === 'parent-child') {
-          childrenCount.set(edge.source, (childrenCount.get(edge.source) || 0) + 1);
-        }
-      });
-      
-      console.log('Children count map:', childrenCount);
-      
-      // Start from root node and traverse the hierarchy
-      const traverseHierarchy = (nodeId, parentId = null, level = 0) => {
-        if (processedNodes.has(nodeId)) return;
-        
-        const node = nodeMap.get(nodeId);
-        if (!node) {
-          console.log(`Node ${nodeId} not found in nodeMap`);
-          return;
-        }
-        
-        console.log(`Processing node ${nodeId} (${node.title}) at level ${level}`);
-        
-        // Add this node
-        processedNodes.add(nodeId);
-        
-        const sectionTag = node.tags?.find(tag => tag.name?.startsWith('Section'));
-        const isExpanded = expandedNodes.has(`${nodeId}`);
-        const hasChildren = childrenCount.get(nodeId) > 0;
-        
-        flowNodes.push({
-          id: `node-${nodeId}`,
-          type: node.isDecision ? 'decision' : 'standard',
-          data: {
-            label: node.title || 'Untitled',
-            slug: node.slug,
-            isExpanded: isExpanded,
-            hasChildren: hasChildren,
-            onToggleExpand: () => onToggleExpand(`${nodeId}`),
-            onNodeClick: () => onNodeClick(node.slug),
-            sectionColor: sectionTag ? sectionColors[sectionTag.name.charCodeAt(8) % sectionColors.length] : '#cccccc',
-            priority: node.priority,
-          },
-          position: { x: 0, y: 0 }, // Will be set by dagre
-        });
-        
-        // If this node is expanded or is the root, process its children
-        if (isExpanded || !parentId) {
-          // Find all connections - for root node, consider all connections
-          let childEdges;
-          if (nodeId === rootNodeId) {
-            childEdges = data.edges.filter(edge => edge.source === nodeId);
-          } else {
-            childEdges = data.edges.filter(edge => 
-              edge.source === nodeId && edge.type === 'parent-child'
-            );
-          }
-          
-          console.log(`Node ${nodeId} has ${childEdges.length} child edges`);
-          
-          childEdges.forEach(edge => {
-            traverseHierarchy(edge.target, nodeId, level + 1);
-          });
-        }
-      };
-      
-      // Start traversal from root
-      traverseHierarchy(rootNodeId);
-      
-      // Create edges for the processed nodes with edge type filtering
-      data.edges.forEach(edge => {
-        const sourceProcessed = processedNodes.has(edge.source);
-        const targetProcessed = processedNodes.has(edge.target);
-        
-        // Only include edges that match the edge type filter
-        if (sourceProcessed && targetProcessed && edgeTypeFilter[edge.type]) {
-          flowEdges.push({
-            id: `edge-${edge.source}-${edge.target}`,
-            source: `node-${edge.source}`,
-            target: `node-${edge.target}`,
-            type: edge.type === 'parent-child' ? 'smoothstep' : 'straight',
-            animated: edge.type === 'related',
-            style: {
-              stroke: edge.type === 'parent-child' ? '#555' : '#999',
-              strokeWidth: edge.type === 'parent-child' ? 2 : 1,
-              strokeDasharray: edge.type === 'related' ? '5 5' : undefined,
-            },
-            label: edge.type === 'related' ? 'related' : undefined,
-            labelStyle: { fill: '#333', fontSize: 11, fontWeight: 'bold' },
-            labelBgStyle: { fill: '#fff', fillOpacity: 0.8, padding: 2 },
-            zIndex: edge.type === 'parent-child' ? 1 : 0, // Ensure parent-child edges are on top
-          });
-        }
-      });
-      
-      console.log('Processed nodes:', flowNodes);
-      console.log('Processed edges:', flowEdges);
-      
-      // Apply hierarchical layout
-      const { nodes: layoutedNodes, edges: layoutedEdges } = getHierarchicalLayout(
-        flowNodes,
-        flowEdges,
-        `node-${rootNodeId}`
-      );
-      
-      return { nodes: layoutedNodes, edges: layoutedEdges };
-    };
-    
     const { nodes: newNodes, edges: newEdges } = transformData();
     setNodes(newNodes);
     setEdges(newEdges);
     
-    // Fit view with animation after nodes are set
+    // Decide whether to fit view or preserve viewport
     setTimeout(() => {
-      fitView({ padding: 0.2, duration: 400 });
+      // Check both local node clicked state and parent node clicked state
+      const isNodeClicked = nodeClickedRef.current || nodeClickedState?.current || false;
+      
+      if (!initialLayoutDoneRef.current) {
+        // Initial layout - fit view
+        fitView({ padding: 0.3, duration: 400 });
+        initialLayoutDoneRef.current = true;
+      } else if (isNodeClicked || preserveViewport) {
+        // Node clicked or explicit preserve - restore previous viewport
+        if (viewportStateRef.current) {
+          setViewport(viewportStateRef.current);
+        }
+      } else {
+        // Data changed due to filter or other reason - fit view
+        fitView({ padding: 0.3, duration: 400 });
+      }
+      
+      // Reset node clicked state after layout is done
+      nodeClickedRef.current = false;
+      
+      // Reset parent's node clicked state as well if we have access to it
+      if (nodeClickedState) {
+        nodeClickedState.current = false;
+      }
     }, 100);
-  }, [data, rootNodeId, expandedNodes, onNodeClick, onToggleExpand, sectionColors, fitView, edgeTypeFilter]);
+  }, [data, rootNodeId, expandedNodes, fitView, getViewport, setViewport, preserveViewport, nodeClickedState, transformData]);
   
   // Export zoom reference for external control
   useEffect(() => {
     if (setZoomRef) {
-      setZoomRef({
+      const zoomControls = {
         zoomIn: () => {
           const currentViewport = getViewport();
           setViewport({ 
@@ -261,17 +358,28 @@ const ReactFlowRenderer = ({
             y: currentViewport.y 
           });
         },
-        fitView: () => fitView({ padding: 0.2, duration: 400 }),
-      });
+        fitView: () => fitView({ padding: 0.3, duration: 400 }),
+      };
+      
+      // Pass zoom controls to parent via callback
+      setZoomRef(zoomControls);
     }
   }, [setZoomRef, getViewport, setViewport, fitView]);
   
   // Handle node click
   const onNodeClickHandler = useCallback((event, node) => {
     if (node.data.slug) {
+      // Set the nodeClicked ref to true to prevent fitView from running
+      nodeClickedRef.current = true;
+      
+      // Also set the parent's nodeClicked ref if available
+      if (nodeClickedState) {
+        nodeClickedState.current = true;
+      }
+      
       onNodeClick(node.data.slug);
     }
-  }, [onNodeClick]);
+  }, [onNodeClick, nodeClickedState]);
   
   return (
     <div style={{ width: '100%', height: '100%' }}>
@@ -282,7 +390,7 @@ const ReactFlowRenderer = ({
         onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClickHandler}
         nodeTypes={nodeTypes}
-        fitView
+        fitView={!initialLayoutDoneRef.current}
         minZoom={0.2}
         maxZoom={4}
         attributionPosition="bottom-right"
@@ -320,4 +428,5 @@ const ReactFlowRenderer = ({
   );
 };
 
-export default ReactFlowRenderer;
+// Export the memoized component to prevent unnecessary re-renders
+export default memo(ReactFlowRenderer);
