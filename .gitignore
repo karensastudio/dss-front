@@ -25,5 +25,5 @@ yarn.lock
 *.njsproj
 *.sln
 *.sw?
-.env
+*.env
 docs/*
