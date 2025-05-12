@@ -54,7 +54,7 @@ export function HierarchicalListItem(props) {
         />
       )}
       
-      <Disclosure defaultOpen={depth === 0}>
+      <Disclosure defaultOpen={false}>
         {({ open }) => {
           return (
             <>
