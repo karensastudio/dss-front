@@ -60,7 +60,7 @@ export function HierarchicalListItem(props) {
             <>
               <Disclosure.Button
                 className={clsx(
-                  "group transition-all w-full text-start relative flex justify-between items-center",
+                  "group transition-all w-full text-start relative flex justify-between items-center cursor-pointer",
                   "rounded-md my-1 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200",
                   "py-2 pl-3 pr-2",
                   depth === 0 ? "font-semibold text-gray-800" : "",
@@ -69,6 +69,12 @@ export function HierarchicalListItem(props) {
                 style={{
                   paddingLeft: `${depth * 12 + 12}px`,
                   borderLeft: isCurrentPost ? `4px solid ${sectionColor}` : "4px solid transparent"
+                }}
+                onClick={(e) => {
+                  // If clicking on the main section, navigate to it
+                  PostChanger(post.slug);
+                  // If it has children, let the disclosure handle expand/collapse
+                  // We don't prevent default to allow the disclosure to work
                 }}
               >
                 <div className="flex min-w-0 gap-x-3 items-center">
@@ -89,10 +95,10 @@ export function HierarchicalListItem(props) {
                       {post.title}
                     </p>
                     
-                    {depth === 0 && (
+                    {depth === 0 && post.children.length > 0 && (
                       <p className="mt-1 flex text-xs leading-5 text-gray-500">
                         <span className="relative truncate">
-                          {post.children.length + 1} Post{post.children.length !== 0 ? 's' : ''}
+                          {post.children.length} Post{post.children.length !== 1 ? 's' : ''}
                         </span>
                       </p>
                     )}
@@ -124,42 +130,6 @@ export function HierarchicalListItem(props) {
               >
                 <Disclosure.Panel static className="relative">
                   <ul role="list" className="mt-1">
-                    {/* Introduction item */}
-                    <li
-                      className={clsx(
-                        "cursor-pointer relative flex items-center ml-3",
-                        "hover:bg-gray-50 rounded-md my-1",
-                        singlePost?.id === post.id ? "bg-blue-50" : ""
-                      )}
-                      style={{
-                        paddingLeft: `${(depth + 1) * 12 + 12}px`,
-                        borderLeft: singlePost?.id === post.id ? `4px solid ${sectionColor}` : "4px solid transparent"
-                      }}
-                      onClick={() => PostChanger(post.slug)}
-                    >
-                      {/* The horizontal connecting line */}
-                      <div 
-                        className="absolute w-3 h-px bg-gray-200"
-                        style={{ left: '0.5rem', top: '50%' }}
-                      />
-                      
-                      <div 
-                        className="py-2 flex gap-x-3 items-center w-full"
-                      >
-                        <div className="text-gray-500">
-                          <BsFileEarmark className="w-3 h-3" />
-                        </div>
-                        <p
-                          className={clsx(
-                            "text-sm",
-                            singlePost?.id === post.id ? "text-blue-700 font-medium" : "text-gray-700"
-                          )}
-                        >
-                          Introduction
-                        </p>
-                      </div>
-                    </li>
-                    
                     {/* Child items */}
                     {post.children.length > 0 && post.children.map((subPost) => {
                       if (subPost.children.length > 0) {
