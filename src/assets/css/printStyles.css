@@ -223,8 +223,38 @@
     break-after: avoid;
   }
   
+  /* Images */
   img {
     max-width: 100% !important;
+    height: auto !important;
+    display: block;
+    margin: 0.5cm auto;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border: 1px solid #eee;
+    padding: 2px;
+    background: white;
+  }
+  
+  .print-image-container {
+    width: 100%;
+    text-align: center;
+    margin: 0.7cm 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  .print-image {
+    max-width: 90% !important;
+    display: inline-block;
+  }
+  
+  .print-image-caption {
+    font-size: 9pt;
+    font-style: italic;
+    color: #666;
+    margin-top: 0.2cm;
+    text-align: center;
   }
   
   pre, blockquote {

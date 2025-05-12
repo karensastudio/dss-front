@@ -81,6 +81,14 @@ export default function DecisionPdfPage() {
                             if (block.type === "header")
                                 return <div key={index} className="mb-3 font-bold">{parse(block.data?.text || '')}</div>;
                             
+                            if (block.type === "image" || block.type === "Image")
+                                return (
+                                    <div key={index} className="mb-3 print-image-container">
+                                        <img src={block.data?.url || block.data?.file?.url} alt={block.data.caption || ''} className="max-w-full h-auto print-image" />
+                                        {block.data.caption && <div className="text-sm text-center mt-1 print-image-caption">{block.data.caption}</div>}
+                                    </div>
+                                );
+                            
                             if (block.type === "list")
                                 return (
                                     <div key={index} className="mb-3">
@@ -130,11 +138,11 @@ export default function DecisionPdfPage() {
             if (block.type === "header")
                 return <div key={index} className="mb-3 font-bold">{parse(block.data?.text || '')}</div>;
                 
-            if (block.type === "Image" && block.data?.url)
+            if (block.type === "image" || block.type === "Image")
                 return (
-                    <div key={index} className="mb-3">
-                        <img src={block.data.url} alt={block.data.caption || ''} className="max-w-full h-auto" />
-                        {block.data.caption && <div className="text-sm text-center mt-1">{block.data.caption}</div>}
+                    <div key={index} className="mb-3 print-image-container">
+                        <img src={block.data?.url || block.data?.file?.url} alt={block.data.caption || ''} className="max-w-full h-auto print-image" />
+                        {block.data.caption && <div className="text-sm text-center mt-1 print-image-caption">{block.data.caption}</div>}
                     </div>
                 );
                 
