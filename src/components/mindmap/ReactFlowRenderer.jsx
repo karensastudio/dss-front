@@ -393,7 +393,7 @@ const ReactFlowRenderer = ({
         fitView={!initialLayoutDoneRef.current}
         minZoom={0.2}
         maxZoom={4}
-        attributionPosition="bottom-right"
+        attributionPosition="bottom-left"
         defaultEdgeOptions={{
           type: 'smoothstep',
           animated: false,
@@ -402,12 +402,13 @@ const ReactFlowRenderer = ({
       >
         <Controls position="bottom-right" />
         <MiniMap 
+          position="bottom-left"
           nodeColor={(node) => node.data.sectionColor}
           maskColor="#00000020"
           style={{ background: '#f5f5f5', border: '1px solid #ddd' }}
         />
         <Background gap={20} size={1} color="#ddd" variant="dots" />
-        <Panel position="top-right" className="bg-white p-2 rounded shadow">
+        <Panel position="top-left" className="bg-white p-2 rounded shadow">
           <div className="text-sm">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-4 h-4 border-2 border-yellow-500 rounded" style={{ backgroundColor: '#FFFAF0' }}></div>
