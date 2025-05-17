@@ -562,7 +562,7 @@ export default function SinglePostPage() {
                                                     </div>;
                                                 if (block.type == "list")
                                                     return <div key={block.id} className="w-full rounded-[12px] mb-3">
-                                                        <ul className="list-decimal list-inside pl-5">
+                                                        <ul className={`${block.data.style === "ordered" ? "list-decimal" : "list-disc"} list-inside pl-5`}>
                                                             {block.data.items.map((item, index) => {
                                                                 return <li className="mb-3 text-justify" key={`${block.id}-item-${index}`}>{parse(item)}</li>
                                                             })}
