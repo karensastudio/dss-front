@@ -318,6 +318,8 @@ const ReactFlowRenderer = ({
         // Initial layout - fit view
         fitView({ padding: 0.3, duration: 400 });
         initialLayoutDoneRef.current = true;
+        // Save the initial viewport state after first layout
+        viewportStateRef.current = getViewport();
       } else if (isNodeClicked || preserveViewport) {
         // Node clicked or explicit preserve - restore previous viewport
         if (viewportStateRef.current) {
@@ -369,6 +371,9 @@ const ReactFlowRenderer = ({
   // Handle node click
   const onNodeClickHandler = useCallback((event, node) => {
     if (node.data.slug) {
+      // Save the current viewport state before opening the overview
+      viewportStateRef.current = getViewport();
+      
       // Set the nodeClicked ref to true to prevent fitView from running
       nodeClickedRef.current = true;
       
@@ -379,7 +384,7 @@ const ReactFlowRenderer = ({
       
       onNodeClick(node.data.slug);
     }
-  }, [onNodeClick, nodeClickedState]);
+  }, [onNodeClick, nodeClickedState, getViewport]);
   
   return (
     <div style={{ width: '100%', height: '100%' }}>
@@ -400,7 +405,7 @@ const ReactFlowRenderer = ({
         }}
         proOptions={{ hideAttribution: true }}
       >
-        <Controls position="bottom-right" />
+        <Controls position="bottom-left" />
         <MiniMap 
           position="bottom-left"
           nodeColor={(node) => node.data.sectionColor}
