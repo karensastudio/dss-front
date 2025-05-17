@@ -272,7 +272,7 @@ export default function PostCreatePage() {
                   linkTool: {
                     class: LinkTool,
                     config: {
-                      endpoint: 'http://nbs-dss-api.oppla.eu/api/v1/meta-data', // Your backend endpoint for url data fetching
+                      endpoint: 'https://nbs-dss-api.oppla.eu/api/v1/meta-data', // Your backend endpoint for url data fetching
                     }
                   }
                 }}
