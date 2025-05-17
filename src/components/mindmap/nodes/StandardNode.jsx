@@ -1,6 +1,6 @@
 import { Handle, Position } from 'reactflow';
 
-const StandardNode = ({ data }) => {
+const StandardNode = ({ data, sourcePosition, targetPosition }) => {
   const { label, isExpanded, hasChildren, onToggleExpand, onNodeClick, sectionColor, priority } = data;
   
   // Event handlers to prevent propagation
@@ -24,7 +24,7 @@ const StandardNode = ({ data }) => {
     >
       <Handle 
         type="target" 
-        position={Position.Top}
+        position={targetPosition || Position.Top}
         style={{ background: '#555' }}
       />
       
@@ -54,7 +54,7 @@ const StandardNode = ({ data }) => {
       
       <Handle 
         type="source" 
-        position={Position.Bottom}
+        position={sourcePosition || Position.Bottom}
         style={{ background: '#555' }}
       />
     </div>

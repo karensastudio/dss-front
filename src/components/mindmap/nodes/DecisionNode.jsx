@@ -1,6 +1,6 @@
 import { Handle, Position } from 'reactflow';
 
-const DecisionNode = ({ data }) => {
+const DecisionNode = ({ data, sourcePosition, targetPosition }) => {
   const { label, isExpanded, hasChildren, onToggleExpand, onNodeClick, sectionColor } = data;
   
   // Event handlers to prevent propagation
@@ -25,7 +25,7 @@ const DecisionNode = ({ data }) => {
     >
       <Handle 
         type="target" 
-        position={Position.Top}
+        position={targetPosition || Position.Top}
         style={{ background: '#FFD700' }}
       />
       
@@ -58,7 +58,7 @@ const DecisionNode = ({ data }) => {
       
       <Handle 
         type="source" 
-        position={Position.Bottom}
+        position={sourcePosition || Position.Bottom}
         style={{ background: '#FFD700' }}
       />
     </div>

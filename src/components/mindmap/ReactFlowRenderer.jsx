@@ -38,8 +38,8 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
   // Set the layout options for better hierarchical visualization
   dagreGraph.setGraph({ 
     rankdir: horizontalLayout ? 'LR' : 'TB',  // Left to right for horizontal layout, Top to bottom for vertical
-    nodesep: horizontalLayout ? 150 : 120,    // More horizontal space between nodes for longer titles
-    ranksep: horizontalLayout ? 120 : 100,    // More vertical space between levels
+    nodesep: horizontalLayout ? 50 : 100,    // More horizontal space between nodes for longer titles
+    ranksep: horizontalLayout ? 250 : 100,    // More vertical space between levels
     marginx: 50,
     marginy: 50,
     align: 'UL'
@@ -81,17 +81,11 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
       // If node wasn't found in the graph, give it a default position
       return {
         ...node,
-        position: { x: 0, y: 0 }
+        position: { x: 0, y: 0 },
+        // Always set targetPosition and sourcePosition based on current layout
+        targetPosition: horizontalLayout ? 'left' : 'top',
+        sourcePosition: horizontalLayout ? 'right' : 'bottom'
       };
-    }
-    
-    // Set the source and target positions based on the layout direction
-    if (horizontalLayout) {
-      node.targetPosition = 'left';
-      node.sourcePosition = 'right';
-    } else {
-      node.targetPosition = 'top';
-      node.sourcePosition = 'bottom';
     }
     
     return {
@@ -100,6 +94,9 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
         x: dagreNode.x - 140, // Center the node (increased for wider nodes)
         y: dagreNode.y - 35,  // Center the node
       },
+      // Always set targetPosition and sourcePosition based on current layout
+      targetPosition: horizontalLayout ? 'left' : 'top',
+      sourcePosition: horizontalLayout ? 'right' : 'bottom'
     };
   });
 
@@ -237,6 +234,8 @@ const ReactFlowRenderer = ({
           priority: node.priority,
         },
         position: { x: 0, y: 0 }, // Will be set by dagre
+        sourcePosition: horizontalLayout ? 'right' : 'bottom',
+        targetPosition: horizontalLayout ? 'left' : 'top'
       });
       
       // Only process children if this node is expanded
@@ -283,6 +282,9 @@ const ReactFlowRenderer = ({
           labelStyle: { fill: '#333', fontSize: 11, fontWeight: 'bold' },
           labelBgStyle: { fill: '#fff', fillOpacity: 0.8, padding: 2 },
           zIndex: edge.type === 'parent-child' ? 1 : 0, // Ensure parent-child edges are on top
+          // Explicitly define connection points for edges based on layout
+          sourceHandle: horizontalLayout ? 'right' : 'bottom',
+          targetHandle: horizontalLayout ? 'left' : 'top'
         });
       }
     });
@@ -299,13 +301,16 @@ const ReactFlowRenderer = ({
   // Transform data into React Flow format
   useEffect(() => {
     if (!data || !data.nodes || !data.edges) return;
-
+  
     // Save current viewport state if we're not doing initial layout
     if (initialLayoutDoneRef.current) {
       viewportStateRef.current = getViewport();
     }
-
+  
+    // Calculate new nodes and edges
     const { nodes: newNodes, edges: newEdges } = transformData();
+    
+    // Set nodes and edges
     setNodes(newNodes);
     setEdges(newEdges);
     
@@ -338,7 +343,7 @@ const ReactFlowRenderer = ({
         nodeClickedState.current = false;
       }
     }, 100);
-  }, [data, rootNodeId, expandedNodes, fitView, getViewport, setViewport, preserveViewport, nodeClickedState, transformData]);
+  }, [data, rootNodeId, expandedNodes, fitView, getViewport, setViewport, preserveViewport, nodeClickedState, transformData, horizontalLayout]);
   
   // Export zoom reference for external control
   useEffect(() => {
@@ -389,6 +394,7 @@ const ReactFlowRenderer = ({
   return (
     <div style={{ width: '100%', height: '100%' }}>
       <ReactFlow
+        key={`flow-${horizontalLayout ? 'horizontal' : 'vertical'}`} /* Force re-render when layout changes */
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
