@@ -50,8 +50,10 @@ export default function PostUpdatePage() {
   const [editorData, setEditorData] = useState(null);
 
   useEffect(() => {
-    const fetchPostData = async () => {
+    // Create a combined fetch function
+    const fetchAllData = async () => {
       try {
+        // First fetch post data
         const response = await getPostByIdApi(authHeader(), postId);
         if (response.status === "success") {
           const post = response.response.post;
@@ -61,70 +63,77 @@ export default function PostUpdatePage() {
           setEditorContent(JSON.parse(post.description));
           setEditorData(JSON.parse(post.description));
           setSelectedTags(post.tags.map((tag) => ({ value: tag.id.toString(), label: tag.name })));
-          setSelectedParent({ value: response.response.post.parent.id, label: response.response.post.parent.title })
-          setSelectedRelated(post.related.map((related) => ({ value: related.id.toString(), label: related.title })));
+          
+          if (post.parent && post.parent.id) {
+            setSelectedParent({ value: post.parent.id, label: post.parent.title });
+          }
+          
+          // Save the related posts for later synchronization
+          const postRelated = post.related.map((related) => ({ 
+            value: related.id.toString(), 
+            label: related.title 
+          }));
+          
+          // Now fetch all options
+          const tagResponse = await getTagsApi(authHeader());
+          if (tagResponse.status === "success") {
+            const tagOptions = tagResponse.response.tags.map((tag) => ({
+              value: tag.id.toString(),
+              label: tag.name,
+            }));
+            setTagOptions(tagOptions);
+          } else {
+            console.error("Error fetching tag options:", tagResponse);
+            toast.error(tagResponse.message);
+          }
+
+          const parentResponse = await getUserPostsApi(authHeader());
+          const relatedResponse = await getPostsApi(authHeader());
+          if (parentResponse.status === "success" && relatedResponse.status === "success") {
+            // Process parent options
+            const allParentPosts = [...parentResponse.response.posts];
+            const parentOptions = allParentPosts.map((post) => ({
+              value: post.id.toString(),
+              label: post.title,
+            }));
+            // append all children posts to parent options
+            allParentPosts.forEach((post) => {
+              if (post.children.length > 0) {
+                post.children.forEach((child) => {
+                  parentOptions.push({
+                    value: child.id.toString(),
+                    label: child.title,
+                  });
+                });
+              }
+            });
+            setParentOptions(parentOptions);
+
+            // Process related options
+            const allRelatedPosts = [...relatedResponse.response.posts];
+            const relatedOptions = allRelatedPosts.map((post) => ({
+              value: post.id.toString(),
+              label: post.title,
+            }));
+            setRelatedOptions(relatedOptions);
+            
+            // IMPORTANT: Only set selectedRelated after options are loaded
+            // This ensures that the Select component can find the selected values
+            setSelectedRelated(postRelated);
+          } else {
+            console.error("Error fetching parent options:", parentResponse);
+            toast.error(parentResponse.message);
+          }
         } else {
           console.error("Error fetching post data:", response);
           toast.error(response.message);
-        }
-      } catch (error) {
-        console.error("Error fetching post data:", error);
-      }
-    };
-
-    const fetchData = async () => {
-      try {
-        const tagResponse = await getTagsApi(authHeader());
-        if (tagResponse.status === "success") {
-          const tagOptions = tagResponse.response.tags.map((tag) => ({
-            value: tag.id.toString(),
-            label: tag.name,
-          }));
-          setTagOptions(tagOptions);
-        } else {
-          console.error("Error fetching tag options:", tagResponse);
-          toast.error(tagResponse.message);
-        }
-
-        const parentResponse = await getUserPostsApi(authHeader());
-        const relatedResponse = await getPostsApi(authHeader());
-        if (parentResponse.status === "success") {
-          // extract children posts to flat 
-          const allParentPosts = [...parentResponse.response.posts];
-          const parentOptions = allParentPosts.map((post) => ({
-            value: post.id.toString(),
-            label: post.title,
-          }));
-          // append all children posts to parent options
-          allParentPosts.forEach((post) => {
-            if (post.children.length > 0) {
-              post.children.forEach((child) => {
-                parentOptions.push({
-                  value: child.id.toString(),
-                  label: child.title,
-                });
-              });
-            }
-          });
-          setParentOptions(parentOptions);
-
-          const allRelatedPosts = [...relatedResponse.response.posts];
-          const relatedOptions = allRelatedPosts.map((post) => ({
-            value: post.id.toString(),
-            label: post.title,
-          }));
-          setRelatedOptions(relatedOptions);
-        } else {
-          console.error("Error fetching parent options:", parentResponse);
-          toast.error(parentResponse.message);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
 
-    fetchPostData();
-    fetchData();
+    fetchAllData();
   }, [postId]);
 
   const editorCore = useRef(null)
