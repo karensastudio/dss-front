@@ -302,9 +302,12 @@ const ReactFlowRenderer = ({
   useEffect(() => {
     if (!data || !data.nodes || !data.edges) return;
   
-    // Save current viewport state if we're not doing initial layout
+    // Always save current viewport state if layout is already done
     if (initialLayoutDoneRef.current) {
-      viewportStateRef.current = getViewport();
+      // Only update viewport state if we don't already have one from nodeClick
+      if (!nodeClickedRef.current) {
+        viewportStateRef.current = getViewport();
+      }
     }
   
     // Calculate new nodes and edges
@@ -316,34 +319,26 @@ const ReactFlowRenderer = ({
     
     // Decide whether to fit view or preserve viewport
     setTimeout(() => {
-      // Check both local node clicked state and parent node clicked state
-      const isNodeClicked = nodeClickedRef.current || nodeClickedState?.current || false;
-      
       if (!initialLayoutDoneRef.current) {
-        // Initial layout - fit view
+        // Only fit view on the very first render
         fitView({ padding: 0.3, duration: 400 });
         initialLayoutDoneRef.current = true;
         // Save the initial viewport state after first layout
         viewportStateRef.current = getViewport();
-      } else if (isNodeClicked || preserveViewport) {
-        // Node clicked or explicit preserve - restore previous viewport
+      } else {
+        // For all subsequent updates, preserve viewport
         if (viewportStateRef.current) {
           setViewport(viewportStateRef.current);
         }
-      } else {
-        // Data changed due to filter or other reason - fit view
-        fitView({ padding: 0.3, duration: 400 });
       }
       
-      // Reset node clicked state after layout is done
+      // Reset node clicked state after layout is done, but only if not in a quick view
       nodeClickedRef.current = false;
       
-      // Reset parent's node clicked state as well if we have access to it
-      if (nodeClickedState) {
-        nodeClickedState.current = false;
-      }
+      // We do NOT reset the parent's nodeClickedState here
+      // This should be handled by the parent component after the quick view is dismissed
     }, 100);
-  }, [data, rootNodeId, expandedNodes, fitView, getViewport, setViewport, preserveViewport, nodeClickedState, transformData, horizontalLayout]);
+  }, [data, rootNodeId, expandedNodes, fitView, getViewport, setViewport, nodeClickedState, transformData, horizontalLayout]);
   
   // Export zoom reference for external control
   useEffect(() => {
@@ -373,6 +368,9 @@ const ReactFlowRenderer = ({
     }
   }, [setZoomRef, getViewport, setViewport, fitView]);
   
+  // Add ref to track if a node has been clicked in the past
+  const hasInteractedRef = useRef(false);
+  
   // Handle node click
   const onNodeClickHandler = useCallback((event, node) => {
     if (node.data.slug) {
@@ -381,6 +379,9 @@ const ReactFlowRenderer = ({
       
       // Set the nodeClicked ref to true to prevent fitView from running
       nodeClickedRef.current = true;
+      
+      // Mark that user has interacted with the graph
+      hasInteractedRef.current = true;
       
       // Also set the parent's nodeClicked ref if available
       if (nodeClickedState) {
