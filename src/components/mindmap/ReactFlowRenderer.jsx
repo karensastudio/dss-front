@@ -47,7 +47,7 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
 
   // Add nodes to the graph
   nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: 280, height: 70 }); // Increased width for longer titles
+    dagreGraph.setNode(node.id, { width: 280, height: 90 }); // Increased height from 70 to 90
   });
 
   // Add edges to the graph
@@ -64,7 +64,7 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
     const rootNodeId = typeof rootId === 'string' ? rootId : `node-${rootId}`;
     dagreGraph.setNode(rootNodeId, { 
       width: 280, 
-      height: 70,
+      height: 90, // Increased height from 70 to 90
       // Set a rank to maintain ordering
       rank: horizontalLayout ? 0 : index,  // All in same rank for horizontal, different ranks for vertical
       order: horizontalLayout ? index : 0   // Ordering within rank

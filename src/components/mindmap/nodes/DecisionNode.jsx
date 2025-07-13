@@ -21,6 +21,7 @@ const DecisionNode = ({ data, sourcePosition, targetPosition }) => {
         border: '3px solid #FFD700', // Gold border for decisions
         backgroundColor: '#FFFAF0', // Cream/soft yellow background for decisions
         opacity: 1,
+        minHeight: '90px', // Increased height
       }}
     >
       <Handle 
@@ -36,9 +37,17 @@ const DecisionNode = ({ data, sourcePosition, targetPosition }) => {
         />
         <div className="flex flex-col min-w-0">
           <div 
-            className="text-sm font-medium cursor-pointer hover:underline truncate"
+            className="text-sm font-medium cursor-pointer hover:underline"
             onClick={handleNodeClick}
             title={label}
+            style={{
+              whiteSpace: 'normal',
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              textOverflow: 'ellipsis',
+            }}
           >
             {label}
           </div>

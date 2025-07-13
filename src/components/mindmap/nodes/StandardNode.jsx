@@ -20,6 +20,7 @@ const StandardNode = ({ data, sourcePosition, targetPosition }) => {
       style={{ 
         borderColor: sectionColor,
         opacity: 1,
+        minHeight: '90px', // Increased height
       }}
     >
       <Handle 
@@ -34,9 +35,17 @@ const StandardNode = ({ data, sourcePosition, targetPosition }) => {
           style={{ backgroundColor: sectionColor }}
         />
         <div 
-          className="text-sm font-medium cursor-pointer hover:underline truncate"
+          className="text-sm font-medium cursor-pointer hover:underline line-clamp-2"
           onClick={handleNodeClick}
           title={label}
+          style={{
+            whiteSpace: 'normal',
+            overflow: 'hidden',
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            textOverflow: 'ellipsis',
+          }}
         >
           {label}
         </div>
