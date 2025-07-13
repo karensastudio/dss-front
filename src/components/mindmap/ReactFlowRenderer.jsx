@@ -297,7 +297,7 @@ const ReactFlowRenderer = ({
           label: node.title || 'Untitled',
           slug: node.slug,
           isExpanded: isExpanded,
-          hasChildren: hasChildren,
+          hasChildren: hasChildren && !['node-4', 'node-20'].includes(`node-${nodeId}`), // Disable expansion for special nodes
           onToggleExpand: () => onToggleExpand(`${nodeId}`),
           onNodeClick: () => onNodeClick(node.slug),
           sectionColor: sectionTag ? sectionColors[sectionTag.name.charCodeAt(8) % sectionColors.length] : '#cccccc',
