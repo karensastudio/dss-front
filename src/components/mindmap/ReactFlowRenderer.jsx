@@ -22,6 +22,9 @@ const nodeTypes = {
   standard: StandardNode,
 };
 
+// Add this constant at the top of the getHierarchicalLayout function
+const LEFT_OFFSET = 150; // Adjust this value to control the left spacing
+
 /**
  * Creates a hierarchical tree layout using the dagre library
  * 
@@ -32,6 +35,8 @@ const nodeTypes = {
  * @returns {Object} Object containing layouted nodes and edges
  */
 const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) => {
+  const LEFT_OFFSET = 150; // Add left spacing for all nodes
+  
   console.log('getHierarchicalLayout called with:', { 
     nodesCount: nodes.length, 
     edgesCount: edges.length, 
@@ -82,14 +87,14 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
   // Apply layout
   dagre.layout(dagreGraph);
 
-  // Get the positions
+  // Get the positions with LEFT_OFFSET added
   const layoutedNodes = nodes.map((node) => {
     const dagreNode = dagreGraph.node(node.id);
     if (!dagreNode) {
-      // If node wasn't found in the graph, give it a default position
+      // If node wasn't found in the graph, give it a default position with left offset
       return {
         ...node,
-        position: { x: 0, y: 0 },
+        position: { x: LEFT_OFFSET, y: 0 },
         // Always set targetPosition and sourcePosition based on current layout
         targetPosition: horizontalLayout ? 'left' : 'top',
         sourcePosition: horizontalLayout ? 'right' : 'bottom'
@@ -99,7 +104,7 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
     return {
       ...node,
       position: {
-        x: dagreNode.x - 140, // Center the node (increased for wider nodes)
+        x: dagreNode.x - 140 + LEFT_OFFSET, // Add LEFT_OFFSET here
         y: dagreNode.y - 35,  // Center the node
       },
       // Always set targetPosition and sourcePosition based on current layout
@@ -133,27 +138,27 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
       return titleA.localeCompare(titleB);
     });
     
-    // Position Tutorial node in the top row
+    // Position Tutorial node in the top row with left offset
     if (tutorialNode) {
       if (horizontalLayout) {
-        tutorialNode.position.x = 0;
+        tutorialNode.position.x = LEFT_OFFSET;
         tutorialNode.position.y = 0;
       } else {
-        tutorialNode.position.x = 0;
+        tutorialNode.position.x = LEFT_OFFSET;
         tutorialNode.position.y = 0;
       }
     }
     
-    // Position other root nodes in the bottom row - SINGLE ROW ONLY
+    // Position other root nodes in the bottom row - SINGLE ROW ONLY with left offset
     if (otherRootNodes.length > 0) {
       otherRootNodes.forEach((node, index) => {
         if (horizontalLayout) {
           // Horizontal layout - arrange nodes in a single row from left to right, below tutorial
-          node.position.x = index * 350;
+          node.position.x = index * 350 + LEFT_OFFSET; // Add LEFT_OFFSET
           node.position.y = 150; // Position below tutorial node
         } else {
           // Vertical layout - arrange nodes in a single row horizontally, below tutorial
-          node.position.x = index * 350;
+          node.position.x = index * 350 + LEFT_OFFSET; // Add LEFT_OFFSET
           node.position.y = 150; // Single row at y: 150
         }
       });
@@ -168,11 +173,11 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
     // Position Tutorial node above all others
     tutorialNode.position.y = minY - 150; // 150px above the highest node
     
-    // Position Tutorial node to the left of other nodes
+    // Position Tutorial node to the left of other nodes with left offset
     const otherNodes = layoutedNodes.filter(node => node.id !== 'node-4');
     if (otherNodes.length > 0) {
       const minX = Math.min(...otherNodes.map(node => node.position.x));
-      tutorialNode.position.x = minX; // Position to the left with some spacing
+      tutorialNode.position.x = minX; // Will already have LEFT_OFFSET applied
     }
   }
 
