@@ -36,6 +36,7 @@ const LEFT_OFFSET = 150; // Adjust this value to control the left spacing
  */
 const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) => {
   const LEFT_OFFSET = 150; // Add left spacing for all nodes
+  const TUTORIAL_Y_OFFSET = 150; // Consistent Y distance between Tutorial and other root nodes
   
   console.log('getHierarchicalLayout called with:', { 
     nodesCount: nodes.length, 
@@ -165,19 +166,29 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
     }
   }
 
-  // Always position Tutorial node at the top, regardless of Dagre layout
+  // Always position Tutorial node at a fixed distance above other root nodes
   const tutorialNode = layoutedNodes.find(node => node.id === 'node-4');
   if (tutorialNode) {
-    // Find the minimum Y position among all nodes
-    const minY = Math.min(...layoutedNodes.map(node => node.position.y));
-    // Position Tutorial node above all others
-    tutorialNode.position.y = minY - 150; // 150px above the highest node
+    // Find the other root nodes (excluding tutorial)
+    const otherRootNodes = layoutedNodes.filter(node => 
+      rootIds.includes(node.id) && node.id !== 'node-4'
+    );
     
-    // Position Tutorial node to the left of other nodes with left offset
-    const otherNodes = layoutedNodes.filter(node => node.id !== 'node-4');
-    if (otherNodes.length > 0) {
-      const minX = Math.min(...otherNodes.map(node => node.position.x));
-      tutorialNode.position.x = minX; // Will already have LEFT_OFFSET applied
+    if (otherRootNodes.length > 0) {
+      // Get the Y position of the other root nodes
+      // Use the minimum Y to handle cases where root nodes might be at different heights
+      const rootNodesY = Math.min(...otherRootNodes.map(node => node.position.y));
+      
+      // Position Tutorial node at a fixed distance above the root nodes
+      tutorialNode.position.y = rootNodesY - TUTORIAL_Y_OFFSET;
+      
+      // Align Tutorial node horizontally with the leftmost root node
+      const minX = Math.min(...otherRootNodes.map(node => node.position.x));
+      tutorialNode.position.x = minX;
+    } else {
+      // If there are no other root nodes, use default position
+      tutorialNode.position.x = LEFT_OFFSET;
+      tutorialNode.position.y = 0;
     }
   }
 
