@@ -101,7 +101,7 @@ export default function Header() {
                                             currentPath != "/graph" && "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
                                         )}
                                     >
-                                        Graph
+                                        Research-Graph
                                     </Link>
                                     {
                                         isAuthenticated() &&
