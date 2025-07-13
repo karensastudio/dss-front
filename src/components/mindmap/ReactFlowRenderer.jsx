@@ -32,6 +32,14 @@ const nodeTypes = {
  * @returns {Object} Object containing layouted nodes and edges
  */
 const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) => {
+  console.log('getHierarchicalLayout called with:', { 
+    nodesCount: nodes.length, 
+    edgesCount: edges.length, 
+    rootIds, 
+    horizontalLayout,
+    allNodeIds: nodes.map(n => n.id)
+  });
+  
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   
@@ -102,35 +110,70 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
 
   // Handle root nodes with no connections between them
   const rootNodes = layoutedNodes.filter(node => 
-    rootNodeIds.includes(node.id.replace('node-', ''))
+    rootIds.includes(node.id)
   );
   
-  // If we have multiple root nodes with few or no edges, arrange them in a grid
-  if (rootNodes.length > 1 && edges.length < rootNodes.length) {
-    // Sort root nodes alphabetically by title
-    rootNodes.sort((a, b) => {
+  console.log('Debug layout:', { 
+    rootNodes: rootNodes.map(n => ({ id: n.id, label: n.data.label })), 
+    edgesCount: edges.length, 
+    rootNodesCount: rootNodes.length,
+    shouldApplyManualLayout: rootNodes.length > 1 && edges.length === 0
+  });
+  
+  // Apply manual grid layout for multiple root nodes ONLY when no edges exist (no expanded nodes)
+  if (rootNodes.length > 1 && edges.length === 0) {
+    // Separate Tutorial node (id: 4) from other root nodes
+    const tutorialNode = rootNodes.find(node => node.id === 'node-4');
+    const otherRootNodes = rootNodes.filter(node => node.id !== 'node-4');
+    
+    // Sort other root nodes alphabetically by title
+    otherRootNodes.sort((a, b) => {
       const titleA = a.data.label.toLowerCase();
       const titleB = b.data.label.toLowerCase();
       return titleA.localeCompare(titleB);
     });
     
-    // Calculate how many nodes per row based on layout direction
-    const nodesPerRow = horizontalLayout ? rootNodes.length : 4;  // Fixed width for vertical layout
-    
-    rootNodes.forEach((node, index) => {
-      const row = Math.floor(index / nodesPerRow);
-      const col = index % nodesPerRow;
-      
+    // Position Tutorial node in the top row
+    if (tutorialNode) {
       if (horizontalLayout) {
-        // Horizontal layout - arrange nodes in a row from left to right
-        node.position.x = col * 350;
-        node.position.y = 100;
+        tutorialNode.position.x = 0;
+        tutorialNode.position.y = 0;
       } else {
-        // Vertical layout - arrange nodes in a grid from top to bottom
-        node.position.x = col * 350;
-        node.position.y = row * 120;
+        tutorialNode.position.x = 0;
+        tutorialNode.position.y = 0;
       }
-    });
+    }
+    
+    // Position other root nodes in the bottom row - SINGLE ROW ONLY
+    if (otherRootNodes.length > 0) {
+      otherRootNodes.forEach((node, index) => {
+        if (horizontalLayout) {
+          // Horizontal layout - arrange nodes in a single row from left to right, below tutorial
+          node.position.x = index * 350;
+          node.position.y = 150; // Position below tutorial node
+        } else {
+          // Vertical layout - arrange nodes in a single row horizontally, below tutorial
+          node.position.x = index * 350;
+          node.position.y = 150; // Single row at y: 150
+        }
+      });
+    }
+  }
+
+  // Always position Tutorial node at the top, regardless of Dagre layout
+  const tutorialNode = layoutedNodes.find(node => node.id === 'node-4');
+  if (tutorialNode) {
+    // Find the minimum Y position among all nodes
+    const minY = Math.min(...layoutedNodes.map(node => node.position.y));
+    // Position Tutorial node above all others
+    tutorialNode.position.y = minY - 150; // 150px above the highest node
+    
+    // Position Tutorial node to the left of other nodes
+    const otherNodes = layoutedNodes.filter(node => node.id !== 'node-4');
+    if (otherNodes.length > 0) {
+      const minX = Math.min(...otherNodes.map(node => node.position.x));
+      tutorialNode.position.x = minX; // Position to the left with some spacing
+    }
   }
 
   return { nodes: layoutedNodes, edges };
@@ -172,6 +215,13 @@ const ReactFlowRenderer = ({
    */
   const transformData = useCallback(() => {
     if (!data || !data.nodes || !data.edges) return { nodes: [], edges: [] };
+    
+    console.log('transformData called with:', { 
+      dataNodes: data.nodes.length, 
+      dataEdges: data.edges.length, 
+      rootNodeId,
+      firstFewNodes: data.nodes.slice(0, 3).map(n => ({ id: n.id, title: n.title }))
+    });
     
     const flowNodes = [];
     const flowEdges = [];
