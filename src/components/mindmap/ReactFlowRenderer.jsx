@@ -22,6 +22,9 @@ const nodeTypes = {
   standard: StandardNode,
 };
 
+// Add this constant at the top of the getHierarchicalLayout function
+const LEFT_OFFSET = 150; // Adjust this value to control the left spacing
+
 /**
  * Creates a hierarchical tree layout using the dagre library
  * 
@@ -32,6 +35,18 @@ const nodeTypes = {
  * @returns {Object} Object containing layouted nodes and edges
  */
 const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) => {
+  const LEFT_OFFSET = 150; // Add left spacing for all nodes
+  const TUTORIAL_Y_OFFSET = 150; // Consistent Y distance between Tutorial and other root nodes
+  const SPECIAL_NODE_IDS = ['node-4', 'node-20']; // Tutorial and node 20 are special nodes
+  
+  console.log('getHierarchicalLayout called with:', { 
+    nodesCount: nodes.length, 
+    edgesCount: edges.length, 
+    rootIds, 
+    horizontalLayout,
+    allNodeIds: nodes.map(n => n.id)
+  });
+  
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   
@@ -47,7 +62,7 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
 
   // Add nodes to the graph
   nodes.forEach((node) => {
-    dagreGraph.setNode(node.id, { width: 280, height: 70 }); // Increased width for longer titles
+    dagreGraph.setNode(node.id, { width: 280, height: 90 }); // Increased height from 70 to 90
   });
 
   // Add edges to the graph
@@ -64,7 +79,7 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
     const rootNodeId = typeof rootId === 'string' ? rootId : `node-${rootId}`;
     dagreGraph.setNode(rootNodeId, { 
       width: 280, 
-      height: 70,
+      height: 90, // Increased height from 70 to 90
       // Set a rank to maintain ordering
       rank: horizontalLayout ? 0 : index,  // All in same rank for horizontal, different ranks for vertical
       order: horizontalLayout ? index : 0   // Ordering within rank
@@ -74,14 +89,14 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
   // Apply layout
   dagre.layout(dagreGraph);
 
-  // Get the positions
+  // Get the positions with LEFT_OFFSET added
   const layoutedNodes = nodes.map((node) => {
     const dagreNode = dagreGraph.node(node.id);
     if (!dagreNode) {
-      // If node wasn't found in the graph, give it a default position
+      // If node wasn't found in the graph, give it a default position with left offset
       return {
         ...node,
-        position: { x: 0, y: 0 },
+        position: { x: LEFT_OFFSET, y: 0 },
         // Always set targetPosition and sourcePosition based on current layout
         targetPosition: horizontalLayout ? 'left' : 'top',
         sourcePosition: horizontalLayout ? 'right' : 'bottom'
@@ -91,7 +106,7 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
     return {
       ...node,
       position: {
-        x: dagreNode.x - 140, // Center the node (increased for wider nodes)
+        x: dagreNode.x - 140 + LEFT_OFFSET, // Add LEFT_OFFSET here
         y: dagreNode.y - 35,  // Center the node
       },
       // Always set targetPosition and sourcePosition based on current layout
@@ -102,35 +117,83 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
 
   // Handle root nodes with no connections between them
   const rootNodes = layoutedNodes.filter(node => 
-    rootNodeIds.includes(node.id.replace('node-', ''))
+    rootIds.includes(node.id)
   );
   
-  // If we have multiple root nodes with few or no edges, arrange them in a grid
-  if (rootNodes.length > 1 && edges.length < rootNodes.length) {
-    // Sort root nodes alphabetically by title
-    rootNodes.sort((a, b) => {
+  console.log('Debug layout:', { 
+    rootNodes: rootNodes.map(n => ({ id: n.id, label: n.data.label })), 
+    edgesCount: edges.length, 
+    rootNodesCount: rootNodes.length,
+    shouldApplyManualLayout: rootNodes.length > 1 && edges.length === 0
+  });
+  
+  // Apply manual grid layout for multiple root nodes ONLY when no edges exist (no expanded nodes)
+  if (rootNodes.length > 1 && edges.length === 0) {
+    // Separate special nodes (Tutorial and node 20) from other root nodes
+    const specialNodes = rootNodes.filter(node => SPECIAL_NODE_IDS.includes(node.id));
+    const otherRootNodes = rootNodes.filter(node => !SPECIAL_NODE_IDS.includes(node.id));
+    
+    // Sort other root nodes alphabetically by title
+    otherRootNodes.sort((a, b) => {
       const titleA = a.data.label.toLowerCase();
       const titleB = b.data.label.toLowerCase();
       return titleA.localeCompare(titleB);
     });
     
-    // Calculate how many nodes per row based on layout direction
-    const nodesPerRow = horizontalLayout ? rootNodes.length : 4;  // Fixed width for vertical layout
-    
-    rootNodes.forEach((node, index) => {
-      const row = Math.floor(index / nodesPerRow);
-      const col = index % nodesPerRow;
-      
+    // Position special nodes in the top row
+    specialNodes.forEach((node, index) => {
       if (horizontalLayout) {
-        // Horizontal layout - arrange nodes in a row from left to right
-        node.position.x = col * 350;
-        node.position.y = 100;
+        node.position.x = index * 350 + LEFT_OFFSET;
+        node.position.y = 0;
       } else {
-        // Vertical layout - arrange nodes in a grid from top to bottom
-        node.position.x = col * 350;
-        node.position.y = row * 120;
+        node.position.x = index * 350 + LEFT_OFFSET;
+        node.position.y = 0;
       }
     });
+    
+    // Position other root nodes in the bottom row - SINGLE ROW ONLY with left offset
+    if (otherRootNodes.length > 0) {
+      otherRootNodes.forEach((node, index) => {
+        if (horizontalLayout) {
+          // Horizontal layout - arrange nodes in a single row from left to right, below special nodes
+          node.position.x = index * 350 + LEFT_OFFSET; // Add LEFT_OFFSET
+          node.position.y = 150; // Position below special nodes
+        } else {
+          // Vertical layout - arrange nodes in a single row horizontally, below special nodes
+          node.position.x = index * 350 + LEFT_OFFSET; // Add LEFT_OFFSET
+          node.position.y = 150; // Single row at y: 150
+        }
+      });
+    }
+  }
+
+  // Always position special nodes at a fixed distance above other root nodes
+  const specialNodes = layoutedNodes.filter(node => SPECIAL_NODE_IDS.includes(node.id));
+  if (specialNodes.length > 0) {
+    // Find the other root nodes (excluding special nodes)
+    const otherRootNodes = layoutedNodes.filter(node => 
+      rootIds.includes(node.id) && !SPECIAL_NODE_IDS.includes(node.id)
+    );
+    
+    if (otherRootNodes.length > 0) {
+      // Get the Y position of the other root nodes
+      const rootNodesY = Math.min(...otherRootNodes.map(node => node.position.y));
+      
+      // Position special nodes at a fixed distance above the root nodes
+      specialNodes.forEach((specialNode, index) => {
+        specialNode.position.y = rootNodesY - TUTORIAL_Y_OFFSET;
+        
+        // Position them horizontally with spacing
+        const minX = Math.min(...otherRootNodes.map(node => node.position.x));
+        specialNode.position.x = minX + (index * 350); // Space them 350px apart
+      });
+    } else {
+      // If there are no other root nodes, use default positions
+      specialNodes.forEach((specialNode, index) => {
+        specialNode.position.x = LEFT_OFFSET + (index * 350);
+        specialNode.position.y = 0;
+      });
+    }
   }
 
   return { nodes: layoutedNodes, edges };
@@ -172,6 +235,13 @@ const ReactFlowRenderer = ({
    */
   const transformData = useCallback(() => {
     if (!data || !data.nodes || !data.edges) return { nodes: [], edges: [] };
+    
+    console.log('transformData called with:', { 
+      dataNodes: data.nodes.length, 
+      dataEdges: data.edges.length, 
+      rootNodeId,
+      firstFewNodes: data.nodes.slice(0, 3).map(n => ({ id: n.id, title: n.title }))
+    });
     
     const flowNodes = [];
     const flowEdges = [];
@@ -227,7 +297,7 @@ const ReactFlowRenderer = ({
           label: node.title || 'Untitled',
           slug: node.slug,
           isExpanded: isExpanded,
-          hasChildren: hasChildren,
+          hasChildren: hasChildren && !['node-4', 'node-20'].includes(`node-${nodeId}`), // Disable expansion for special nodes
           onToggleExpand: () => onToggleExpand(`${nodeId}`),
           onNodeClick: () => onNodeClick(node.slug),
           sectionColor: sectionTag ? sectionColors[sectionTag.name.charCodeAt(8) % sectionColors.length] : '#cccccc',
