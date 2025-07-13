@@ -37,6 +37,7 @@ const LEFT_OFFSET = 150; // Adjust this value to control the left spacing
 const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) => {
   const LEFT_OFFSET = 150; // Add left spacing for all nodes
   const TUTORIAL_Y_OFFSET = 150; // Consistent Y distance between Tutorial and other root nodes
+  const SPECIAL_NODE_IDS = ['node-4', 'node-20']; // Tutorial and node 20 are special nodes
   
   console.log('getHierarchicalLayout called with:', { 
     nodesCount: nodes.length, 
@@ -128,9 +129,9 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
   
   // Apply manual grid layout for multiple root nodes ONLY when no edges exist (no expanded nodes)
   if (rootNodes.length > 1 && edges.length === 0) {
-    // Separate Tutorial node (id: 4) from other root nodes
-    const tutorialNode = rootNodes.find(node => node.id === 'node-4');
-    const otherRootNodes = rootNodes.filter(node => node.id !== 'node-4');
+    // Separate special nodes (Tutorial and node 20) from other root nodes
+    const specialNodes = rootNodes.filter(node => SPECIAL_NODE_IDS.includes(node.id));
+    const otherRootNodes = rootNodes.filter(node => !SPECIAL_NODE_IDS.includes(node.id));
     
     // Sort other root nodes alphabetically by title
     otherRootNodes.sort((a, b) => {
@@ -139,26 +140,26 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
       return titleA.localeCompare(titleB);
     });
     
-    // Position Tutorial node in the top row with left offset
-    if (tutorialNode) {
+    // Position special nodes in the top row
+    specialNodes.forEach((node, index) => {
       if (horizontalLayout) {
-        tutorialNode.position.x = LEFT_OFFSET;
-        tutorialNode.position.y = 0;
+        node.position.x = index * 350 + LEFT_OFFSET;
+        node.position.y = 0;
       } else {
-        tutorialNode.position.x = LEFT_OFFSET;
-        tutorialNode.position.y = 0;
+        node.position.x = index * 350 + LEFT_OFFSET;
+        node.position.y = 0;
       }
-    }
+    });
     
     // Position other root nodes in the bottom row - SINGLE ROW ONLY with left offset
     if (otherRootNodes.length > 0) {
       otherRootNodes.forEach((node, index) => {
         if (horizontalLayout) {
-          // Horizontal layout - arrange nodes in a single row from left to right, below tutorial
+          // Horizontal layout - arrange nodes in a single row from left to right, below special nodes
           node.position.x = index * 350 + LEFT_OFFSET; // Add LEFT_OFFSET
-          node.position.y = 150; // Position below tutorial node
+          node.position.y = 150; // Position below special nodes
         } else {
-          // Vertical layout - arrange nodes in a single row horizontally, below tutorial
+          // Vertical layout - arrange nodes in a single row horizontally, below special nodes
           node.position.x = index * 350 + LEFT_OFFSET; // Add LEFT_OFFSET
           node.position.y = 150; // Single row at y: 150
         }
@@ -166,29 +167,32 @@ const getHierarchicalLayout = (nodes, edges, rootIds, horizontalLayout = false) 
     }
   }
 
-  // Always position Tutorial node at a fixed distance above other root nodes
-  const tutorialNode = layoutedNodes.find(node => node.id === 'node-4');
-  if (tutorialNode) {
-    // Find the other root nodes (excluding tutorial)
+  // Always position special nodes at a fixed distance above other root nodes
+  const specialNodes = layoutedNodes.filter(node => SPECIAL_NODE_IDS.includes(node.id));
+  if (specialNodes.length > 0) {
+    // Find the other root nodes (excluding special nodes)
     const otherRootNodes = layoutedNodes.filter(node => 
-      rootIds.includes(node.id) && node.id !== 'node-4'
+      rootIds.includes(node.id) && !SPECIAL_NODE_IDS.includes(node.id)
     );
     
     if (otherRootNodes.length > 0) {
       // Get the Y position of the other root nodes
-      // Use the minimum Y to handle cases where root nodes might be at different heights
       const rootNodesY = Math.min(...otherRootNodes.map(node => node.position.y));
       
-      // Position Tutorial node at a fixed distance above the root nodes
-      tutorialNode.position.y = rootNodesY - TUTORIAL_Y_OFFSET;
-      
-      // Align Tutorial node horizontally with the leftmost root node
-      const minX = Math.min(...otherRootNodes.map(node => node.position.x));
-      tutorialNode.position.x = minX;
+      // Position special nodes at a fixed distance above the root nodes
+      specialNodes.forEach((specialNode, index) => {
+        specialNode.position.y = rootNodesY - TUTORIAL_Y_OFFSET;
+        
+        // Position them horizontally with spacing
+        const minX = Math.min(...otherRootNodes.map(node => node.position.x));
+        specialNode.position.x = minX + (index * 350); // Space them 350px apart
+      });
     } else {
-      // If there are no other root nodes, use default position
-      tutorialNode.position.x = LEFT_OFFSET;
-      tutorialNode.position.y = 0;
+      // If there are no other root nodes, use default positions
+      specialNodes.forEach((specialNode, index) => {
+        specialNode.position.x = LEFT_OFFSET + (index * 350);
+        specialNode.position.y = 0;
+      });
     }
   }
 
